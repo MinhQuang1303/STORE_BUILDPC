@@ -7,9 +7,11 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 shadow-xl text-white flex-shrink-0 transition-all duration-300">
         <div className="p-6">
-          <h2 className="text-2xl font-bold tracking-wider text-blue-400">
-            NEXTGEN PC
-          </h2>
+          <Link to="/">
+            <h2 className="text-2xl font-bold tracking-wider text-blue-400">
+              NEXTGEN PC
+            </h2>
+          </Link>
           <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest">
             Admin Dashboard
           </p>
@@ -23,11 +25,25 @@ const AdminLayout = () => {
             <span className="font-medium">Dashboard</span>
           </Link>
           <Link
+            to="/admin/categories"
+            className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2"
+          >
+            <span className="mr-3">📁</span>
+            <span className="font-medium">Quản lý danh mục</span>
+          </Link>
+          <Link
             to="/admin/products"
             className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2"
           >
             <span className="mr-3">💻</span>
             <span className="font-medium">Quản lý linh kiện</span>
+          </Link>
+          <Link
+            to="/admin/vouchers"
+            className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2"
+          >
+            <span className="mr-3">🎟️</span>
+            <span className="font-medium">Mã giảm giá</span>
           </Link>
           <Link
             to="/admin/orders"

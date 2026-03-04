@@ -7,7 +7,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/san-pham")
+      .get(`${process.env.REACT_APP_API_URL}/san-pham`)
       .then((res) => {
         setSanPhams(res.data);
         setLoading(false);
