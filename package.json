@@ -1,0 +1,13 @@
+{
+  "name": "buildpc-root",
+  "version": "1.0.0",
+  "scripts": {
+    "install-all": "concurrently \"cd may-chu && npm install\" \"cd giao-dien && npm install\"",
+    "start-backend": "cd may-chu && npm start",
+    "start-frontend": "cd giao-dien && npm start",
+    "dev": "concurrently \"npm run start-backend\" \"npm run start-frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
