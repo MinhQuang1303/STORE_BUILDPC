@@ -17,7 +17,7 @@ const TrangChu = () => {
 
     // Lấy dữ liệu sản phẩm để hiển thị ở mục "Sản phẩm mới nhất"
     useEffect(() => {
-        axios.get('http://localhost:5000/api/san-pham')
+        axios.get(`${process.env.REACT_APP_API_URL}/api/san-pham`)
             .then(res => setSanPhams(res.data.slice(0, 8))) // Lấy 8 sản phẩm đầu tiên
             .catch(err => console.error("Lỗi lấy sản phẩm:", err));
     }, []);

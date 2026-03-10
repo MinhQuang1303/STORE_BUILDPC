@@ -15,7 +15,7 @@ function TrangBuildPC() {
 
     // 2. Tải dữ liệu từ Backend
     useEffect(() => {
-        axios.get('http://localhost:5000/api/san-pham')
+        axios.get(`${process.env.REACT_APP_API_URL}/api/san-pham`)
             .then(res => setSanPhams(res.data))
             .catch(err => console.error("Lỗi API:", err));
     }, []);

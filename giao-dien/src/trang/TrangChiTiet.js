@@ -14,7 +14,7 @@ const TrangChiTiet = () => {
     const { addToCart } = useContext(CartContext);
 
     useEffect(() => {
-        axios.get(`http://localhost:5000/api/san-pham/${id}`)
+        axios.get(`${process.env.REACT_APP_API_URL}/api/san-pham/${id}`)
             .then(res => setSp(res.data))
             .catch(err => console.error("Lỗi lấy chi tiết:", err));
     }, [id]);
