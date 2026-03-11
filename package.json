@@ -1,9 +1,10 @@
 {
-  "name": "build-pc-root",
+  "name": "buildpc-root",
   "scripts": {
-    "backend": "cd web-ban-linh-kien/may-chu && npm start",
-    "frontend": "cd web-ban-linh-kien/giao-dien && npm start",
-    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+    "install-all": "concurrently \"cd may-chu && npm install\" \"cd giao-dien && npm install\"",
+    "start-backend": "cd may-chu && npm start",
+    "start-frontend": "cd giao-dien && npm start",
+    "dev": "concurrently \"npm run start-backend\" \"npm run start-frontend\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
