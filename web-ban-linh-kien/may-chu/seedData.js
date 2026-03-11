@@ -1,8 +1,8 @@
-﻿const mongoose = require("mongoose");
-const User = require("./src/models/User");
-const Order = require("./src/models/Order");
-const OrderItem = require("./src/models/OrderItem");
-const SanPham = require("./src/models/SanPham");
+const mongoose = require("mongoose");
+const User = require("./src/mo-hinh/User");
+const Order = require("./src/mo-hinh/Order");
+const OrderItem = require("./src/mo-hinh/OrderItem");
+const SanPham = require("./src/mo-hinh/SanPham");
 
 const MONGO_URI = "mongodb://127.0.0.1:27017/pc-builder";
 
@@ -38,7 +38,7 @@ const seedData = async () => {
       let existing = await User.findOne({ email: u.email });
       if (!existing) {
         existing = await User.create(u);
-        console.log(`ðŸ‘¤ ÄÃ£ táº¡o user: ${u.username}`);
+        console.log(`👤 Đã tạo user: ${u.username}`);
       }
       createdUsers.push(existing);
     }
@@ -71,14 +71,14 @@ const seedData = async () => {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
 
-      // Mỗi tháng tạo ngẫu nhiên 2-5 đơn hàng
+      // Mỗi tháng tạo 2-5 đơn hàng
       const numOrders = Math.floor(Math.random() * 4) + 2;
 
       for (let j = 0; j < numOrders; j++) {
         const randomUser =
           createdUsers[Math.floor(Math.random() * createdUsers.length)];
         const randomTrangThai =
-          i === 0 ? trangThais[Math.floor(Math.random() * 3)] : "Delivered"; // Tháng hiện tại (i=0) thì trạng thái ngẫu nhiên, các tháng cũ mặc định là đã giao hàng
+          i === 0 ? trangThais[Math.floor(Math.random() * 3)] : "Delivered"; // Tháng hiện tại ngẫu nhiên, tháng cũ mặc định hoàn thành
 
         const orderDate = new Date(date);
         orderDate.setDate(Math.floor(Math.random() * 28) + 1);
@@ -109,7 +109,7 @@ const seedData = async () => {
           });
           total += price * qty;
         }
-        // Cập nhật lại tổng tiền cho đơn hàng sau khi đã cộng dồn items
+
         newOrder.tongTien = total;
         await newOrder.save();
       }

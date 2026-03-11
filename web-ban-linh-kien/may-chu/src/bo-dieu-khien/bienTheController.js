@@ -1,4 +1,4 @@
-const BienThe = require("../models/BienThe");
+const BienThe = require("../mo-hinh/BienThe");
 
 // Lấy danh sách tất cả biến thể
 exports.layDanhSachBienThe = async (req, res) => {

@@ -22,18 +22,7 @@ const SanPhamSchema = new mongoose.Schema(
       type: String,
     },
   },
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  },
+  { timestamps: true },
 );
-
-// Trường ảo để liên kết với các biến thể của sản phẩm
-SanPhamSchema.virtual("bienThe", {
-  ref: "BienThe",
-  localField: "_id",
-  foreignField: "idSanPham",
-});
 
 module.exports = mongoose.model("SanPham", SanPhamSchema);

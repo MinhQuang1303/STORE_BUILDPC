@@ -1,6 +1,6 @@
-const Order = require("../models/Order");
-const SanPham = require("../models/SanPham");
-const User = require("../models/User");
+const Order = require("../mo-hinh/Order");
+const SanPham = require("../mo-hinh/SanPham");
+const User = require("../mo-hinh/User");
 
 // @desc    Lấy tổng quan số liệu thống kê
 // @route   GET /api/thong-ke/overview

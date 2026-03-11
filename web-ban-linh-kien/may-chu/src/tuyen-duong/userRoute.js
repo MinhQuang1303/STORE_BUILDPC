@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/userController");
+const userController = require("../bo-dieu-khien/userController");
 
-// đăng ký người dùng mới
+// Đăng ký người dùng mới
 router.post("/dang-ky", userController.dangKy);
 
 // Lấy danh sách tất cả người dùng

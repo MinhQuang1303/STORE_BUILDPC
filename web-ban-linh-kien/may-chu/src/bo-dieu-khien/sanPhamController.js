@@ -1,4 +1,4 @@
-const sanPhamService = require("../services/sanPhamService");
+const SanPham = require("../mo-hinh/SanPham");
 
 // Lấy danh sách sản phẩm (có lọc theo idDanhMuc và populate thông tin danh mục)
 exports.layDanhSachSanPham = async (req, res) => {
@@ -6,7 +6,7 @@ exports.layDanhSachSanPham = async (req, res) => {
     const { idDanhMuc } = req.query; // Lấy tham số ?idDanhMuc=... từ URL
     const filter = idDanhMuc ? { idDanhMuc: idDanhMuc } : {};
 
-    const danhSach = await sanPhamService.layDanhSachSanPham(filter);
+    const danhSach = await SanPham.find(filter).populate("idDanhMuc");
     res.json(danhSach);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,7 +17,7 @@ exports.layDanhSachSanPham = async (req, res) => {
 exports.layChiTietSanPham = async (req, res) => {
   try {
     const { id } = req.params;
-    const sanPham = await sanPhamService.layChiTietSanPham(id);
+    const sanPham = await SanPham.findById(id).populate("idDanhMuc");
     if (!sanPham) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     }
@@ -30,13 +30,12 @@ exports.layChiTietSanPham = async (req, res) => {
 // Tạo sản phẩm mới
 exports.taoMoi = async (req, res) => {
   try {
-    const { ten, idDanhMuc, gia, thongSo, bienThe } = req.body;
-    const anh = req.file ? req.file.path : req.body.anh;
+    const { ten, idDanhMuc, gia, thongSo } = req.body;
+    const anh = req.file ? req.file.path : req.body.anh; // Lấy URL từ Cloudinary hoặc dùng URL text
 
-    const duLieuSanPham = { ten, idDanhMuc, gia, anh, thongSo };
-    const ketQua = await sanPhamService.taoMoiSanPham(duLieuSanPham, bienThe);
-
-    res.status(201).json(ketQua);
+    const sanPhamMoi = new SanPham({ ten, idDanhMuc, gia, anh, thongSo });
+    await sanPhamMoi.save();
+    res.status(201).json(sanPhamMoi);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -46,25 +45,22 @@ exports.taoMoi = async (req, res) => {
 exports.capNhat = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ten, idDanhMuc, gia, thongSo, bienThe } = req.body;
+    const { ten, idDanhMuc, gia, thongSo } = req.body;
 
     let duLieuCapNhat = { ten, idDanhMuc, gia, thongSo };
     if (req.file) {
-      duLieuCapNhat.anh = req.file.path;
+      duLieuCapNhat.anh = req.file.path; // Cập nhật ảnh mới từ Cloudinary nếu có upload
     } else if (req.body.anh) {
-      duLieuCapNhat.anh = req.body.anh;
+      duLieuCapNhat.anh = req.body.anh; // Hoặc dùng URL text nếu có gửi lên
     }
 
-    const ketQua = await sanPhamService.capNhatSanPham(
-      id,
-      duLieuCapNhat,
-      bienThe,
-    );
-    if (!ketQua) {
+    const sanPhamCapNhat = await SanPham.findByIdAndUpdate(id, duLieuCapNhat, {
+      new: true,
+    });
+    if (!sanPhamCapNhat) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     }
-
-    res.json(ketQua);
+    res.json(sanPhamCapNhat);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -74,22 +70,22 @@ exports.capNhat = async (req, res) => {
 exports.xoa = async (req, res) => {
   try {
     const { id } = req.params;
-    const sanPhamDaXoa = await sanPhamService.xoaSanPham(id);
+    const sanPhamDaXoa = await SanPham.findByIdAndDelete(id);
     if (!sanPhamDaXoa) {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     }
-
-    res.json({
-      message: "Đã xoá sản phẩm và các biến thể liên quan thành công",
-    });
+    res.json({ message: "Đã xoá sản phẩm thành công" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Tạo nhanh dữ liệu mẫu
+// Tạo nhanh dữ liệu mẫu (Cảnh báo: Hàm này cần idDanhMuc thật từ Database)
 exports.taoDuLieuMau = async (req, res) => {
   res
     .status(400)
-    .json({ message: "Hàm này đã cũ. Vui lòng sử dụng chức năng tạo mới." });
+    .json({
+      message:
+        "Hàm này đã cũ. Vui lòng sử dụng chức năng tạo mới với idDanhMuc thực tế từ bảng Danh mục.",
+    });
 };

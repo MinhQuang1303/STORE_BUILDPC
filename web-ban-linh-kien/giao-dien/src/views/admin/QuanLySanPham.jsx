@@ -14,7 +14,6 @@ const QuanLySanPham = () => {
     idDanhMuc: "",
     gia: "",
     thongSo: "",
-    bienThe: [], // Thêm mảng biến thể
   });
   const [submitting, setSubmitting] = useState(false);
   const [file, setFile] = useState(null);
@@ -55,7 +54,6 @@ const QuanLySanPham = () => {
         idDanhMuc: data.idDanhMuc?._id || data.idDanhMuc || "",
         gia: data.gia || "",
         thongSo: data.thongSo || "",
-        bienThe: data.bienThe || [], // Lấy biến thể hiện có
       });
       setPreview(data.anh);
     } else {
@@ -65,31 +63,11 @@ const QuanLySanPham = () => {
         idDanhMuc: danhMucs[0]?._id || "",
         gia: "",
         thongSo: "",
-        bienThe: [], // Khởi tạo mảng rỗng
       });
       setPreview(null);
     }
     setFile(null);
     setShowModal(true);
-  };
-
-  // Các hàm xử lý biến thể
-  const handleAddVariant = () => {
-    setFormData({
-      ...formData,
-      bienThe: [...formData.bienThe, { ten: "", gia: "" }],
-    });
-  };
-
-  const handleRemoveVariant = (index) => {
-    const newVariants = formData.bienThe.filter((_, i) => i !== index);
-    setFormData({ ...formData, bienThe: newVariants });
-  };
-
-  const handleVariantChange = (index, field, value) => {
-    const newVariants = [...formData.bienThe];
-    newVariants[index][field] = value;
-    setFormData({ ...formData, bienThe: newVariants });
   };
 
   const handleFileChange = (e) => {
@@ -111,19 +89,9 @@ const QuanLySanPham = () => {
     data.append("idDanhMuc", formData.idDanhMuc);
     data.append("gia", formData.gia);
     data.append("thongSo", formData.thongSo);
-
     if (file) {
       data.append("anh", file);
     }
-
-    // Gửi mảng biến thể dưới dạng JSON string để Backend xử lý
-    // Lưu ý: sanPhamController cần nhận req.body.bienThe đã parse nếu dùng multer,
-    // hoặc bạn có thể append từng phần nếu cần. Ở đây tôi dùng JSON.stringify cho tiện.
-    // Tuy nhiên, multer mặc định không parse JSON trong FormData, nên ta sẽ append list.
-    formData.bienThe.forEach((bt, index) => {
-      data.append(`bienThe[${index}][ten]`, bt.ten);
-      data.append(`bienThe[${index}][gia]`, bt.gia);
-    });
 
     try {
       setSubmitting(true);
@@ -146,11 +114,7 @@ const QuanLySanPham = () => {
   };
 
   const handleDelete = async (id) => {
-    if (
-      window.confirm(
-        "Bạn có chắc chắn muốn xoá sản phẩm này? Điều này sẽ xoá luôn các biến thể liên quan.",
-      )
-    ) {
+    if (window.confirm("Bạn có chắc chắn muốn xoá sản phẩm này?")) {
       try {
         await axios.delete(`${API_SAN_PHAM}/${id}`);
         fetchData();
@@ -196,9 +160,8 @@ const QuanLySanPham = () => {
                 <tr>
                   <th className="px-6 py-4">Hình ảnh</th>
                   <th className="px-6 py-4">Tên sản phẩm</th>
-                  <th className="px-6 py-4">Biến thể</th>
                   <th className="px-6 py-4">Danh mục</th>
-                  <th className="px-6 py-4">Giá gốc</th>
+                  <th className="px-6 py-4">Giá bán</th>
                   <th className="px-6 py-4 text-center">Thao tác</th>
                 </tr>
               </thead>
@@ -220,11 +183,6 @@ const QuanLySanPham = () => {
                       <div className="text-xs text-gray-400 truncate max-w-xs">
                         {item.thongSo}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold">
-                        {item.bienThe?.length || 0} phiên bản
-                      </span>
                     </td>
                     <td className="px-6 py-4 italic text-blue-600 font-medium">
                       {item.idDanhMuc?.ten || "Không xác định"}
@@ -251,7 +209,7 @@ const QuanLySanPham = () => {
                 {sanPhams.length === 0 && (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="5"
                       className="px-6 py-10 text-center text-gray-400"
                     >
                       Chưa có sản phẩm nào.
@@ -273,173 +231,107 @@ const QuanLySanPham = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto transform transition-all scale-100">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 my-auto transform transition-all scale-100">
             <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tighter border-l-4 border-blue-600 pl-4">
               {editData ? "Cập nhật Linh kiện" : "Thêm Linh kiện mới"}
             </h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                      Tên linh kiện
-                    </label>
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                    Tên linh kiện
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.ten}
+                    onChange={(e) =>
+                      setFormData({ ...formData, ten: e.target.value })
+                    }
+                    required
+                    placeholder="VD: Intel Core i9-13900K..."
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                    Danh mục
+                  </label>
+                  <select
+                    value={formData.idDanhMuc}
+                    onChange={(e) =>
+                      setFormData({ ...formData, idDanhMuc: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  >
+                    <option value="">-- Chọn danh mục --</option>
+                    {danhMucs.map((dm) => (
+                      <option key={dm._id} value={dm._id}>
+                        {dm.ten}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                    Giá bán (VNĐ)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.gia}
+                    onChange={(e) =>
+                      setFormData({ ...formData, gia: e.target.value })
+                    }
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                    Thông số kỹ thuật
+                  </label>
+                  <textarea
+                    value={formData.thongSo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, thongSo: e.target.value })
+                    }
+                    rows="3"
+                    placeholder="Băng thông, xung nhịp, dung lượng..."
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                    Hình ảnh sản phẩm
+                  </label>
+                  <div className="space-y-3">
                     <input
-                      type="text"
-                      value={formData.ten}
-                      onChange={(e) =>
-                        setFormData({ ...formData, ten: e.target.value })
-                      }
-                      required
-                      placeholder="VD: Intel Core i9-13900K..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                        Danh mục
-                      </label>
-                      <select
-                        value={formData.idDanhMuc}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            idDanhMuc: e.target.value,
-                          })
-                        }
-                        required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                      >
-                        <option value="">-- Chọn --</option>
-                        {danhMucs.map((dm) => (
-                          <option key={dm._id} value={dm._id}>
-                            {dm.ten}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                        Giá gốc (VNĐ)
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.gia}
-                        onChange={(e) =>
-                          setFormData({ ...formData, gia: e.target.value })
-                        }
-                        required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                      Thông số kỹ thuật
-                    </label>
-                    <textarea
-                      value={formData.thongSo}
-                      onChange={(e) =>
-                        setFormData({ ...formData, thongSo: e.target.value })
-                      }
-                      rows="2"
-                      placeholder="Băng thông, xung nhịp, dung lượng..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                      Hình ảnh
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                      {preview && (
+                    {preview && (
+                      <div className="h-32 w-full flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-2">
                         <img
                           src={preview}
                           alt="Preview"
-                          className="h-12 w-12 object-contain rounded border"
+                          className="max-h-full max-w-full object-contain"
                         />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phần quản lý biến thể */}
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="block text-xs font-black uppercase text-gray-500">
-                      Biến thể của sản phẩm
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleAddVariant}
-                      className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition-colors"
-                    >
-                      + Thêm biến thể
-                    </button>
-                  </div>
-
-                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    {formData.bienThe.map((bt, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm"
-                      >
-                        <input
-                          type="text"
-                          placeholder="Tên bt (8GB...)"
-                          value={bt.ten}
-                          onChange={(e) =>
-                            handleVariantChange(index, "ten", e.target.value)
-                          }
-                          className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
-                        />
-                        <input
-                          type="number"
-                          placeholder="Giá (VNĐ)"
-                          value={bt.gia}
-                          onChange={(e) =>
-                            handleVariantChange(index, "gia", e.target.value)
-                          }
-                          className="w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveVariant(index)}
-                          className="text-red-400 hover:text-red-600 p-1"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                    {formData.bienThe.length === 0 && (
-                      <div className="text-center py-6 text-gray-400 text-xs italic">
-                        Chưa có biến thể nào được thêm.
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              <div className="md:col-span-2 flex space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
@@ -452,11 +344,35 @@ const QuanLySanPham = () => {
                   disabled={submitting}
                   className={`flex-1 px-4 py-3 text-white rounded-xl font-bold shadow-lg transition-all flex items-center justify-center ${submitting ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
                 >
-                  {submitting
-                    ? "Đang xử lý..."
-                    : editData
-                      ? "Cập nhật ngay"
-                      : "Thêm sản phẩm"}
+                  {submitting ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Đang xử lý...
+                    </>
+                  ) : editData ? (
+                    "Cập nhật ngay"
+                  ) : (
+                    "Thêm sản phẩm"
+                  )}
                 </button>
               </div>
             </form>

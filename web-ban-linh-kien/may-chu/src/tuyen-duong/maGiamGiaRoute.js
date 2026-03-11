@@ -7,7 +7,7 @@ const {
   capNhat,
   xoa,
   kiemTraMa,
-} = require("../controllers/maGiamGiaController");
+} = require("../bo-dieu-khien/maGiamGiaController");
 
 // GET /api/ma-giam-gia
 router.get("/", layTatCa);
