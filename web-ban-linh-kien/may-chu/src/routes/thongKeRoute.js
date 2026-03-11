@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const thongKeController = require("../bo-dieu-khien/thongKeController");
+const thongKeController = require("../controllers/thongKeController");
 
 // Route lấy tổng quan
 router.get("/overview", thongKeController.getOverview);
 
-// Route lấy doanh thu 12 tháng gần nhất
+// Route lấy dữ liệu doanh thu của 12 tháng gần nhất
 router.get("/doanh-thu", thongKeController.getDoanhThuChart);
 
 // Route lấy thống kê trạng thái đơn hàng

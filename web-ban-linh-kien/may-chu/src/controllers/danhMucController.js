@@ -1,9 +1,9 @@
-const DanhMuc = require("../mo-hinh/DanhMuc");
+const danhMucService = require("../services/danhMucService");
 
 // Lấy tất cả danh mục
 exports.layTatCa = async (req, res) => {
   try {
-    const danhSachs = await DanhMuc.find();
+    const danhSachs = await danhMucService.layTatCaDanhMuc();
     res.json(danhSachs);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -13,9 +13,7 @@ exports.layTatCa = async (req, res) => {
 // Tạo danh mục mới
 exports.taoMoi = async (req, res) => {
   try {
-    const { ten, moTa } = req.body;
-    const danhMucMoi = new DanhMuc({ ten, moTa });
-    await danhMucMoi.save();
+    const danhMucMoi = await danhMucService.taoMoiDanhMuc(req.body);
     res.status(201).json(danhMucMoi);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -26,12 +24,7 @@ exports.taoMoi = async (req, res) => {
 exports.capNhat = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ten, moTa } = req.body;
-    const danhMucCapNhat = await DanhMuc.findByIdAndUpdate(
-      id,
-      { ten, moTa },
-      { new: true },
-    );
+    const danhMucCapNhat = await danhMucService.capNhatDanhMuc(id, req.body);
     if (!danhMucCapNhat) {
       return res.status(404).json({ message: "Không tìm thấy danh mục" });
     }
@@ -45,7 +38,7 @@ exports.capNhat = async (req, res) => {
 exports.xoa = async (req, res) => {
   try {
     const { id } = req.params;
-    const danhMucDaXoa = await DanhMuc.findByIdAndDelete(id);
+    const danhMucDaXoa = await danhMucService.xoaDanhMuc(id);
     if (!danhMucDaXoa) {
       return res.status(404).json({ message: "Không tìm thấy danh mục" });
     }

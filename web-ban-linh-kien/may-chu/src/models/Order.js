@@ -36,7 +36,7 @@ const OrderSchema = new mongoose.Schema(
   },
 );
 
-// Virtual field for order items
+// Trường ảo để liên kết với các chi tiết đơn hàng (order items)
 OrderSchema.virtual("orderItems", {
   ref: "OrderItem",
   localField: "_id",

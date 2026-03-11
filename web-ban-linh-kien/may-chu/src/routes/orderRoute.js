@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const orderController = require("../bo-dieu-khien/orderController");
+const orderController = require("../controllers/orderController");
 
 // Route lấy danh sách tất cả đơn hàng
 router.get("/", orderController.layDanhSachOrder);

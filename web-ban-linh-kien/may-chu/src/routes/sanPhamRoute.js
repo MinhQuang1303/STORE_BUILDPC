@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const uploadCloud = require("../tien-ich/tai-len-cloudinary");
+const uploadCloud = require("../utils/tai-len-cloudinary");
 const {
   layDanhSachSanPham,
   layChiTietSanPham,
@@ -8,7 +8,7 @@ const {
   capNhat,
   xoa,
   taoDuLieuMau,
-} = require("../bo-dieu-khien/sanPhamController.js");
+} = require("../controllers/sanPhamController.js");
 
 // GET /api/san-pham
 router.get("/", layDanhSachSanPham);

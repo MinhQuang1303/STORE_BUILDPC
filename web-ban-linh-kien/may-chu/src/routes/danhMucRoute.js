@@ -5,7 +5,7 @@ const {
   taoMoi,
   capNhat,
   xoa,
-} = require("../bo-dieu-khien/danhMucController");
+} = require("../controllers/danhMucController");
 
 // GET /api/danh-muc
 router.get("/", layTatCa);

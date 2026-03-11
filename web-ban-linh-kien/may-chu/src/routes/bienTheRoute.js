@@ -6,7 +6,7 @@ const {
   taoMoi,
   capNhat,
   xoa,
-} = require("../bo-dieu-khien/bienTheController");
+} = require("../controllers/bienTheController");
 
 // GET /api/bien-the
 router.get("/", layDanhSachBienThe);
