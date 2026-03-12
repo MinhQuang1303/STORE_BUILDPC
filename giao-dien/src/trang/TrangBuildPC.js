@@ -1,130 +1,183 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { xoaSanPham } from '../services/sanPhamService';
 import Banner from '../components/Banner';
+import { CartContext } from '../context/CartContext'; 
 
 function TrangBuildPC() {
-    // 1. Quản lý State
-    const [sanPhams, setSanPhams] = useState([]); // Dữ liệu gốc từ API
-    const [searchTerm, setSearchTerm] = useState(''); // Từ khóa tìm kiếm từ Banner
-    const [cauHinh, setCauHinh] = useState({ CPU: null, GPU: null, RAM: null });
+    const navigate = useNavigate();
+    const [sanPhams, setSanPhams] = useState([]); 
+    const [searchTerm, setSearchTerm] = useState(''); 
+    const [danhSachChon, setDanhSachChon] = useState([]);
+    const [loaiDangChon, setLoaiDangChon] = useState('Tất cả');
+    const [loiCauHinh, setLoiCauHinh] = useState([]); 
 
-    // Lấy thông tin user để kiểm tra quyền Admin
+    const { addToCart } = useContext(CartContext); 
+    const cacLoaiLinhKien = ['Tất cả', 'CPU', 'Mainboard', 'RAM', 'VGA', 'Ổ cứng', 'Nguồn', 'Case', 'Tản nhiệt'];
+
     const userStorage = JSON.parse(localStorage.getItem('user'));
-    const laAdmin = userStorage?.user?.vaiTro === 'admin';
 
-    // 2. Tải dữ liệu từ Backend
     useEffect(() => {
         axios.get('http://localhost:5000/api/san-pham')
             .then(res => setSanPhams(res.data))
             .catch(err => console.error("Lỗi API:", err));
     }, []);
 
-    // 3. Logic xử lý
+    // Logic kiểm tra tương thích (Socket & RAM)
+    useEffect(() => {
+        let errors = [];
+        const cpu = danhSachChon.find(item => item.loai === 'CPU');
+        const main = danhSachChon.find(item => item.loai === 'Mainboard');
+        const ram = danhSachChon.find(item => item.loai === 'RAM');
+
+        if (cpu && main) {
+            const regexSocket = /(LGA\s?\d+|AM\d+|Socket\s?\d+)/i;
+            const cpuS = cpu.thongSo?.match(regexSocket)?.[0]?.replace(/\s|Socket/ig, '');
+            const mainS = main.thongSo?.match(regexSocket)?.[0]?.replace(/\s|Socket/ig, '');
+            if (cpuS && mainS && cpuS !== mainS) {
+                errors.push(`❌ Lỗi Socket: CPU (${cpuS}) không khớp với Mainboard (${mainS}).`);
+            }
+        }
+
+        if (main && ram) {
+            const mRam = main.thongSo?.match(/DDR\d/i)?.[0]?.toUpperCase();
+            const rRam = ram.thongSo?.match(/DDR\d/i)?.[0]?.toUpperCase();
+            if (mRam && rRam && mRam !== rRam) {
+                errors.push(`❌ Lỗi RAM: Mainboard hỗ trợ ${mRam} nhưng RAM là ${rRam}.`);
+            }
+        }
+        setLoiCauHinh(errors);
+    }, [danhSachChon]);
+
+    // SỬA LỖI: Chọn linh kiện mới sẽ thay thế linh kiện cũ cùng loại
     const chonLinhKien = (sp) => {
-        setCauHinh({ ...cauHinh, [sp.loai]: sp });
+        setDanhSachChon((prev) => {
+            const index = prev.findIndex(item => item.loai === sp.loai);
+            if (index !== -1) {
+                const updated = [...prev];
+                updated[index] = { ...sp, soLuong: 1 };
+                return updated;
+            }
+            return [...prev, { ...sp, soLuong: 1 }];
+        });
     };
 
-    const handleXoa = async (id) => {
-        if (window.confirm("Bạn có chắc chắn muốn xóa linh kiện này?")) {
-            try {
-                await xoaSanPham(id);
-                alert("Đã xóa thành công!");
-                setSanPhams(sanPhams.filter(item => item._id !== id));
-            } catch (error) {
-                alert("Lỗi: " + (error.response?.data?.message || "Không thể xóa"));
+    const handleAction = (type) => {
+        if (!userStorage) {
+            if (window.confirm("Bạn cần đăng nhập để tiếp tục. Đi đến trang đăng nhập?")) {
+                navigate('/login');
             }
+            return;
+        }
+
+        if (loiCauHinh.length > 0) {
+            alert("Vui lòng sửa lỗi cấu hình trước khi tiếp tục!");
+            return;
+        }
+
+        if (type === 'ADD_ALL') {
+            if (danhSachChon.length === 0) return alert("Chưa chọn linh kiện nào!");
+            danhSachChon.forEach(sp => addToCart(sp, sp.soLuong, true));
+            alert("Toàn bộ cấu hình đã được thêm vào giỏ hàng!");
+        } else {
+            alert(`Tổng tiền: ${tongTien.toLocaleString()} đ. Đang chuyển hướng thanh toán...`);
         }
     };
 
-    // Tính tổng tiền
-    const tongTien = Object.values(cauHinh).reduce((total, item) => {
-        return total + (item ? item.gia : 0);
-    }, 0);
-
-    // Lọc danh sách sản phẩm theo từ khóa tìm kiếm (nhận từ Banner)
+    const tongTien = danhSachChon.reduce((t, i) => t + (i.gia * i.soLuong), 0);
     const sanPhamsHienThi = sanPhams.filter(sp => 
-        sp.ten.toLowerCase().includes(searchTerm.toLowerCase())
+        sp.ten.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        (loaiDangChon === 'Tất cả' || sp.loai === loaiDangChon)
     );
 
     return (
-        <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: 'Arial' }}>
-            {/* BANNER: Chứa Store Name, Search, Acc Info, Logout */}
+        <div style={styles.page}>
             <Banner onSearch={setSearchTerm} />
-
-            <div style={{ padding: '30px' }}>
-                <h1 style={{ textAlign: 'center', color: '#2c3e50', marginBottom: '20px' }}>
-                    🛠️ TỰ XÂY DỰNG CẤU HÌNH PC
-                </h1>
-
-                {/* KHU VỰC CẤU HÌNH ĐÃ CHỌN */}
-                <div style={styles.buildSummary}>
-                    <h3 style={{ borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>Dàn máy của bạn:</h3>
-                    <div style={styles.buildGrid}>
-                        <div style={styles.buildItem}>
-                            <strong>CPU:</strong> {cauHinh.CPU ? cauHinh.CPU.ten : <span style={{color: '#999'}}>Chưa chọn</span>}
+            <div style={styles.container}>
+                <div style={styles.mainLayout}>
+                    {/* CỘT TRÁI */}
+                    <div style={styles.leftCol}>
+                        <div style={styles.tabs}>
+                            {cacLoaiLinhKien.map(l => (
+                                <button key={l} style={loaiDangChon === l ? styles.tabActive : styles.tab} onClick={() => setLoaiDangChon(l)}>{l}</button>
+                            ))}
                         </div>
-                        <div style={styles.buildItem}>
-                            <strong>GPU:</strong> {cauHinh.GPU ? cauHinh.GPU.ten : <span style={{color: '#999'}}>Chưa chọn</span>}
-                        </div>
-                        <div style={styles.buildItem}>
-                            <strong>RAM:</strong> {cauHinh.RAM ? cauHinh.RAM.ten : <span style={{color: '#999'}}>Chưa chọn</span>}
+                        <div style={styles.grid}>
+                            {sanPhamsHienThi.map(item => (
+                                <div key={item._id} style={styles.card}>
+                                    <div style={styles.imgWrap}><img src={item.anh} alt={item.ten} style={styles.img}/></div>
+                                    <div style={styles.cardBody}>
+                                        <span style={styles.typeBadge}>{item.loai}</span>
+                                        <h4 style={styles.pName}>{item.ten}</h4>
+                                        <p style={styles.price}>{item.gia?.toLocaleString()} đ</p>
+                                        <button onClick={() => chonLinhKien(item)} style={styles.btnAdd}>+ Thêm vào cấu hình</button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                    <h2 style={{ color: '#e74c3c', marginTop: '15px', textAlign: 'right' }}>
-                        Tổng cộng: {tongTien.toLocaleString()} VNĐ
-                    </h2>
-                </div>
 
-                {/* DANH SÁCH LINH KIỆN LỌC THEO TÌM KIẾM */}
-                <div style={styles.productGrid}>
-                    {sanPhamsHienThi.length > 0 ? (
-                        sanPhamsHienThi.map(item => (
-                            <div key={item._id} style={styles.card}>
-                                <div style={styles.imageContainer}>
-                                    <img src={item.anh} alt={item.ten} style={styles.image} />
-                                </div>
-                                <h3 style={styles.productName}>{item.ten}</h3>
-                                <p style={styles.thongSo}>{item.thongSo}</p>
-                                <p style={styles.price}>{item.gia?.toLocaleString()} VNĐ</p>
-                                
-                                <button onClick={() => chonLinhKien(item)} style={styles.addBtn}>
-                                    Thêm vào cấu hình
-                                </button>
-
-                                {laAdmin && (
-                                    <button 
-                                        onClick={() => handleXoa(item._id)} 
-                                        style={styles.adminDelBtn}
-                                    >
-                                        🗑️ Xóa (Admin)
-                                    </button>
-                                )}
+                    {/* CỘT PHẢI */}
+                    <div style={styles.rightCol}>
+                        <div style={styles.sidebar}>
+                            <h3 style={styles.sideTitle}>Dàn máy của bạn</h3>
+                            {loiCauHinh.map((err, idx) => <div key={idx} style={styles.errorItem}>{err}</div>)}
+                            <div style={styles.buildItems}>
+                                {danhSachChon.length === 0 && <p style={styles.empty}>Chưa có linh kiện nào</p>}
+                                {danhSachChon.map(item => (
+                                    <div key={item._id} style={styles.itemRow}>
+                                        <div style={{flex: 1}}>
+                                            <div style={styles.itemName}>{item.ten}</div>
+                                            <div style={styles.itemPrice}>{item.gia.toLocaleString()} đ</div>
+                                        </div>
+                                        <button onClick={() => setDanhSachChon(danhSachChon.filter(i => i._id !== item._id))} style={styles.btnDel}>✕</button>
+                                    </div>
+                                ))}
                             </div>
-                        ))
-                    ) : (
-                        <p style={{ textAlign: 'center', gridColumn: '1/-1' }}>Không tìm thấy linh kiện nào khớp với từ khóa.</p>
-                    )}
+                            <div style={styles.footer}>
+                                <div style={styles.totalRow}><span>Tổng cộng:</span><span style={styles.totalPrice}>{tongTien.toLocaleString()} đ</span></div>
+                                <button style={styles.btnGreen} onClick={() => handleAction('ADD_ALL')}>🛒 Thêm cả bộ vào giỏ</button>
+                                <button style={styles.btnBlue} onClick={() => handleAction('PAY')}>Thanh toán ngay</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
 
-// CSS-in-JS
 const styles = {
-    buildSummary: { border: '2px solid #2c3e50', padding: '20px', marginBottom: '30px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' },
-    buildGrid: { display: 'flex', justifyContent: 'space-between', gap: '20px' },
-    buildItem: { flex: 1, padding: '10px', backgroundColor: '#f1f2f6', borderRadius: '8px' },
-    productGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '25px' },
-    card: { backgroundColor: '#fff', borderRadius: '15px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', textAlign: 'center', transition: 'transform 0.2s' },
-    imageContainer: { height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' },
-    image: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
-    productName: { fontSize: '18px', margin: '10px 0', height: '45px', overflow: 'hidden' },
-    thongSo: { color: '#666', fontSize: '13px', height: '40px' },
-    price: { color: '#e74c3c', fontSize: '20px', fontWeight: 'bold', margin: '10px 0' },
-    addBtn: { backgroundColor: '#27ae60', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', width: '100%' },
-    adminDelBtn: { backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', marginTop: '10px', width: '100%', fontSize: '12px' }
+    page: { backgroundColor: '#f1f5f9', minHeight: '100vh' },
+    container: { maxWidth: '1400px', margin: '0 auto', padding: '20px' },
+    mainLayout: { display: 'flex', gap: '25px', alignItems: 'flex-start' },
+    leftCol: { flex: 2 },
+    tabs: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' },
+    tab: { padding: '8px 16px', borderRadius: '20px', border: '1px solid #cbd5e1', cursor: 'pointer', backgroundColor: '#fff' },
+    tabActive: { padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer', backgroundColor: '#2563eb', color: '#fff', fontWeight: 'bold' },
+    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' },
+    card: { backgroundColor: '#fff', borderRadius: '12px', padding: '15px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' },
+    imgWrap: { height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    img: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
+    typeBadge: { fontSize: '10px', color: '#64748b', fontWeight: 'bold' },
+    pName: { fontSize: '14px', margin: '5px 0', height: '40px', overflow: 'hidden' },
+    price: { color: '#ef4444', fontWeight: 'bold' },
+    btnAdd: { marginTop: '10px', padding: '10px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
+    rightCol: { flex: 1, position: 'sticky', top: '80px' },
+    sidebar: { backgroundColor: '#fff', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' },
+    sideTitle: { borderBottom: '2px solid #f1f5f9', paddingBottom: '10px' },
+    errorItem: { backgroundColor: '#fef2f2', color: '#dc2626', padding: '8px', borderRadius: '6px', fontSize: '12px', marginBottom: '10px', fontWeight: 'bold' },
+    buildItems: { maxHeight: '350px', overflowY: 'auto' },
+    itemRow: { display: 'flex', padding: '10px 0', borderBottom: '1px solid #f1f5f9' },
+    itemName: { fontSize: '12px', fontWeight: '500' },
+    itemPrice: { fontSize: '12px', color: '#ef4444' },
+    btnDel: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' },
+    empty: { textAlign: 'center', color: '#94a3b8' },
+    footer: { borderTop: '2px dashed #e2e8f0', paddingTop: '15px' },
+    totalRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '15px' },
+    totalPrice: { color: '#ef4444', fontSize: '20px', fontWeight: 'bold' },
+    btnGreen: { width: '100%', padding: '12px', backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', marginBottom: '10px', cursor: 'pointer' },
+    btnBlue: { width: '100%', padding: '12px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }
 };
 
 export default TrangBuildPC;

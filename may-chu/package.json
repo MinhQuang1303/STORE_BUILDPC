@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node src/server.js",
+    "seed": "node bom-du-lieu.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -12,7 +13,6 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^7.0.0",
-    "react-router-dom": "^7.13.1"
+    "mongoose": "^7.0.0"
   }
 }

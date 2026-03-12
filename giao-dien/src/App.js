@@ -6,6 +6,7 @@ import TrangChu from './trang/TrangChu';
 import TrangBuildPC from './trang/TrangBuildPC';
 import TrangChiTiet from './trang/TrangChiTiet';
 import TrangGioHang from './trang/TrangGioHang';
+import TrangSanPham from './trang/TrangSanPham'; // Trang mới thêm
 
 // Import từ thư mục /pages
 import AuthPage from './pages/AuthPage';
@@ -13,38 +14,40 @@ import TrangAdmin from './pages/TrangAdmin';
 
 // Import các thành phần hỗ trợ
 import ProtectedRoute from './components/ProtectedRoute';
-import { CartProvider } from './context/CartContext'; // Đảm bảo đường dẫn này đúng
+import { CartProvider } from './context/CartContext';
 
 function App() {
   return (
-    // Bọc toàn bộ ứng dụng trong CartProvider để giỏ hàng hoạt động ở mọi trang
     <CartProvider>
       <Router>
         <Routes>
-          {/* 1. Trang chủ bán hàng */}
+          {/* 1. Trang chủ */}
           <Route path="/" element={<TrangChu />} />
 
-          {/* 2. Trang tự build PC */}
+          {/* 2. Trang tất cả sản phẩm (Cửa hàng) */}
+          <Route path="/san-pham" element={<TrangSanPham />} />
+
+          {/* 3. Trang tự build PC */}
           <Route path="/build" element={<TrangBuildPC />} />
 
-          {/* 3. Trang chi tiết sản phẩm */}
+          {/* 4. Trang chi tiết sản phẩm */}
           <Route path="/san-pham/:id" element={<TrangChiTiet />} />
 
-          {/* 4. Trang giỏ hàng */}
+          {/* 5. Trang giỏ hàng */}
           <Route path="/gio-hang" element={<TrangGioHang />} />
 
-          {/* 5. Trang đăng nhập và đăng ký */}
+          {/* 6. Xác thực người dùng */}
           <Route path="/login" element={<AuthPage isLogin={true} />} />
           <Route path="/register" element={<AuthPage isLogin={false} />} />
           
-          {/* 6. Trang quản trị - Chỉ dành cho Admin */}
+          {/* 7. Trang quản trị - Bảo mật bằng ProtectedRoute */}
           <Route path="/admin" element={
             <ProtectedRoute isAdminRequired={true}>
               <TrangAdmin />
             </ProtectedRoute>
           } />
 
-          {/* 7. Chuyển hướng các đường dẫn không tồn tại về Trang Chủ */}
+          {/* 8. Xử lý đường dẫn không tồn tại */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>

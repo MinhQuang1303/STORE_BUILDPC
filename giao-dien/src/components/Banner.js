@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Thêm Link vào đây
 import { CartContext } from '../context/CartContext';
 
 const Banner = ({ onSearch }) => {
     const navigate = useNavigate();
-    const { cartItems } = useContext(CartContext); // Lấy dữ liệu giỏ hàng thực tế
+    const { cartItems } = useContext(CartContext); 
     
     const userStorage = JSON.parse(localStorage.getItem('user'));
     const user = userStorage?.user;
@@ -16,7 +16,7 @@ const Banner = ({ onSearch }) => {
 
     return (
         <nav style={styles.nav}>
-            {/* Tên Store - Click để về trang chủ */}
+            {/* Logo - Click về trang chủ */}
             <div style={styles.logo} onClick={() => navigate('/')}>
                 STORE_BUILDPC
             </div>
@@ -31,21 +31,26 @@ const Banner = ({ onSearch }) => {
                 />
             </div>
 
-            {/* Danh mục & Giỏ hàng */}
+            {/* Menu điều hướng */}
             <div style={styles.menuItems}>
-                <span style={styles.item} onClick={() => navigate('/')}>Danh mục</span>
+                <Link to="/" style={styles.navLink}>Trang chủ</Link>
+                <Link to="/san-pham" style={styles.navLink}>Cửa hàng</Link>
+                <Link to="/build" style={styles.navLink}>Build PC</Link>
                 
-                {/* Giỏ hàng hiển thị số lượng thực tế */}
+                {/* Giỏ hàng */}
                 <div style={styles.cartIcon} onClick={() => navigate('/gio-hang')}>
                     🛒 <span style={styles.cartBadge}>{cartItems.length}</span>
                 </div>
             </div>
 
-            {/* Thông tin tài khoản */}
+            {/* Khu vực tài khoản */}
             <div style={styles.authSection}>
                 {user ? (
                     <div style={styles.userBox}>
                         <span style={styles.userName}>Hi, {user.ten}</span>
+                        {user.vaiTro === 'admin' && (
+                            <button onClick={() => navigate('/admin')} style={styles.adminBtn}>Admin</button>
+                        )}
                         <button onClick={handleDangXuat} style={styles.logoutBtn}>
                             Đăng xuất
                         </button>
@@ -65,68 +70,98 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 50px',
-        backgroundColor: '#2c3e50',
+        padding: '12px 40px',
+        backgroundColor: '#1e293b', // Đổi sang màu xanh đen hiện đại hơn
         color: 'white',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
         position: 'sticky',
         top: 0,
         zIndex: 1000
     },
     logo: {
-        fontSize: '24px',
-        fontWeight: 'bold',
+        fontSize: '22px',
+        fontWeight: '800',
         cursor: 'pointer',
-        color: '#3498db'
+        color: '#3b82f6',
+        letterSpacing: '1px'
     },
     searchContainer: {
         flex: 1,
-        margin: '0 30px',
+        margin: '0 40px',
+        maxWidth: '500px'
     },
     searchInput: {
         width: '100%',
-        padding: '8px 15px',
-        borderRadius: '20px',
+        padding: '10px 18px',
+        borderRadius: '10px',
         border: 'none',
-        outline: 'none'
+        outline: 'none',
+        fontSize: '14px',
+        backgroundColor: '#334155',
+        color: 'white'
     },
     menuItems: {
         display: 'flex',
         alignItems: 'center',
-        gap: '20px',
-        marginRight: '20px'
+        gap: '25px',
     },
-    item: { cursor: 'pointer', fontWeight: '500' },
-    cartIcon: { position: 'relative', fontSize: '20px', cursor: 'pointer' },
+    navLink: {
+        textDecoration: 'none',
+        color: '#cbd5e1',
+        fontWeight: '600',
+        fontSize: '15px',
+        transition: 'color 0.2s'
+    },
+    cartIcon: { 
+        position: 'relative', 
+        fontSize: '22px', 
+        cursor: 'pointer',
+        marginLeft: '10px'
+    },
     cartBadge: {
         position: 'absolute',
         top: '-8px',
         right: '-10px',
-        backgroundColor: '#e74c3c',
+        backgroundColor: '#ef4444',
         color: 'white',
         borderRadius: '50%',
         padding: '2px 6px',
-        fontSize: '12px'
+        fontSize: '11px',
+        fontWeight: 'bold',
+        border: '2px solid #1e293b'
     },
-    authSection: { display: 'flex', alignItems: 'center' },
-    userBox: { display: 'flex', alignItems: 'center', gap: '15px' },
-    userName: { fontWeight: 'bold', color: '#f1c40f' },
-    logoutBtn: {
-        backgroundColor: 'transparent',
-        color: 'white',
-        border: '1px solid white',
-        padding: '5px 10px',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        transition: '0.3s'
-    },
-    loginBtn: {
-        backgroundColor: '#3498db',
+    authSection: { marginLeft: '20px' },
+    userBox: { display: 'flex', alignItems: 'center', gap: '12px' },
+    userName: { fontWeight: '600', color: '#f59e0b', fontSize: '14px' },
+    adminBtn: {
+        backgroundColor: '#8b5cf6',
         color: 'white',
         border: 'none',
-        padding: '8px 15px',
-        borderRadius: '5px',
-        cursor: 'pointer'
+        padding: '5px 12px',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        fontWeight: 'bold'
+    },
+    logoutBtn: {
+        backgroundColor: 'transparent',
+        color: '#94a3b8',
+        border: '1px solid #475569',
+        padding: '6px 14px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '13px',
+        transition: 'all 0.2s'
+    },
+    loginBtn: {
+        backgroundColor: '#2563eb',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontSize: '14px'
     }
 };
 
