@@ -20,9 +20,11 @@ const QuanLySanPham = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // Pagination state
+  // Pagination and filter state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const API_SAN_PHAM = `${process.env.REACT_APP_API_URL}/san-pham`;
   const API_DANH_MUC = `${process.env.REACT_APP_API_URL}/danh-muc`;
@@ -55,7 +57,12 @@ const QuanLySanPham = () => {
         idDanhMuc: data.idDanhMuc?._id || data.idDanhMuc || "",
         gia: data.gia || "",
         thongSo: data.thongSo || "",
-        bienThe: data.bienThe || [], // Lấy biến thể hiện có
+        bienThe:
+          data.bienThe?.map((bt) => ({
+            ...bt,
+            soLuong: bt.soLuong || 0,
+            daBan: bt.daBan || 0,
+          })) || [], // Lấy biến thể hiện có
       });
       setPreview(data.anh);
     } else {
@@ -77,7 +84,7 @@ const QuanLySanPham = () => {
   const handleAddVariant = () => {
     setFormData({
       ...formData,
-      bienThe: [...formData.bienThe, { ten: "", gia: "" }],
+      bienThe: [...formData.bienThe, { ten: "", gia: "", soLuong: 0 }],
     });
   };
 
@@ -106,6 +113,12 @@ const QuanLySanPham = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.bienThe.length === 0) {
+      alert("Bạn phải tạo ít nhất một biến thể (phiên bản) cho sản phẩm!");
+      return;
+    }
+
     const data = new FormData();
     data.append("ten", formData.ten);
     data.append("idDanhMuc", formData.idDanhMuc);
@@ -123,6 +136,8 @@ const QuanLySanPham = () => {
     formData.bienThe.forEach((bt, index) => {
       data.append(`bienThe[${index}][ten]`, bt.ten);
       data.append(`bienThe[${index}][gia]`, bt.gia);
+      data.append(`bienThe[${index}][soLuong]`, bt.soLuong || 0);
+      data.append(`bienThe[${index}][daBan]`, bt.daBan || 0);
     });
 
     try {
@@ -160,14 +175,27 @@ const QuanLySanPham = () => {
     }
   };
 
-  // Logic phân trang
+  // Logic lọc và phân trang
+  const filteredSanPhams = sanPhams.filter((item) => {
+    const matchesSearch = item.ten
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "" ||
+      (item.idDanhMuc?._id || item.idDanhMuc) === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sanPhams.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredSanPhams.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
             Quản lý Linh kiện
@@ -176,12 +204,59 @@ const QuanLySanPham = () => {
             Danh sách các sản phẩm đang kinh doanh
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg flex items-center"
-        >
-          <span className="mr-2">+</span> Thêm Linh kiện
-        </button>
+
+        <div className="flex flex-col sm:flex-row w-full xl:w-auto gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 sm:w-64">
+            <input
+              type="text"
+              placeholder="Tìm tên sản phẩm..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full"
+            />
+            <svg
+              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+
+          {/* Category Filter */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium w-full sm:w-48"
+          >
+            <option value="">Tất cả danh mục</option>
+            {danhMucs.map((dm) => (
+              <option key={dm._id} value={dm._id}>
+                {dm.ten}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => handleOpenModal()}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg flex items-center justify-center whitespace-nowrap"
+          >
+            <span className="mr-2">+</span> Thêm Linh kiện
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -197,6 +272,7 @@ const QuanLySanPham = () => {
                   <th className="px-6 py-4">Hình ảnh</th>
                   <th className="px-6 py-4">Tên sản phẩm</th>
                   <th className="px-6 py-4">Biến thể</th>
+                  <th className="px-6 py-4 text-center">Tổng kho</th>
                   <th className="px-6 py-4">Danh mục</th>
                   <th className="px-6 py-4">Giá gốc</th>
                   <th className="px-6 py-4 text-center">Thao tác</th>
@@ -226,6 +302,14 @@ const QuanLySanPham = () => {
                         {item.bienThe?.length || 0} phiên bản
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="font-bold text-gray-700">
+                        {item.soLuong || 0}
+                      </div>
+                      <div className="text-[10px] text-green-600 font-bold uppercase">
+                        Đã bán: {item.daBan || 0}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 italic text-blue-600 font-medium">
                       {item.idDanhMuc?.ten || "Không xác định"}
                     </td>
@@ -248,13 +332,15 @@ const QuanLySanPham = () => {
                     </td>
                   </tr>
                 ))}
-                {sanPhams.length === 0 && (
+                {currentItems.length === 0 && (
                   <tr>
                     <td
                       colSpan="6"
                       className="px-6 py-10 text-center text-gray-400"
                     >
-                      Chưa có sản phẩm nào.
+                      {searchTerm || selectedCategory
+                        ? "Không tìm thấy sản phẩm nào phù hợp với bộ lọc."
+                        : "Chưa có sản phẩm nào."}
                     </td>
                   </tr>
                 )}
@@ -264,7 +350,7 @@ const QuanLySanPham = () => {
 
           <PhanTrang
             itemsPerPage={itemsPerPage}
-            totalItems={sanPhams.length}
+            totalItems={filteredSanPhams.length}
             paginate={setCurrentPage}
             currentPage={currentPage}
           />
@@ -274,7 +360,7 @@ const QuanLySanPham = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto transform transition-all scale-100">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-7xl w-full p-8 max-h-[90vh] overflow-y-auto transform transition-all scale-100">
             <h3 className="text-xl font-black text-slate-800 mb-6 uppercase tracking-tighter border-l-4 border-blue-600 pl-4">
               {editData ? "Cập nhật Linh kiện" : "Thêm Linh kiện mới"}
             </h3>
@@ -386,30 +472,64 @@ const QuanLySanPham = () => {
                     </button>
                   </div>
 
-                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
                     {formData.bienThe.map((bt, index) => (
                       <div
                         key={index}
                         className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm"
                       >
-                        <input
-                          type="text"
-                          placeholder="Tên bt (8GB...)"
-                          value={bt.ten}
-                          onChange={(e) =>
-                            handleVariantChange(index, "ten", e.target.value)
-                          }
-                          className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
-                        />
-                        <input
-                          type="number"
-                          placeholder="Giá (VNĐ)"
-                          value={bt.gia}
-                          onChange={(e) =>
-                            handleVariantChange(index, "gia", e.target.value)
-                          }
-                          className="w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
-                        />
+                        <div>
+                          <label className="block text-xs font-black uppercase text-gray-500">
+                            Tên biến thể
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Tên bt (8GB...)"
+                            value={bt.ten}
+                            required
+                            onChange={(e) =>
+                              handleVariantChange(index, "ten", e.target.value)
+                            }
+                            className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black uppercase text-gray-500">
+                            Giá
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="Giá (VNĐ)"
+                            value={bt.gia}
+                            required
+                            min="0"
+                            onChange={(e) =>
+                              handleVariantChange(index, "gia", e.target.value)
+                            }
+                            className="w-24 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black uppercase text-gray-500">
+                            Số lượng
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="Kho"
+                            value={bt.soLuong}
+                            required
+                            min="0"
+                            title="Số lượng trong kho"
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                "soLuong",
+                                e.target.value,
+                              )
+                            }
+                            className="w-20 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveVariant(index)}

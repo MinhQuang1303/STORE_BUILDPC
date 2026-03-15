@@ -10,9 +10,10 @@ const QuanLyDanhMuc = () => {
   const [formData, setFormData] = useState({ ten: "", moTa: "" });
   const [submitting, setSubmitting] = useState(false);
 
-  // Pagination state
+  // Pagination and search state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const API_URL = `${process.env.REACT_APP_API_URL}/danh-muc`;
 
@@ -72,26 +73,60 @@ const QuanLyDanhMuc = () => {
     }
   };
 
-  // Logic phân trang
+  // Logic lọc và phân trang
+  const filteredDanhMucs = danhMucs.filter((item) =>
+    item.ten.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = danhMucs.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredDanhMucs.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Quản lý Danh mục</h2>
           <p className="text-sm text-gray-500">
             Thêm, sửa, xoá các loại linh kiện máy tính
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg flex items-center"
-        >
-          <span className="mr-2">+</span> Thêm Danh mục
-        </button>
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Tìm tên danh mục..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1); // Reset về trang 1 khi search
+              }}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-64"
+            />
+            <svg
+              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <button
+            onClick={() => handleOpenModal()}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg flex items-center justify-center whitespace-nowrap"
+          >
+            <span className="mr-2">+</span> Thêm Danh mục
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -140,13 +175,15 @@ const QuanLyDanhMuc = () => {
                   </td>
                 </tr>
               ))}
-              {danhMucs.length === 0 && (
+              {currentItems.length === 0 && (
                 <tr>
                   <td
                     colSpan="4"
                     className="px-6 py-10 text-center text-gray-400"
                   >
-                    Chưa có danh mục nào.
+                    {searchTerm
+                      ? `Không tìm thấy danh mục nào khớp với "${searchTerm}"`
+                      : "Chưa có danh mục nào."}
                   </td>
                 </tr>
               )}
@@ -155,7 +192,7 @@ const QuanLyDanhMuc = () => {
 
           <PhanTrang
             itemsPerPage={itemsPerPage}
-            totalItems={danhMucs.length}
+            totalItems={filteredDanhMucs.length}
             paginate={setCurrentPage}
             currentPage={currentPage}
           />
