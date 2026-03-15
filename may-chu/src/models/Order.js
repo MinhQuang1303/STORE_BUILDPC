@@ -28,6 +28,10 @@ const OrderSchema = new mongoose.Schema(
     ghiChu: {
       type: String,
     },
+    isStockUpdated: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
