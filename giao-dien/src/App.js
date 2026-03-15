@@ -44,6 +44,8 @@ function App() {
             </ProtectedRoute>
           } />
 
+
+          <Route path="/san-pham/:id" element={<TrangChiTiet />} />
           {/* 7. Chuyển hướng các đường dẫn không tồn tại về Trang Chủ */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
