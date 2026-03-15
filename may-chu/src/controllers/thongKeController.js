@@ -2,7 +2,7 @@
 const SanPham = require("../models/SanPham");
 const User = require("../models/User");
 
-// @desc    Láº¥y tá»•ng quan sá»‘ liá»‡u thá»‘ng kÃª
+// @desc    Lấy số liệu thống kê tổng quan (Doanh thu, Đơn hàng, Sản phẩm, Khách hàng)
 // @route   GET /api/thong-ke/overview
 exports.getOverview = async (req, res) => {
   try {
@@ -10,7 +10,7 @@ exports.getOverview = async (req, res) => {
     const totalProducts = await SanPham.countDocuments();
     const totalUsers = await User.countDocuments({ role: "user" });
 
-    // TÃ­nh tá»•ng doanh thu tá»« cÃ¡c Ä‘Æ¡n hÃ ng Ä‘Ã£ giao (Delivered)
+    // Tính tổng doanh thu từ các đơn hàng đã giao thành công (Delivered)
     const orders = await Order.find({ trangThai: "Delivered" });
     const totalRevenue = orders.reduce((sum, order) => sum + order.tongTien, 0);
 
@@ -28,13 +28,13 @@ exports.getOverview = async (req, res) => {
   }
 };
 
-// @desc    Láº¥y dá»¯ liá»‡u doanh thu theo thÃ¡ng (12 thÃ¡ng gáº§n nháº¥t)
+// @desc    Lấy dữ liệu doanh thu theo tháng (12 tháng gần nhất)
 // @route   GET /api/thong-ke/doanh-thu
 exports.getDoanhThuChart = async (req, res) => {
   try {
     const endDay = new Date();
     const startDay = new Date();
-    startDay.setMonth(startDay.getMonth() - 11); // 12 thÃ¡ng bao gá»“m thÃ¡ng hiá»‡n táº¡i
+    startDay.setMonth(startDay.getMonth() - 11); // 12 tháng bao gồm tháng hiện tại
     startDay.setDate(1);
     startDay.setHours(0, 0, 0, 0);
 
@@ -43,7 +43,7 @@ exports.getDoanhThuChart = async (req, res) => {
       createdAt: { $gte: startDay, $lte: endDay },
     });
 
-    // Khá»Ÿi táº¡o máº£ng 12 thÃ¡ng
+    // Khởi tạo mảng 12 tháng
     const monthlyData = [];
     for (let i = 0; i < 12; i++) {
       const date = new Date(startDay);
@@ -52,7 +52,7 @@ exports.getDoanhThuChart = async (req, res) => {
       monthlyData.push({ month: monthLabel, revenue: 0 });
     }
 
-    // Äiá»n dá»¯ liá»‡u vÃ o máº£ng
+    // Điền dữ liệu vào mảng
     orders.forEach((order) => {
       const orderDate = new Date(order.createdAt);
       const monthLabel = `${orderDate.getMonth() + 1}/${orderDate.getFullYear()}`;
@@ -70,7 +70,7 @@ exports.getDoanhThuChart = async (req, res) => {
   }
 };
 
-// @desc    Thá»‘ng kÃª Ä‘Æ¡n hÃ ng theo tráº¡ng thÃ¡i
+// @desc    Thống kê đơn hàng theo trạng thái
 // @route   GET /api/thong-ke/trang-thai-don-hang
 exports.getTrangThaiDonHangChart = async (req, res) => {
   try {
@@ -89,7 +89,7 @@ exports.getTrangThaiDonHangChart = async (req, res) => {
   }
 };
 
-// @desc    Láº¥y 5 Ä‘Æ¡n hÃ ng má»›i nháº¥t
+// @desc    Lấy 5 đơn hàng mới nhất
 // @route   GET /api/thong-ke/recent
 exports.getRecentOrders = async (req, res) => {
   try {
