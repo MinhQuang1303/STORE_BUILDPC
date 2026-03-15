@@ -9,9 +9,9 @@ const MONGO_URI = "mongodb://127.0.0.1:27017/pc-builder";
 const seedData = async () => {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log("âœ… ÄÃ£ káº¿t ná»‘i MongoDB Ä‘á»ƒ chÃ¨n dá»¯ liá»‡u máº«u");
+    console.log("✅ Đã kết nối MongoDB để chèn dữ liệu mẫu");
 
-    // 1. Táº¡o má»™t sá»‘ ngÆ°á»i dÃ¹ng máº«u (náº¿u chÆ°a cÃ³)
+    // 1. Tạo một số người dùng mẫu (nếu chưa tồn tại)
     const users = [
       {
         username: "nguyenvana",
@@ -38,24 +38,24 @@ const seedData = async () => {
       let existing = await User.findOne({ email: u.email });
       if (!existing) {
         existing = await User.create(u);
-        console.log(`ðŸ‘¤ ÄÃ£ táº¡o user: ${u.username}`);
+        console.log(`✅ Đã tạo user: ${u.username}`);
       }
       createdUsers.push(existing);
     }
 
-    // 2. Láº¥y danh sÃ¡ch sáº£n pháº©m hiá»‡n cÃ³
+    // 2. Lấy danh sách sản phẩm hiện có
     const products = await SanPham.find();
     if (products.length === 0) {
       console.log(
-        "âŒ KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m nÃ o. Vui lÃ²ng thÃªm sáº£n pháº©m trÆ°á»›c.",
+        "âŒ Không tìm thấy sản phẩm nào. Vui lòng thêm sản phẩm trước.",
       );
       process.exit(0);
     }
 
-    // 3. Táº¡o Ä‘Æ¡n hÃ ng máº«u cho 12 thÃ¡ng gáº§n nháº¥t
-    console.log("ðŸ“¦ Äang táº¡o Ä‘Æ¡n hÃ ng máº«u...");
+    // 3. Tạo đơn hàng mẫu cho 12 tháng gần nhất
+    console.log("📦 Đang tạo đơn hàng mẫu...");
 
-    // XÃ³a Ä‘Æ¡n hÃ ng cÅ© náº¿u muá»‘n lÃ m sáº¡ch (TÃ¹y chá»n)
+    // Xóa đơn hàng cũ nếu muốn làm sạch (Tùy chọn)
     // await Order.deleteMany({});
     // await OrderItem.deleteMany({});
 
@@ -78,7 +78,8 @@ const seedData = async () => {
         const randomUser =
           createdUsers[Math.floor(Math.random() * createdUsers.length)];
         const randomTrangThai =
-          i === 0 ? trangThais[Math.floor(Math.random() * 3)] : "Delivered"; // ThÃ¡ng hiá»‡n táº¡i ngáº«u nhiÃªn, thÃ¡ng cÅ© máº·c Ä‘á»‹nh hoÃ n thÃ nh
+          i === 0 ? trangThais[Math.floor(Math.random() * 3)] : "Delivered"; // Với tháng hiện tại (i=0), trạng thái sẽ ngẫu nhiên.
+        // Với các tháng cũ, mặc định là "Đã giao hàng" để số liệu thống kê đẹp hơn.
 
         const orderDate = new Date(date);
         orderDate.setDate(Math.floor(Math.random() * 28) + 1);
@@ -87,12 +88,12 @@ const seedData = async () => {
           idUser: randomUser._id,
           tongTien: 0,
           trangThai: randomTrangThai,
-          diaChi: "HÃ  Ná»™i, Viá»‡t Nam",
+          diaChi: "Hà Nội, Việt Nam",
           soDienThoai: "0987654321",
           createdAt: orderDate,
         });
 
-        // ThÃªm 1-3 sáº£n pháº©m vÃ o má»—i Ä‘Æ¡n hÃ ng
+        // Thêm 1-3 sản phẩm vào mỗi đơn hàng
         let total = 0;
         const numItems = Math.floor(Math.random() * 3) + 1;
         for (let k = 0; k < numItems; k++) {
@@ -115,10 +116,10 @@ const seedData = async () => {
       }
     }
 
-    console.log("âœ… HoÃ n táº¥t chÃ¨n dá»¯ liá»‡u máº«u!");
+    console.log("✅ Hoàn tất chèn dữ liệu mẫu!");
     process.exit(0);
   } catch (error) {
-    console.error("âŒ Lá»—i:", error);
+    console.error("❌ Lỗi:", error);
     process.exit(1);
   }
 };

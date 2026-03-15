@@ -2,16 +2,16 @@
 const router = express.Router();
 const thongKeController = require("../controllers/thongKeController");
 
-// Route láº¥y tá»•ng quan
+// Route lấy số liệu tổng quan
 router.get("/overview", thongKeController.getOverview);
 
-// Route láº¥y doanh thu 12 thÃ¡ng gáº§n nháº¥t
+// Route lấy doanh thu 12 tháng gần nhất
 router.get("/doanh-thu", thongKeController.getDoanhThuChart);
 
-// Route láº¥y thá»‘ng kÃª tráº¡ng thÃ¡i Ä‘Æ¡n hÃ ng
+// Route lấy thống kê trạng thái đơn hàng
 router.get("/trang-thai-don-hang", thongKeController.getTrangThaiDonHangChart);
 
-// Route láº¥y 5 Ä‘Æ¡n hÃ ng gáº§n Ä‘Ã¢y
+// Route lấy 5 đơn hàng mới nhất
 router.get("/recent", thongKeController.getRecentOrders);
 
 module.exports = router;

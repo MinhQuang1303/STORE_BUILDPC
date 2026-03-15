@@ -2,10 +2,10 @@
 const router = express.Router();
 const userController = require("../controllers/userController");
 
-// ÄÄƒng kÃ½ ngÆ°á»i dÃ¹ng má»›i
+// Route đăng ký người dùng mới
 router.post("/dang-ky", userController.dangKy);
 
-// Láº¥y danh sÃ¡ch táº¥t cáº£ ngÆ°á»i dÃ¹ng
+// Route lấy danh sách tất cả người dùng
 router.get("/", userController.layTatCa);
 
 module.exports = router;
