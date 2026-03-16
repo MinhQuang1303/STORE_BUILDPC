@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const SanPham = require('./src/models/SanPham');
+const mongoose = typeof window === 'undefined' ? eval('require("mongoose")') : null;
+const SanPham = typeof window === 'undefined' ? eval('require("./src/models/SanPham")') : null;
 
 mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
 .then(async () => {
@@ -27,6 +27,130 @@ mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
             ten: "AMD Ryzen 5 5600", loai: "CPU", gia: 3200000, 
             anh: "https://m.media-amazon.com/images/I/61bLtv0eYwL._AC_SL1500_.jpg", 
             thongSo: "6 Cores, 12 Threads, Socket AM4" 
+     const danhSachFlashSale = [
+
+        // ================================================================
+        // CPU (20 sản phẩm) — ảnh từ Intel & AMD chính thức
+        // ================================================================
+        {
+            ten: "Intel Core i9-14900K",
+            loai: "CPU", gia: 15500000,
+            anh: "https://tse2.mm.bing.net/th/id/OIP.npXBd3C4CnFJL77HtxLwXwHaIl?pid=Api&P=0&h=180",
+            thongSo: "24 Cores (8P+16E), 32 Threads, Turbo 6.0GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i9-13900K",
+            loai: "CPU", gia: 13500000,
+            anh: "https://tse1.mm.bing.net/th/id/OIP.pMi7ToFzNO7AYSuAZ7084QHaEc?pid=Api&P=0&h=180",
+            thongSo: "24 Cores (8P+16E), 32 Threads, Turbo 5.8GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i7-14700K",
+            loai: "CPU", gia: 10200000,
+            anh: "https://tse2.mm.bing.net/th/id/OIP.Bu5PUPy2hosEtEXeED0-XAHaIe?pid=Api&P=0&h=180",
+            thongSo: "20 Cores (8P+12E), 28 Threads, Turbo 5.6GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i7-13700K",
+            loai: "CPU", gia: 9500000,
+            anh: "https://tse3.mm.bing.net/th/id/OIP.Q-LbQMyCSWKbeiuAdYXNLwHaEC?pid=Api&P=0&h=180",
+            thongSo: "16 Cores (8P+8E), 24 Threads, Turbo 5.4GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i5-14600K",
+            loai: "CPU", gia: 7200000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.ZkEOQYlmCTXgYj0yfqyngwHaD4?pid=Api&P=0&h=180",
+            thongSo: "14 Cores (6P+8E), 20 Threads, Turbo 5.3GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i5-13600K",
+            loai: "CPU", gia: 6800000,
+            anh: "https://tse2.mm.bing.net/th/id/OIP.k20Yzni4GcbBxju1ajTOfQHaFj?pid=Api&P=0&h=180",
+            thongSo: "14 Cores (6P+8E), 20 Threads, Turbo 5.1GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i5-13400F",
+            loai: "CPU", gia: 5200000,
+            anh: "https://tse2.mm.bing.net/th/id/OIP.JdBFpLA2XEBob_H-Au3DeAHaFj?pid=Api&P=0&h=180",
+            thongSo: "10 Cores (6P+4E), 16 Threads, Turbo 4.6GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i3-13100F",
+            loai: "CPU", gia: 2800000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.ZPfQ8kuVdRTvSXOQAbQ4rwHaHa?pid=Api&P=0&h=180",
+            thongSo: "4 Cores, 8 Threads, Turbo 4.5GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i9-12900K",
+            loai: "CPU", gia: 9800000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.9y_dsR6YdEoGgbeL9fJHvgHaFj?pid=Api&P=0&h=180",
+            thongSo: "16 Cores (8P+8E), 24 Threads, Turbo 5.2GHz, LGA1700"
+        },
+        {
+            ten: "Intel Core i7-12700K",
+            loai: "CPU", gia: 7000000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.NeHlh1Wv6oHb3clDn-kCtAHaFj?pid=Api&P=0&h=180",
+            thongSo: "12 Cores (8P+4E), 20 Threads, Turbo 5.0GHz, LGA1700"
+        },
+        {
+            ten: "AMD Ryzen 9 7950X3D",
+            loai: "CPU", gia: 24000000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.HiO3vf9Vt7b-UjHY1ZpIYAHaFj?pid=Api&P=0&h=180",
+            thongSo: "16 Cores, 32 Threads, Turbo 5.7GHz, 3D V-Cache, AM5"
+        },
+        {
+            ten: "AMD Ryzen 9 7900X",
+            loai: "CPU", gia: 10800000,
+            anh: "https://tse3.mm.bing.net/th/id/OIP.0eE3gkzMtMluudaog7NgGAHaGn?pid=Api&P=0&h=180",
+            thongSo: "12 Cores, 24 Threads, Turbo 5.6GHz, AM5"
+        },
+        {
+            ten: "AMD Ryzen 7 7800X3D",
+            loai: "CPU", gia: 10500000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.sEzKOERr3G4q7mGmr50_NQHaEL?pid=Api&P=0&h=180",
+            thongSo: "8 Cores, 16 Threads, Turbo 5.0GHz, 3D V-Cache, AM5"
+        },
+        {
+            ten: "AMD Ryzen 7 7700X",
+            loai: "CPU", gia: 7500000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.sXT_wc8G0OGH3v1Z3bD2GQHaEK?pid=Api&P=0&h=180",
+            thongSo: "8 Cores, 16 Threads, Turbo 5.4GHz, AM5"
+        },
+        {
+            ten: "AMD Ryzen 5 7600X",
+            loai: "CPU", gia: 5900000,
+            anh: "https://tse1.mm.bing.net/th/id/OIP.v2CQqwIJ0KZkDvvLMucmVQHaFQ?pid=Api&P=0&h=180",
+            thongSo: "6 Cores, 12 Threads, Turbo 5.3GHz, AM5"
+        },
+        {
+            ten: "AMD Ryzen 5 7600",
+            loai: "CPU", gia: 4800000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.8CT6SBHLA303THKsvo8X7QHaFj?pid=Api&P=0&h=180",
+            thongSo: "6 Cores, 12 Threads, Turbo 5.1GHz, AM5"
+        },
+        {
+            ten: "AMD Ryzen 7 5800X3D",
+            loai: "CPU", gia: 6200000,
+            anh: "https://tse4.mm.bing.net/th?id=OIF.Ijtm8IuJM33IJNCq%2fDQD8g&pid=Api&P=0&h=180",
+            thongSo: "8 Cores, 16 Threads, Turbo 4.5GHz, 3D V-Cache, AM4"
+        },
+        {
+            ten: "AMD Ryzen 5 5600X",
+            loai: "CPU", gia: 3600000,
+            anh: "https://tse4.mm.bing.net/th/id/OIP.x66LIRmpADYfd8zaDalKBwHaEK?pid=Api&P=0&h=180",
+            thongSo: "6 Cores, 12 Threads, Turbo 4.6GHz, AM4"
+        },
+        {
+            ten: "AMD Ryzen 9 5900X",
+            loai: "CPU", gia: 7200000,
+            anh: "https://tse3.mm.bing.net/th/id/OIP.Cwdhna4kNQ_Q0cXfhm-oOwHaFj?pid=Api&P=0&h=180",
+            thongSo: "12 Cores, 24 Threads, Turbo 4.8GHz, AM4"
+        },
+        {
+            ten: "AMD Ryzen 5 5500",
+            loai: "CPU", gia: 2500000,
+            anh: "https://tse1.mm.bing.net/th/id/OIP.o2mgloDPGeY4EJsmCTGE3wHaHX?pid=Api&P=0&h=180",
+            thongSo: "6 Cores, 12 Threads, Turbo 4.2GHz, AM4"
         },
 
         // ===================== 2. Mainboard =====================
@@ -154,3 +278,25 @@ mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
     console.error("❌ Lỗi thực thi:", err);
     process.exit(1);
 });
+ // 3. EXPORT CHO REACT (Dùng kiểu này để không lỗi Syntax)
+if (typeof exports !== 'undefined') {
+    exports.danhSachFlashSale = danhSachFlashSale;
+}
+
+// 4. LOGIC KẾT NỐI DATABASE (Chỉ chạy khi dùng lệnh 'node')
+if (typeof window === 'undefined' && mongoose) {
+    mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
+        .then(async () => {
+            console.log("🚀 Đang kết nối pc-builder và làm mới kho hàng...");
+            if (SanPham) {
+                await SanPham.deleteMany({});
+                await SanPham.insertMany(danhSachFlashSale);
+                console.log(`✅ Thành công! Đã thêm ${danhSachFlashSale.length} linh kiện.`);
+            }
+            process.exit(0);
+        })
+        .catch(err => {
+            console.error("❌ Lỗi thực thi:", err);
+            process.exit(1);
+        });
+}

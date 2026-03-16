@@ -48,6 +48,9 @@ function App() {
           } />
 
           {/* 8. Xử lý đường dẫn không tồn tại */}
+
+          <Route path="/san-pham/:id" element={<TrangChiTiet />} />
+          {/* 7. Chuyển hướng các đường dẫn không tồn tại về Trang Chủ */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>
