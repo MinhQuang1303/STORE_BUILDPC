@@ -1,57 +1,95 @@
-// may-chu/src/controllers/sanPhamController.js
-const SanPham = require('../models/SanPham');
+const sanPhamService = require("../services/sanPhamService");
 
-// 1. Lấy danh sách sản phẩm (MỚI BỔ SUNG - ĐỂ SỬA LỖI DÒNG 8)
+// Lấy danh sách sản phẩm (có lọc theo idDanhMuc và populate thông tin danh mục)
 exports.layDanhSachSanPham = async (req, res) => {
-    try {
-        const sanPhams = await SanPham.find();
-        res.status(200).json(sanPhams);
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi lấy danh sách", error: error.message });
-    }
+  try {
+    const { idDanhMuc } = req.query; // Lấy tham số ?idDanhMuc=... từ URL
+    const filter = idDanhMuc ? { idDanhMuc: idDanhMuc } : {};
+
+    const danhSach = await sanPhamService.layDanhSachSanPham(filter);
+    res.json(danhSach);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// 2. Thêm sản phẩm (Dùng cho router.post)
-exports.themSanPham = async (req, res) => {
-    try {
-        const { ten, loai, gia, anh, thongSo } = req.body;
-        const spMoi = new SanPham({ ten, loai, gia, anh, thongSo });
-        await spMoi.save();
-        res.status(201).json({ message: "Thêm thành công!", data: spMoi });
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi thêm sản phẩm", error: error.message });
-    }
-};
-
-// 3. Lấy chi tiết một sản phẩm
+// Lấy chi tiết một sản phẩm
 exports.layChiTietSanPham = async (req, res) => {
-    try {
-        const sanPham = await SanPham.findById(req.params.id);
-        if (!sanPham) {
-            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
-        }
-        res.status(200).json(sanPham);
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi khi lấy chi tiết", error: error.message });
+  try {
+    const { id } = req.params;
+    const sanPham = await sanPhamService.layChiTietSanPham(id);
+    if (!sanPham) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     }
+    res.json(sanPham);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// 4. Cập nhật sản phẩm (MỚI BỔ SUNG - DÙNG CHO router.put)
-exports.capNhatSanPham = async (req, res) => {
-    try {
-        const spCapNhat = await SanPham.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.status(200).json({ message: "Cập nhật thành công!", data: spCapNhat });
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi cập nhật", error: error.message });
-    }
+// Tạo sản phẩm mới
+exports.taoMoi = async (req, res) => {
+  try {
+    const { ten, idDanhMuc, gia, thongSo, bienThe } = req.body;
+    const anh = req.file ? req.file.path : req.body.anh;
+
+    const duLieuSanPham = { ten, idDanhMuc, gia, anh, thongSo };
+    const ketQua = await sanPhamService.taoMoiSanPham(duLieuSanPham, bienThe);
+
+    res.status(201).json(ketQua);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
 
-// 5. Xóa sản phẩm (MỚI BỔ SUNG - DÙNG CHO router.delete)
-exports.xoaSanPham = async (req, res) => {
-    try {
-        await SanPham.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Đã xóa sản phẩm thành công" });
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi khi xóa", error: error.message });
+// Cập nhật sản phẩm
+exports.capNhat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ten, idDanhMuc, gia, thongSo, bienThe } = req.body;
+
+    let duLieuCapNhat = { ten, idDanhMuc, gia, thongSo };
+    if (req.file) {
+      duLieuCapNhat.anh = req.file.path;
+    } else if (req.body.anh) {
+      duLieuCapNhat.anh = req.body.anh;
     }
+
+    const ketQua = await sanPhamService.capNhatSanPham(
+      id,
+      duLieuCapNhat,
+      bienThe,
+    );
+    if (!ketQua) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+    }
+
+    res.json(ketQua);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Xoá sản phẩm
+exports.xoa = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sanPhamDaXoa = await sanPhamService.xoaSanPham(id);
+    if (!sanPhamDaXoa) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+    }
+
+    res.json({
+      message: "Đã xoá sản phẩm và các biến thể liên quan thành công",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Tạo nhanh dữ liệu mẫu
+exports.taoDuLieuMau = async (req, res) => {
+  res
+    .status(400)
+    .json({ message: "Hàm này đã cũ. Vui lòng sử dụng chức năng tạo mới." });
 };
