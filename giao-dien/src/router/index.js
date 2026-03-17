@@ -17,79 +17,43 @@ import TrangBuildPC from "../views/users/TrangBuildPC";
 import TrangChiTiet from "../views/users/TrangChiTiet";
 import TrangGioHang from "../views/users/TrangGioHang";
 import TrangSanPham from "../views/users/TrangSanPham";
-import AuthPage from "../views/AuthPage";
+import DangNhap from "../views/DangNhap";
+import DangKy from "../views/DangKy";
+import DatLaiMatKhau from "../views/DatLaiMatKhau"; // Lệnh import đã được đưa lên đầu file đúng chuẩn
+import TrangThanhToan from "../views/users/TrangThanhToan";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <UserLayout />,
     children: [
-      {
-        index: true,
-        element: <TrangChu />,
-      },
-      {
-        path: "san-pham",
-        element: <TrangSanPham />,
-      },
-      {
-        path: "san-pham/:id",
-        element: <TrangChiTiet />,
-      },
-      {
-        path: "build",
-        element: <TrangBuildPC />,
-      },
-      {
-        path: "build-pc", // Alias for build
-        element: <TrangBuildPC />,
-      },
-      {
-        path: "gio-hang",
-        element: <TrangGioHang />,
-      },
-      {
-        path: "login",
-        element: <AuthPage isLogin={true} />,
-      },
-      {
-        path: "register",
-        element: <AuthPage isLogin={false} />,
-      },
-      {
-        path: "products", // Compatibility for existing links
-        element: <TrangSanPham />,
-      },
+      { index: true, element: <TrangChu /> },
+      { path: "san-pham", element: <TrangSanPham /> },
+      { path: "san-pham/:id", element: <TrangChiTiet /> },
+      { path: "build", element: <TrangBuildPC /> },
+      { path: "build-pc", element: <TrangBuildPC /> },
+      { path: "gio-hang", element: <TrangGioHang /> },
+      { path: "thanh-toan", element: <TrangThanhToan /> },
+      { path: "dang-nhap", element: <DangNhap /> },
+      { path: "dang-ky", element: <DangKy /> },
+      // Route đặt lại mật khẩu
+      { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },
+      
+      { path: "login", element: <Navigate to="/dang-nhap" replace /> },
+      { path: "register", element: <Navigate to="/dang-ky" replace /> },
+      { path: "products", element: <TrangSanPham /> },
     ],
   },
   {
     path: "/admin",
     element: <AdminLayout />,
     children: [
-      {
-        index: true,
-        element: <Dashboard />,
-      },
-      {
-        path: "categories",
-        element: <QuanLyDanhMuc />,
-      },
-      {
-        path: "products",
-        element: <QuanLySanPham />,
-      },
-      {
-        path: "vouchers",
-        element: <QuanLyMaGiamGia />,
-      },
-      {
-        path: "users",
-        element: <QuanLyUser />,
-      },
-      {
-        path: "orders",
-        element: <QuanLyOrder />,
-      },
+      { index: true, element: <Dashboard /> },
+      { path: "categories", element: <QuanLyDanhMuc /> },
+      { path: "products", element: <QuanLySanPham /> },
+      { path: "vouchers", element: <QuanLyMaGiamGia /> },
+      { path: "users", element: <QuanLyUser /> },
+      { path: "orders", element: <QuanLyOrder /> },
     ],
   },
   {

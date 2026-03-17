@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { dangKy, dangNhap } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 
-const AuthPage = () => {
+const DangNhap = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({ ten: '', email: '', matKhau: '' });
     const navigate = useNavigate();
@@ -107,4 +107,4 @@ const styles = {
     }
 };
 
-export default AuthPage;
+export default DangNhap;
