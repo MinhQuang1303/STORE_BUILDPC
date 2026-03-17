@@ -1,77 +1,93 @@
-import React from "react";
-import { Outlet, Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { Outlet, Link, useNavigate } from "react-router-dom";
+import { CartContext } from "../context/CartContext";
 
 const UserLayout = () => {
+  const navigate = useNavigate();
+  const { cartItems } = useContext(CartContext);
+
+  const userStorage = JSON.parse(localStorage.getItem("user"));
+  const user = userStorage?.user;
+
+  const handleDangXuat = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  const handleSearch = (e) => {
+    // Nếu ở trang Build PC, có thể cần xử lý cụ thể hơn,
+    // nhưng mặc định sẽ chuyển về trang Sản Phẩm với query if needed
+    // Hiện tại chỉ hỗ trợ placeholder logic hoặc chuyển hướng.
+    if (e.key === "Enter") {
+      navigate(`/san-pham?q=${e.target.value}`);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans text-gray-900">
-      {/* Top Header */}
-      <header className="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            {/* Logo */}
-            <div className="flex-shrink-0 flex items-center">
-              <Link
-                to="/"
-                className="text-2xl font-black italic tracking-tighter hover:text-blue-400 transition-colors"
-              >
-                NEXTGEN<span className="text-blue-500">PC</span>
-              </Link>
-            </div>
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-gray-900">
+      {/* Global Header (from Banner.js) */}
+      <nav style={styles.nav}>
+        {/* Logo */}
+        <div style={styles.logo} onClick={() => navigate("/")}>
+          NEXTGEN<span style={{ color: "#fff" }}>PC</span>
+        </div>
 
-            {/* Main Nav */}
-            <nav className="hidden md:flex space-x-8 uppercase text-sm font-bold tracking-widest">
-              <Link to="/" className="hover:text-blue-400 transition-colors">
-                Trang chủ
-              </Link>
-              <Link
-                to="/build-pc"
-                className="text-blue-500 hover:text-blue-400 transition-colors border-b-2 border-blue-500"
-              >
-                Build PC
-              </Link>
-              <Link
-                to="/products"
-                className="hover:text-blue-400 transition-colors"
-              >
-                Sản phẩm
-              </Link>
-              <Link
-                to="/services"
-                className="hover:text-blue-400 transition-colors"
-              >
-                Dịch vụ
-              </Link>
-              <Link
-                to="/contact"
-                className="hover:text-blue-400 transition-colors"
-              >
-                Liên hệ
-              </Link>
-            </nav>
+        {/* Search Bar */}
+        <div style={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Tìm kiếm linh kiện..."
+            style={styles.searchInput}
+            onKeyDown={handleSearch}
+          />
+        </div>
 
-            {/* Cart & User */}
-            <div className="flex items-center space-x-6">
-              <div className="relative group cursor-pointer p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-all">
-                <span className="text-xl">🛒</span>
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                  0
-                </span>
-              </div>
-              <div className="cursor-pointer p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-all">
-                <span className="text-xl">👤</span>
-              </div>
-              <Link
-                to="/admin"
-                className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-md font-bold transition-all uppercase"
-              >
-                Admin
-              </Link>
-            </div>
+        {/* Navigation Links */}
+        <div style={styles.menuItems}>
+          <Link to="/" style={styles.navLink}>
+            Trang chủ
+          </Link>
+          <Link to="/san-pham" style={styles.navLink}>
+            Cửa hàng
+          </Link>
+          <Link to="/build" style={styles.navLink}>
+            Build PC
+          </Link>
+
+          {/* Cart Icon */}
+          <div style={styles.cartIcon} onClick={() => navigate("/gio-hang")}>
+            🛒 <span style={styles.cartBadge}>{cartItems?.length || 0}</span>
           </div>
         </div>
-      </header>
 
-      {/* Main Hero / Content */}
+        {/* Account Section */}
+        <div style={styles.authSection}>
+          {user ? (
+            <div style={styles.userBox}>
+              <span style={styles.userName}>
+                Hi, {user.ten || user.username}
+              </span>
+              {user.role === "admin" && (
+                <button
+                  onClick={() => navigate("/admin")}
+                  style={styles.adminBtn}
+                >
+                  Admin
+                </button>
+              )}
+              <button onClick={handleDangXuat} style={styles.logoutBtn}>
+                Đăng xuất
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => navigate("/login")} style={styles.loginBtn}>
+              Đăng nhập
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* Page Content */}
       <main className="flex-grow">
         <Outlet />
       </main>
@@ -92,21 +108,21 @@ const UserLayout = () => {
               <div className="flex space-x-4">
                 <a
                   href="#"
-                  className="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full hover:bg-blue-600 transition-all"
+                  className="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full hover:bg-blue-600 transition-all font-bold"
                 >
-                  FB
+                  F
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full hover:bg-blue-600 transition-all"
+                  className="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full hover:bg-blue-600 transition-all font-bold"
                 >
-                  YT
+                  Y
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full hover:bg-blue-600 transition-all"
+                  className="w-10 h-10 bg-slate-800 flex items-center justify-center rounded-full hover:bg-blue-600 transition-all font-bold"
                 >
-                  IG
+                  I
                 </a>
               </div>
             </div>
@@ -115,15 +131,15 @@ const UserLayout = () => {
               <ul className="space-y-3 text-gray-400 text-sm">
                 <li>
                   <Link
-                    to="/build-pc"
+                    to="/"
                     className="hover:text-blue-400 transition-colors"
                   >
-                    Cấu hình có sẵn
+                    Trang chủ
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/build-pc"
+                    to="/san-pham"
                     className="hover:text-blue-400 transition-colors"
                   >
                     Linh kiện rời
@@ -131,18 +147,18 @@ const UserLayout = () => {
                 </li>
                 <li>
                   <Link
-                    to="/build-pc"
+                    to="/build"
                     className="hover:text-blue-400 transition-colors"
                   >
-                    Dịch vụ sửa chữa
+                    Tự xây dựng cấu hình
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/build-pc"
+                    to="/gio-hang"
                     className="hover:text-blue-400 transition-colors"
                   >
-                    Trade-in lên đời
+                    Giỏ hàng
                   </Link>
                 </li>
               </ul>
@@ -183,6 +199,108 @@ const UserLayout = () => {
       </footer>
     </div>
   );
+};
+
+const styles = {
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "12px 40px",
+    backgroundColor: "#0f172a",
+    color: "white",
+    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+    position: "sticky",
+    top: 0,
+    zIndex: 1000,
+  },
+  logo: {
+    fontSize: "24px",
+    fontWeight: "900",
+    cursor: "pointer",
+    color: "#3b82f6",
+    letterSpacing: "-1px",
+    fontStyle: "italic",
+  },
+  searchContainer: {
+    flex: 1,
+    margin: "0 40px",
+    maxWidth: "500px",
+  },
+  searchInput: {
+    width: "100%",
+    padding: "10px 18px",
+    borderRadius: "10px",
+    border: "none",
+    outline: "none",
+    fontSize: "14px",
+    backgroundColor: "#1e293b",
+    color: "white",
+  },
+  menuItems: {
+    display: "flex",
+    alignItems: "center",
+    gap: "25px",
+  },
+  navLink: {
+    textDecoration: "none",
+    color: "#f8fafc",
+    fontWeight: "700",
+    fontSize: "14px",
+    textTransform: "uppercase",
+    transition: "color 0.2s",
+  },
+  cartIcon: {
+    position: "relative",
+    fontSize: "22px",
+    cursor: "pointer",
+    marginLeft: "10px",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-10px",
+    backgroundColor: "#ef4444",
+    color: "white",
+    borderRadius: "50%",
+    padding: "2px 6px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    border: "2px solid #0f172a",
+  },
+  authSection: { marginLeft: "20px" },
+  userBox: { display: "flex", alignItems: "center", gap: "12px" },
+  userName: { fontWeight: "600", color: "#f59e0b", fontSize: "14px" },
+  adminBtn: {
+    backgroundColor: "#8b5cf6",
+    color: "white",
+    border: "none",
+    padding: "5px 12px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: "bold",
+  },
+  logoutBtn: {
+    backgroundColor: "transparent",
+    color: "#94a3b8",
+    border: "1px solid #334155",
+    padding: "6px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    transition: "all 0.2s",
+  },
+  loginBtn: {
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    padding: "10px 20px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
 };
 
 export default UserLayout;

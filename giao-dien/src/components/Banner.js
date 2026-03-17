@@ -1,133 +1,179 @@
-import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CartContext } from '../context/CartContext';
+import React, { useContext } from "react";
+import { useNavigate, Link } from "react-router-dom"; // Thêm Link vào đây
+import { CartContext } from "../context/CartContext";
 
 const Banner = ({ onSearch }) => {
-    const navigate = useNavigate();
-    const { cartItems } = useContext(CartContext); // Lấy dữ liệu giỏ hàng thực tế
-    
-    const userStorage = JSON.parse(localStorage.getItem('user'));
-    const user = userStorage?.user;
+  const navigate = useNavigate();
+  const { cartItems } = useContext(CartContext);
 
-    const handleDangXuat = () => {
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
+  const userStorage = JSON.parse(localStorage.getItem("user"));
+  const user = userStorage?.user;
 
-    return (
-        <nav style={styles.nav}>
-            {/* Tên Store - Click để về trang chủ */}
-            <div style={styles.logo} onClick={() => navigate('/')}>
-                STORE_BUILDPC
-            </div>
+  const handleDangXuat = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
-            {/* Thanh tìm kiếm */}
-            <div style={styles.searchContainer}>
-                <input 
-                    type="text" 
-                    placeholder="Tìm kiếm linh kiện..." 
-                    style={styles.searchInput}
-                    onChange={(e) => onSearch && onSearch(e.target.value)}
-                />
-            </div>
+  return (
+    <nav style={styles.nav}>
+      {/* Logo - Click về trang chủ */}
+      <div style={styles.logo} onClick={() => navigate("/")}>
+        STORE_BUILDPC
+      </div>
 
-            {/* Danh mục & Giỏ hàng */}
-            <div style={styles.menuItems}>
-                <span style={styles.item} onClick={() => navigate('/')}>Danh mục</span>
-                
-                {/* Giỏ hàng hiển thị số lượng thực tế */}
-                <div style={styles.cartIcon} onClick={() => navigate('/gio-hang')}>
-                    🛒 <span style={styles.cartBadge}>{cartItems.length}</span>
-                </div>
-            </div>
+      {/* Thanh tìm kiếm */}
+      <div style={styles.searchContainer}>
+        <input
+          type="text"
+          placeholder="Tìm kiếm linh kiện..."
+          style={styles.searchInput}
+          onChange={(e) => onSearch && onSearch(e.target.value)}
+        />
+      </div>
 
-            {/* Thông tin tài khoản */}
-            <div style={styles.authSection}>
-                {user ? (
-                    <div style={styles.userBox}>
-                        <span style={styles.userName}>Hi, {user.ten}</span>
-                        <button onClick={handleDangXuat} style={styles.logoutBtn}>
-                            Đăng xuất
-                        </button>
-                    </div>
-                ) : (
-                    <button onClick={() => navigate('/login')} style={styles.loginBtn}>
-                        Đăng nhập
-                    </button>
-                )}
-            </div>
-        </nav>
-    );
+      {/* Menu điều hướng */}
+      <div style={styles.menuItems}>
+        <Link to="/" style={styles.navLink}>
+          Trang chủ
+        </Link>
+        <Link to="/san-pham" style={styles.navLink}>
+          Cửa hàng
+        </Link>
+        <Link to="/build" style={styles.navLink}>
+          Build PC
+        </Link>
+
+        {/* Giỏ hàng */}
+        <div style={styles.cartIcon} onClick={() => navigate("/gio-hang")}>
+          🛒 <span style={styles.cartBadge}>{cartItems.length}</span>
+        </div>
+      </div>
+
+      {/* Khu vực tài khoản */}
+      <div style={styles.authSection}>
+        {user ? (
+          <div style={styles.userBox}>
+            <span style={styles.userName}>Hi, {user.ten}</span>
+            {user.vaiTro === "admin" && (
+              <button
+                onClick={() => navigate("/admin")}
+                style={styles.adminBtn}
+              >
+                Admin
+              </button>
+            )}
+            <button onClick={handleDangXuat} style={styles.logoutBtn}>
+              Đăng xuất
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => navigate("/login")} style={styles.loginBtn}>
+            Đăng nhập
+          </button>
+        )}
+      </div>
+    </nav>
+  );
 };
 
 const styles = {
-    nav: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '10px 50px',
-        backgroundColor: '#2c3e50',
-        color: 'white',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-    },
-    logo: {
-        fontSize: '24px',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-        color: '#3498db'
-    },
-    searchContainer: {
-        flex: 1,
-        margin: '0 30px',
-    },
-    searchInput: {
-        width: '100%',
-        padding: '8px 15px',
-        borderRadius: '20px',
-        border: 'none',
-        outline: 'none'
-    },
-    menuItems: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '20px',
-        marginRight: '20px'
-    },
-    item: { cursor: 'pointer', fontWeight: '500' },
-    cartIcon: { position: 'relative', fontSize: '20px', cursor: 'pointer' },
-    cartBadge: {
-        position: 'absolute',
-        top: '-8px',
-        right: '-10px',
-        backgroundColor: '#e74c3c',
-        color: 'white',
-        borderRadius: '50%',
-        padding: '2px 6px',
-        fontSize: '12px'
-    },
-    authSection: { display: 'flex', alignItems: 'center' },
-    userBox: { display: 'flex', alignItems: 'center', gap: '15px' },
-    userName: { fontWeight: 'bold', color: '#f1c40f' },
-    logoutBtn: {
-        backgroundColor: 'transparent',
-        color: 'white',
-        border: '1px solid white',
-        padding: '5px 10px',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        transition: '0.3s'
-    },
-    loginBtn: {
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        padding: '8px 15px',
-        borderRadius: '5px',
-        cursor: 'pointer'
-    }
+  nav: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "12px 40px",
+    backgroundColor: "#1e293b", // Đổi sang màu xanh đen hiện đại hơn
+    color: "white",
+    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+    position: "sticky",
+    top: 0,
+    zIndex: 1000,
+  },
+  logo: {
+    fontSize: "22px",
+    fontWeight: "800",
+    cursor: "pointer",
+    color: "#3b82f6",
+    letterSpacing: "1px",
+  },
+  searchContainer: {
+    flex: 1,
+    margin: "0 40px",
+    maxWidth: "500px",
+  },
+  searchInput: {
+    width: "100%",
+    padding: "10px 18px",
+    borderRadius: "10px",
+    border: "none",
+    outline: "none",
+    fontSize: "14px",
+    backgroundColor: "#334155",
+    color: "white",
+  },
+  menuItems: {
+    display: "flex",
+    alignItems: "center",
+    gap: "25px",
+  },
+  navLink: {
+    textDecoration: "none",
+    color: "#cbd5e1",
+    fontWeight: "600",
+    fontSize: "15px",
+    transition: "color 0.2s",
+  },
+  cartIcon: {
+    position: "relative",
+    fontSize: "22px",
+    cursor: "pointer",
+    marginLeft: "10px",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: "-8px",
+    right: "-10px",
+    backgroundColor: "#ef4444",
+    color: "white",
+    borderRadius: "50%",
+    padding: "2px 6px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    border: "2px solid #1e293b",
+  },
+  authSection: { marginLeft: "20px" },
+  userBox: { display: "flex", alignItems: "center", gap: "12px" },
+  userName: { fontWeight: "600", color: "#f59e0b", fontSize: "14px" },
+  adminBtn: {
+    backgroundColor: "#8b5cf6",
+    color: "white",
+    border: "none",
+    padding: "5px 12px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: "bold",
+  },
+  logoutBtn: {
+    backgroundColor: "transparent",
+    color: "#94a3b8",
+    border: "1px solid #475569",
+    padding: "6px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "13px",
+    transition: "all 0.2s",
+  },
+  loginBtn: {
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    padding: "10px 20px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "14px",
+  },
 };
 
 export default Banner;

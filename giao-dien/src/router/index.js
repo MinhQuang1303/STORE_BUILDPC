@@ -1,15 +1,23 @@
 import React from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import UserLayout from "../layouts/UserLayout";
-import App from "../App";
 
+// Admin views
 import Dashboard from "../views/admin/Dashboard";
 import QuanLyDanhMuc from "../views/admin/QuanLyDanhMuc";
 import QuanLySanPham from "../views/admin/QuanLySanPham";
 import QuanLyMaGiamGia from "../views/admin/QuanLyMaGiamGia";
 import QuanLyUser from "../views/admin/QuanLyUser";
 import QuanLyOrder from "../views/admin/QuanLyOrder";
+
+// User views
+import TrangChu from "../views/users/TrangChu";
+import TrangBuildPC from "../views/users/TrangBuildPC";
+import TrangChiTiet from "../views/users/TrangChiTiet";
+import TrangGioHang from "../views/users/TrangGioHang";
+import TrangSanPham from "../views/users/TrangSanPham";
+import AuthPage from "../views/AuthPage";
 
 const router = createBrowserRouter([
   {
@@ -18,15 +26,39 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <App />,
+        element: <TrangChu />,
       },
       {
-        path: "products",
-        element: (
-          <div className="p-20 text-center text-2xl font-bold italic text-gray-400">
-            Đang cập nhật danh sách...
-          </div>
-        ),
+        path: "san-pham",
+        element: <TrangSanPham />,
+      },
+      {
+        path: "san-pham/:id",
+        element: <TrangChiTiet />,
+      },
+      {
+        path: "build",
+        element: <TrangBuildPC />,
+      },
+      {
+        path: "build-pc", // Alias for build
+        element: <TrangBuildPC />,
+      },
+      {
+        path: "gio-hang",
+        element: <TrangGioHang />,
+      },
+      {
+        path: "login",
+        element: <AuthPage isLogin={true} />,
+      },
+      {
+        path: "register",
+        element: <AuthPage isLogin={false} />,
+      },
+      {
+        path: "products", // Compatibility for existing links
+        element: <TrangSanPham />,
       },
     ],
   },
@@ -59,6 +91,10 @@ const router = createBrowserRouter([
         element: <QuanLyOrder />,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
   },
 ]);
 
