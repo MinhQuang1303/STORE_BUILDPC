@@ -1,12 +1,7 @@
-const mongoose = require('mongoose');
-const SanPham = require('./src/models/SanPham');
+const mongoose = typeof window === 'undefined' ? eval('require("mongoose")') : null;
+const SanPham = typeof window === 'undefined' ? eval('require("./src/models/SanPham")') : null;
 
-mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
-.then(async () => {
-    console.log("🚀 Đang kết nối pc-builder và làm mới kho hàng...");
-    await SanPham.deleteMany({});
-
-    const data = [
+     const danhSachFlashSale = [
 
         // ================================================================
         // CPU (20 sản phẩm) — ảnh từ Intel & AMD chính thức
@@ -505,15 +500,25 @@ mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
         },
     ];
 
-    await SanPham.insertMany(data);
-    console.log(`✅ Thành công! Đã thêm ${data.length} linh kiện vào kho.`);
-    console.log(`   🔵 CPU:       20 sản phẩm`);
-    console.log(`   🟢 GPU:       20 sản phẩm`);
-    console.log(`   🟡 RAM:       20 sản phẩm`);
-    console.log(`   🟠 Mainboard: 20 sản phẩm`);
-    process.exit();
-})
-.catch(err => {
-    console.error("❌ Lỗi thực thi:", err);
-    process.exit(1);
-});
+ // 3. EXPORT CHO REACT (Dùng kiểu này để không lỗi Syntax)
+if (typeof exports !== 'undefined') {
+    exports.danhSachFlashSale = danhSachFlashSale;
+}
+
+// 4. LOGIC KẾT NỐI DATABASE (Chỉ chạy khi dùng lệnh 'node')
+if (typeof window === 'undefined' && mongoose) {
+    mongoose.connect('mongodb://127.0.0.1:27017/pc-builder')
+        .then(async () => {
+            console.log("🚀 Đang kết nối pc-builder và làm mới kho hàng...");
+            if (SanPham) {
+                await SanPham.deleteMany({});
+                await SanPham.insertMany(danhSachFlashSale);
+                console.log(`✅ Thành công! Đã thêm ${danhSachFlashSale.length} linh kiện.`);
+            }
+            process.exit(0);
+        })
+        .catch(err => {
+            console.error("❌ Lỗi thực thi:", err);
+            process.exit(1);
+        });
+}
