@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Banner from '../components/Banner';
 import PromoBanner from '../components/PromoBanner';
+import FlashSale from '../components/FlashSale'; // <-- 1. Thêm import này
 import { useNavigate } from 'react-router-dom';
 
 const TrangChu = () => {
@@ -28,6 +29,9 @@ const TrangChu = () => {
             
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
                 <PromoBanner />
+
+                {/* 2. FLASH SALE (Chèn trực tiếp vào đây) */}
+                <FlashSale />
 
                 {/* 1. DANH MỤC LINH KIỆN */}
                 <h3 style={styles.sectionTitle}>📁 DANH MỤC LINH KIỆN</h3>
