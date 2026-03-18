@@ -1,22 +1,34 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose"); // Thêm dòng này để không bị lỗi "not defined"
+const mongoose = require("mongoose");
 const cors = require("cors");
-const SanPham = require("./src/models/SanPham"); // Import model để lấy dữ liệu
+const session = require('express-session'); // 1. Import session
+const passport = require('passport');       // 2. Import passport
+const User = require("./src/models/User");
+require('./src/config/passport');           // 3. Import cấu hình passport
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-// Kết nối trực tiếp tới Database 'pc-builder'
-const User = require("./src/models/User");
+// --- MIDDLEWARES HỆ THỐNG (PHẢI ĐẶT ĐẦU TIÊN) ---
+app.use(cors()); 
+app.use(express.json()); 
+
+// --- CẤU HÌNH PASSPORT & SESSION (PHẢI TRƯỚC ROUTES) ---
+app.use(session({ 
+  secret: 'pc_builder_secret', 
+  resave: false, 
+  saveUninitialized: true 
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// --- KẾT NỐI DATABASE ---
 mongoose
-  .connect("mongodb://127.0.0.1:27017/pc-builder")
+  .connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/pc-builder")
   .then(async () => {
-    console.log("✅ Đã kết nối đúng Database: pc-builder");
-    // Tạo tài khoản admin mặc định
+    console.log("✅ Đã kết nối Database: pc-builder");
     try {
-      const adminExist = await User.findOne({ username: "admin" });
+      const adminExist = await User.findOne({ role: "admin" });
       if (!adminExist) {
         const admin = new User({
           username: "admin",
@@ -25,14 +37,15 @@ mongoose
           role: "admin",
         });
         await admin.save();
-        console.log("👤 Đã tạo tài khoản admin mặc định: admin / admin123");
+        console.log("👤 Đã tạo tài khoản admin mặc định.");
       }
     } catch (error) {
-      console.error("❌ Lỗi khi tạo tài khoản admin mặc định:", error);
+      console.error("❌ Lỗi tạo admin:", error.message);
     }
   })
   .catch((err) => console.error("❌ Lỗi kết nối MongoDB:", err));
 
+// --- ROUTES ---
 const authRoute = require("./src/routes/authRoute");
 const danhMucRoute = require("./src/routes/danhMucRoute");
 const sanPhamRoute = require("./src/routes/sanPhamRoute");
@@ -52,10 +65,11 @@ app.use("/api/orders", orderRoute);
 app.use("/api/thong-ke", thongKeRoute);
 
 app.get("/", (req, res) => {
-  res.send("Máy chủ Build PC đang hoạt động!");
+  res.send("🚀 Máy chủ STORE_BUILDPC đang hoạt động!");
 });
 
-const PORT = 5000;
+// --- KHỞI CHẠY (LUÔN Ở CUỐI CÙNG) ---
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Backend nổ máy tại: http://localhost:${PORT}`);
 });

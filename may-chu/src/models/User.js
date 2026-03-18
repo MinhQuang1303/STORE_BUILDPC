@@ -18,20 +18,36 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      // Không bắt buộc (required: false) vì nếu đăng nhập Google sẽ không có pass ngay
+      required: function() {
+        return !this.googleId; 
+      },
     },
     role: {
       type: String,
       enum: ["admin", "user"],
       default: "user",
     },
+    // --- THÊM TRƯỜNG CHO ĐĂNG NHẬP GOOGLE ---
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Cho phép null nhưng nếu có giá trị thì phải duy nhất
+    },
+    avatar: String,
+
+    // --- THÊM TRƯỜNG CHO QUÊN MẬT KHẨU (ĐÃ FIX VỊ TRÍ) ---
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true },
 );
 
 // Mã hoá mật khẩu trước khi lưu
 UserSchema.pre("save", async function (next) {
+  // Chỉ hash lại mật khẩu nếu nó bị thay đổi
   if (!this.isModified("password")) return next();
+  
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
