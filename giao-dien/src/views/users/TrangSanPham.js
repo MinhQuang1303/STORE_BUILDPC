@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { CartContext } from "../../context/CartContext";
 
 const TrangSanPham = () => {
   const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext);
 
-  // Quản lý State
   const [sanPhams, setSanPhams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // State cho bộ lọc và sắp xếp
   const [danhMucChon, setDanhMucChon] = useState("Tất cả");
-  const [sapXepGia, setSapXepGia] = useState("mac-dinh"); // mac-dinh, tang-dan, giam-dan
+  const [sapXepGia, setSapXepGia] = useState("mac-dinh");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
     "Tất cả",
@@ -26,7 +27,6 @@ const TrangSanPham = () => {
     "Tản nhiệt",
   ];
 
-  // Lấy dữ liệu từ Backend
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
@@ -34,287 +34,456 @@ const TrangSanPham = () => {
         setSanPhams(res.data);
         setIsLoading(false);
       } catch (err) {
-        console.error("Lỗi lấy sản phẩm:", err);
-        setError("Không thể tải danh sách sản phẩm.");
+        setError("Không thể kết nối máy chủ.");
         setIsLoading(false);
       }
     };
+
     fetchAllProducts();
   }, []);
 
-  // Logic Lọc và Sắp xếp (Chạy mỗi khi render)
-  let sanPhamsHienThi = [...sanPhams];
+  let filteredProducts = sanPhams.filter((sp) => {
+    const matchCategory = danhMucChon === "Tất cả" || sp.loai === danhMucChon;
+    const matchSearch = sp.ten.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCategory && matchSearch;
+  });
 
-  // 1. Lọc theo danh mục
-  if (danhMucChon !== "Tất cả") {
-    sanPhamsHienThi = sanPhamsHienThi.filter((sp) => sp.loai === danhMucChon);
-  }
-
-  // 2. Sắp xếp theo giá
   if (sapXepGia === "tang-dan") {
-    sanPhamsHienThi.sort((a, b) => a.gia - b.gia);
+    filteredProducts.sort((a, b) => a.gia - b.gia);
   } else if (sapXepGia === "giam-dan") {
-    sanPhamsHienThi.sort((a, b) => b.gia - a.gia);
+    filteredProducts.sort((a, b) => b.gia - a.gia);
   }
+
+  const handleQuickAdd = (e, item) => {
+    e.stopPropagation();
+    if (addToCart) {
+      addToCart(item, 1);
+    }
+  };
+
+  const handleViewDetail = (e, id) => {
+    e.stopPropagation();
+    navigate(`/san-pham/${id}`);
+  };
 
   return (
     <div style={styles.pageBackground}>
-      <div style={styles.container}>
-        {/* TIÊU ĐỀ TRANG */}
-        <div style={styles.pageHeader}>
-          <h1 style={styles.mainTitle}>TẤT CẢ LINH KIỆN</h1>
-          <p style={styles.subTitle}>
-            Khám phá hàng trăm linh kiện PC chất lượng cao
-          </p>
+      <style>{`
+        .product-page * {
+          box-sizing: border-box;
+        }
+
+        .product-card {
+          transition: all 0.3s ease;
+          border: 1px solid #e2e8f0;
+        }
+
+        .product-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+          border-color: #3b82f6;
+        }
+
+        .filter-item {
+          transition: all 0.2s ease;
+          padding: 10px 15px;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 5px;
+          color: #334155;
+          font-weight: 500;
+        }
+
+        .filter-item:hover {
+          background-color: #eff6ff;
+          color: #2563eb;
+        }
+
+        .active-filter {
+          background-color: #2563eb !important;
+          color: #ffffff !important;
+          font-weight: 600;
+        }
+
+        .btn-buy-now:hover {
+          background-color: #1e40af !important;
+          transform: scale(1.02);
+        }
+
+        .btn-detail:hover {
+          border-color: #2563eb;
+          color: #2563eb;
+        }
+
+        @media (max-width: 992px) {
+          .product-layout {
+            flex-direction: column;
+          }
+
+          .product-sidebar {
+            flex: 1 1 100%;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .product-header {
+            align-items: stretch;
+          }
+
+          .product-title {
+            font-size: 26px !important;
+          }
+
+          .product-toolbar {
+            text-align: center;
+          }
+        }
+      `}</style>
+
+      <div style={styles.container} className="product-page">
+        <div style={styles.headerBox} className="product-header">
+          <div>
+            <h1 style={styles.mainTitle} className="product-title">
+              Linh Kiện Máy Tính
+            </h1>
+            <p style={styles.subTitle}>
+              Tìm kiếm linh kiện phù hợp cho cấu hình của bạn
+            </p>
+          </div>
+
+          <div style={styles.searchWrapper}>
+            <input
+              type="text"
+              placeholder="Tìm tên linh kiện..."
+              style={styles.searchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
-        <div style={styles.layoutWrapper}>
-          {/* CỘT TRÁI: BỘ LỌC (SIDEBAR) */}
-          <div style={styles.sidebar}>
-            <div style={styles.filterSection}>
-              <h3 style={styles.filterTitle}>Danh mục</h3>
-              <div style={styles.categoryList}>
-                {categories.map((cat, index) => (
-                  <label key={index} style={styles.radioLabel}>
-                    <input
-                      type="radio"
-                      name="category"
-                      value={cat}
-                      checked={danhMucChon === cat}
-                      onChange={(e) => setDanhMucChon(e.target.value)}
-                      style={styles.radioInput}
-                    />
-                    <span
-                      style={{
-                        fontWeight: danhMucChon === cat ? "bold" : "normal",
-                        color: danhMucChon === cat ? "#2563eb" : "#475569",
-                      }}
-                    >
-                      {cat}
+        <div style={styles.layout} className="product-layout">
+          <aside style={styles.sidebar} className="product-sidebar">
+            <div style={styles.card}>
+              <h3 style={styles.cardTitle}>Bộ lọc danh mục</h3>
+              <div style={styles.filterList}>
+                {categories.map((cat) => (
+                  <div
+                    key={cat}
+                    className={`filter-item ${danhMucChon === cat ? "active-filter" : ""}`}
+                    onClick={() => setDanhMucChon(cat)}
+                  >
+                    <span style={{ fontSize: "18px" }}>
+                      {cat === "Tất cả" ? "📦" : "🔹"}
                     </span>
-                  </label>
+                    {cat}
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* CỘT PHẢI: DANH SÁCH SẢN PHẨM */}
-          <div style={styles.mainContent}>
-            {/* Thanh công cụ (Toolbar) */}
-            <div style={styles.toolbar}>
-              <span style={styles.resultCount}>
-                Hiển thị <strong>{sanPhamsHienThi.length}</strong> sản phẩm
+            <div style={styles.sortCard}>
+              <h3 style={styles.cardTitle}>Sắp xếp giá</h3>
+              <select
+                style={styles.selectInput}
+                value={sapXepGia}
+                onChange={(e) => setSapXepGia(e.target.value)}
+              >
+                <option value="mac-dinh">Mới nhất</option>
+                <option value="tang-dan">Giá thấp đến cao</option>
+                <option value="giam-dan">Giá cao đến thấp</option>
+              </select>
+            </div>
+          </aside>
+
+          <main style={styles.mainContent}>
+            <div style={styles.toolbar} className="product-toolbar">
+              <span>
+                Tìm thấy <b>{filteredProducts.length}</b> sản phẩm
               </span>
-              <div style={styles.sortControl}>
-                <label style={{ marginRight: "10px", color: "#64748b" }}>
-                  Sắp xếp theo:
-                </label>
-                <select
-                  style={styles.selectBox}
-                  value={sapXepGia}
-                  onChange={(e) => setSapXepGia(e.target.value)}
-                >
-                  <option value="mac-dinh">Mới nhất</option>
-                  <option value="tang-dan">Giá: Thấp đến Cao</option>
-                  <option value="giam-dan">Giá: Cao đến Thấp</option>
-                </select>
-              </div>
             </div>
 
-            {/* Hiển thị Loading/Error hoặc Grid Sản phẩm */}
+            {error && <div style={styles.error}>{error}</div>}
+
             {isLoading ? (
-              <div style={styles.statusMessage}>Đang tải dữ liệu...</div>
-            ) : error ? (
-              <div style={{ ...styles.statusMessage, color: "#ef4444" }}>
-                {error}
-              </div>
-            ) : sanPhamsHienThi.length === 0 ? (
-              <div style={styles.statusMessage}>
-                Không tìm thấy sản phẩm nào trong danh mục này.
-              </div>
+              <div style={styles.loading}>Đang lấy dữ liệu hàng hóa...</div>
             ) : (
               <div style={styles.productGrid}>
-                {sanPhamsHienThi.map((item) => (
+                {filteredProducts.map((sp) => (
                   <div
-                    key={item._id}
+                    key={sp._id}
+                    className="product-card"
                     style={styles.productCard}
-                    onClick={() => navigate(`/san-pham/${item._id}`)}
+                    onClick={() => navigate(`/san-pham/${sp._id}`)}
                   >
                     <div style={styles.imageBox}>
-                      <img
-                        src={item.anh}
-                        alt={item.ten}
-                        style={styles.productImg}
-                      />
+                      <img src={sp.anh} alt={sp.ten} style={styles.img} />
+                      <div style={styles.typeTag}>{sp.loai}</div>
                     </div>
-                    <div style={styles.productInfo}>
-                      <span style={styles.badge}>{item.loai}</span>
-                      <h3 style={styles.productName} title={item.ten}>
-                        {item.ten}
-                      </h3>
+
+                    <div style={styles.info}>
+                      <h4 style={styles.productName}>{sp.ten}</h4>
+
                       <div style={styles.priceRow}>
-                        <span style={styles.productPrice}>
-                          {item.gia?.toLocaleString("vi-VN")} đ
-                        </span>
+                        <div style={styles.price}>{sp.gia?.toLocaleString()} đ</div>
+                        <div style={styles.status}>● Còn hàng</div>
                       </div>
-                      <button style={styles.detailBtn}>Xem chi tiết</button>
+
+                      <div style={styles.buttonGroup}>
+                        <button
+                          type="button"
+                          className="btn-detail"
+                          style={styles.btnDetail}
+                          onClick={(e) => handleViewDetail(e, sp._id)}
+                        >
+                          Chi tiết
+                        </button>
+
+                        <button
+                          type="button"
+                          className="btn-buy-now"
+                          style={styles.btnCart}
+                          onClick={(e) => handleQuickAdd(e, sp)}
+                        >
+                          🛒 Mua
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+
+            {filteredProducts.length === 0 && !isLoading && !error && (
+              <div style={styles.empty}>
+                Không tìm thấy sản phẩm nào khớp với bộ lọc.
+              </div>
+            )}
+          </main>
         </div>
       </div>
     </div>
   );
 };
 
-// Hệ thống CSS-in-JS đồng bộ với dự án
 const styles = {
   pageBackground: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#f1f5f9",
     minHeight: "100vh",
-    fontFamily: "'Segoe UI', Roboto, sans-serif",
-    paddingBottom: "60px",
-  },
-  container: { maxWidth: "1280px", margin: "0 auto", padding: "0 20px" },
-
-  pageHeader: {
     padding: "40px 0",
-    borderBottom: "1px solid #e2e8f0",
-    marginBottom: "30px",
   },
-  mainTitle: {
-    color: "#0f172a",
-    fontSize: "28px",
-    margin: "0 0 10px 0",
-    fontWeight: "800",
+  container: {
+    maxWidth: "1350px",
+    margin: "0 auto",
+    padding: "0 20px",
   },
-  subTitle: { color: "#64748b", fontSize: "16px", margin: 0 },
 
-  layoutWrapper: { display: "flex", gap: "30px", alignItems: "flex-start" },
-
-  // Sidebar
-  sidebar: { flex: "0 0 250px", position: "sticky", top: "20px" },
-  filterSection: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-    border: "1px solid #e2e8f0",
-  },
-  filterTitle: {
-    margin: "0 0 15px 0",
-    fontSize: "18px",
-    color: "#0f172a",
-    borderBottom: "2px solid #f1f5f9",
-    paddingBottom: "10px",
-  },
-  categoryList: { display: "flex", flexDirection: "column", gap: "12px" },
-  radioLabel: {
-    display: "flex",
-    alignItems: "center",
-    cursor: "pointer",
-    fontSize: "15px",
-  },
-  radioInput: { marginRight: "10px", cursor: "pointer" },
-
-  // Main Content
-  mainContent: { flex: "1 1 0%", minWidth: 0 },
-  toolbar: {
+  headerBox: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#fff",
-    padding: "15px 20px",
-    borderRadius: "12px",
-    marginBottom: "20px",
-    border: "1px solid #e2e8f0",
+    marginBottom: "30px",
+    flexWrap: "wrap",
+    gap: "20px",
   },
-  resultCount: { color: "#475569", fontSize: "15px" },
-  sortControl: { display: "flex", alignItems: "center" },
-  selectBox: {
-    padding: "8px 12px",
-    borderRadius: "8px",
+  mainTitle: {
+    fontSize: "32px",
+    fontWeight: "900",
+    color: "#0f172a",
+    margin: 0,
+  },
+  subTitle: {
+    color: "#64748b",
+    margin: "5px 0 0 0",
+  },
+
+  searchWrapper: {
+    position: "relative",
+    width: "100%",
+    maxWidth: "400px",
+  },
+  searchInput: {
+    width: "100%",
+    padding: "12px 20px",
+    borderRadius: "12px",
     border: "1px solid #cbd5e1",
     outline: "none",
-    cursor: "pointer",
-    fontSize: "14px",
+    fontSize: "15px",
   },
 
-  statusMessage: {
-    textAlign: "center",
-    padding: "50px",
-    color: "#64748b",
+  layout: {
+    display: "flex",
+    gap: "25px",
+  },
+
+  sidebar: {
+    flex: "0 0 280px",
+  },
+  card: {
     backgroundColor: "#fff",
-    borderRadius: "12px",
-    border: "1px solid #e2e8f0",
+    borderRadius: "16px",
+    padding: "15px",
+    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+  },
+  sortCard: {
+    marginTop: "20px",
+    padding: "20px",
+    backgroundColor: "#fff",
+    borderRadius: "15px",
+    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+  },
+  cardTitle: {
+    fontSize: "16px",
+    fontWeight: "800",
+    marginBottom: "15px",
+    paddingLeft: "10px",
+    borderLeft: "4px solid #2563eb",
+  },
+  filterList: {
+    display: "flex",
+    flexDirection: "column",
   },
 
-  // Product Grid
+  selectInput: {
+    width: "100%",
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #e2e8f0",
+    outline: "none",
+  },
+
+  mainContent: {
+    flex: 1,
+  },
+  toolbar: {
+    marginBottom: "20px",
+    color: "#475569",
+    fontSize: "15px",
+  },
+
   productGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
     gap: "20px",
   },
   productCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
+    backgroundColor: "#fff",
+    borderRadius: "20px",
     overflow: "hidden",
     cursor: "pointer",
-    border: "1px solid #e2e8f0",
-    transition: "transform 0.2s, box-shadow 0.2s",
     display: "flex",
     flexDirection: "column",
   },
   imageBox: {
-    padding: "15px",
-    backgroundColor: "#f8fafc",
+    height: "200px",
+    position: "relative",
+    backgroundColor: "#fff",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "160px",
+    padding: "20px",
   },
-  productImg: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" },
-  productInfo: {
-    padding: "15px",
+  img: {
+    maxWidth: "100%",
+    maxHeight: "100%",
+    objectFit: "contain",
+  },
+  typeTag: {
+    position: "absolute",
+    top: "10px",
+    left: "10px",
+    backgroundColor: "#f1f5f9",
+    color: "#2563eb",
+    padding: "4px 10px",
+    borderRadius: "6px",
+    fontSize: "11px",
+    fontWeight: "800",
+  },
+
+  info: {
+    padding: "20px",
+    flex: 1,
     display: "flex",
     flexDirection: "column",
-    flex: 1,
-  },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#f1f5f9",
-    color: "#475569",
-    fontSize: "12px",
-    padding: "4px 8px",
-    borderRadius: "4px",
-    fontWeight: "600",
-    marginBottom: "8px",
   },
   productName: {
-    fontSize: "14px",
-    color: "#0f172a",
-    margin: "0 0 10px 0",
-    height: "40px",
+    fontSize: "15px",
+    fontWeight: "700",
+    color: "#1e293b",
+    margin: "0 0 15px 0",
+    minHeight: "42px",
     overflow: "hidden",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    lineHeight: "1.4",
   },
-  priceRow: { marginTop: "auto", marginBottom: "15px" },
-  productPrice: { color: "#ef4444", fontWeight: "bold", fontSize: "16px" },
-  detailBtn: {
-    width: "100%",
-    padding: "8px",
-    backgroundColor: "#eff6ff",
-    color: "#2563eb",
-    border: "1px solid #bfdbfe",
-    borderRadius: "6px",
+  priceRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "20px",
+    gap: "10px",
+  },
+  price: {
+    fontSize: "18px",
+    fontWeight: "800",
+    color: "#ef4444",
+  },
+  status: {
+    fontSize: "12px",
+    color: "#22c55e",
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+  },
+
+  buttonGroup: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "auto",
+  },
+  btnDetail: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "1px solid #e2e8f0",
+    background: "#fff",
     fontWeight: "600",
     cursor: "pointer",
+    transition: "0.2s",
+  },
+  btnCart: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#2563eb",
+    color: "#fff",
+    fontWeight: "700",
+    cursor: "pointer",
+    transition: "0.2s",
+  },
+
+  loading: {
+    textAlign: "center",
+    padding: "100px",
+    fontSize: "18px",
+    color: "#64748b",
+  },
+  error: {
+    textAlign: "center",
+    padding: "18px 20px",
+    marginBottom: "20px",
+    backgroundColor: "#fee2e2",
+    borderRadius: "14px",
+    color: "#b91c1c",
+    fontWeight: "600",
+  },
+  empty: {
+    textAlign: "center",
+    padding: "100px",
+    backgroundColor: "#fff",
+    borderRadius: "20px",
+    color: "#64748b",
   },
 };
 

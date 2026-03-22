@@ -9,7 +9,7 @@ const AdminLayout = () => {
         <div className="p-6">
           <Link to="/">
             <h2 className="text-2xl font-bold tracking-wider text-blue-400">
-              NEXTGEN PC
+              STORE_BUILDPC
             </h2>
           </Link>
           <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest">

@@ -26,7 +26,7 @@ const AuthSuccess = () => {
         <div className="min-h-screen flex items-center justify-center bg-[#0f172a] text-white font-sans">
             <div className="text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-cyan-400 mx-auto mb-6"></div>
-                <h2 className="text-2xl font-bold text-cyan-400 mb-2 italic">NEXTGEN PC</h2>
+                <h2 className="text-2xl font-bold text-cyan-400 mb-2 italic">STORE_BUILDPC</h2>
                 <p className="text-gray-400">Đang đồng bộ tài khoản Google, đợi tí nhé...</p>
             </div>
         </div>

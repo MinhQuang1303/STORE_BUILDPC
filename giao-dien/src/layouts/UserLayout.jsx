@@ -53,7 +53,7 @@ const UserLayout = () => {
             {/* --- NAVIGATION BAR --- */}
             <nav style={styles.nav}>
                 <div style={styles.logo} onClick={() => navigate("/")}>
-                    NEXTGEN<span style={{ color: "#fff" }}>PC</span>
+                    STORE_BUILD<span style={{ color: "#fff" }}>PC</span>
                 </div>
 
                 <div style={styles.searchContainer}>
@@ -107,9 +107,9 @@ const UserLayout = () => {
             <footer className="bg-slate-900 text-white pt-16 pb-8 border-t border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 text-center">
                     <h3 className="text-2xl font-bold mb-4 italic">
-                        NEXTGEN<span className="text-blue-500">PC</span>
+                        STORE_BUILD<span className="text-blue-500">PC</span>
                     </h3>
-                    <p className="text-gray-400 text-sm">&copy; 2026 NEXTGEN PC. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 STORE_BUILDPC. All rights reserved.</p>
                 </div>
             </footer>
         </div>
