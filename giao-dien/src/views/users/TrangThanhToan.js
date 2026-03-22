@@ -22,7 +22,7 @@ const TrangThanhToan = () => {
 
     const handleOrder = () => {
         if (!form.ten || !form.sdt || !form.diaChi) return alert("Vui lòng điền đủ thông tin giao hàng!");
-        alert("✅ Đặt hàng thành công! NextGenPC sẽ liên hệ bạn sớm.");
+        alert("✅ Đặt hàng thành công! STORE_BUILDPC sẽ liên hệ bạn sớm.");
         navigate('/');
     };
 

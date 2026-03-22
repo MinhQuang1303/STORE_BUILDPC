@@ -83,7 +83,7 @@ const DangKy = () => {
                     name="username"
                     required
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-all placeholder:text-gray-600"
-                    placeholder="Quang PC"
+                    placeholder="NGUYEN VAN PC"
                     onChange={handleChange}
                   />
                 </div>
@@ -94,7 +94,7 @@ const DangKy = () => {
                     name="email"
                     required
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-purple-500 outline-none transition-all placeholder:text-gray-600"
-                    placeholder="quang@example.com"
+                    placeholder="abc@example.com"
                     onChange={handleChange}
                   />
                 </div>
