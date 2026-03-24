@@ -7,21 +7,34 @@ const QuanLyOrder = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  const API_ORDERS = `${process.env.REACT_APP_API_URL}/orders`;
+  const rawApiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+  const apiBase = rawApiUrl.endsWith("/api") ? rawApiUrl : `${rawApiUrl}/api`;
+  const API_ORDERS = `${apiBase}/orders`;
+  const userToken =
+    JSON.parse(localStorage.getItem("user"))?.token ||
+    localStorage.getItem("token");
+
+  const getAuthConfig = () => ({
+    headers: { Authorization: `Bearer ${userToken}` },
+  });
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [selectedUserId]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_ORDERS);
+      const url = selectedUserId
+        ? `${API_ORDERS}/nguoi-dung/${selectedUserId}`
+        : API_ORDERS;
+      const res = await axios.get(url, getAuthConfig());
       setOrders(res.data);
       setLoading(false);
     } catch (err) {
@@ -37,9 +50,13 @@ const QuanLyOrder = () => {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const res = await axios.put(`${API_ORDERS}/${id}/trang-thai`, {
-        trangThai: newStatus,
-      });
+      const res = await axios.put(
+        `${API_ORDERS}/${id}/trang-thai`,
+        {
+          trangThai: newStatus,
+        },
+        getAuthConfig(),
+      );
       // Cập nhật lại danh sách local
       setOrders(orders.map((order) => (order._id === id ? res.data : order)));
       // Nếu đang mở modal thì cập nhật luôn state selectedOrder
@@ -69,6 +86,12 @@ const QuanLyOrder = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = orders.slice(indexOfFirstItem, indexOfLastItem);
+  const danhSachNguoiDung = orders.reduce((acc, order) => {
+    if (order.idUser?._id && !acc.some((u) => u._id === order.idUser._id)) {
+      acc.push(order.idUser);
+    }
+    return acc;
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -81,12 +104,26 @@ const QuanLyOrder = () => {
             Theo dõi và quản lý quá trình xử lý đơn hàng
           </p>
         </div>
-        <button
-          onClick={fetchOrders}
-          className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-bold transition-all shadow-sm flex items-center"
-        >
-          <span className="mr-2">🔄</span> Làm mới
-        </button>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            className="bg-white border border-gray-200 text-sm text-gray-700 px-3 py-2 rounded-lg outline-none"
+          >
+            <option value="">Tất cả người dùng</option>
+            {danhSachNguoiDung.map((user) => (
+              <option key={user._id} value={user._id}>
+                {user.username || user.email}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={fetchOrders}
+            className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg font-bold transition-all shadow-sm flex items-center"
+          >
+            <span className="mr-2">🔄</span> Làm mới
+          </button>
+        </div>
       </div>
 
       {loading ? (

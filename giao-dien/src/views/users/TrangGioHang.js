@@ -92,6 +92,7 @@ const TrangGioHang = () => {
         navigate('/thanh-toan', { 
             state: { 
                 items: cartItems.filter(i => selectedItems.includes(i._id)), 
+                selectedItemIds: selectedItems,
                 tongCuoi: thanhTienCuoiCung, 
                 discount, 
                 phiVanChuyen, 

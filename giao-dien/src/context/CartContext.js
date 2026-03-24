@@ -58,6 +58,11 @@ export const CartProvider = ({ children }) => {
     showToast("Đã dọn dẹp giỏ hàng sạch sẽ", "success");
   };
 
+  const removeSelectedFromCart = (ids = []) => {
+    if (!Array.isArray(ids) || ids.length === 0) return;
+    setCartItems((prev) => prev.filter((item) => !ids.includes(item._id)));
+  };
+
   const luuMuaSau = (id) => {
     const item = cartItems.find((i) => i._id === id);
     if (item) {
@@ -82,6 +87,7 @@ export const CartProvider = ({ children }) => {
         cartItems, wishlistItems, addToCart, removeFromCart, 
         updateQty, clearCart, luuMuaSau, moveBackToCart, 
         removeFromWishlist,
+        removeSelectedFromCart,
         showToast // <--- QUAN TRỌNG: Phải có dòng này thì TrangGioHang mới dùng được!
     }}>
       {children}

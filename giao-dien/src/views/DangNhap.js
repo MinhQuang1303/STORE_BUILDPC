@@ -22,7 +22,7 @@ const DangNhap = () => {
       if (response.ok) {
         // --- LƯU DỮ LIỆU ---
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data));
         
         alert("Đăng nhập thành công!");
 

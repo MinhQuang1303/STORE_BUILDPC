@@ -28,6 +28,20 @@ const OrderSchema = new mongoose.Schema(
     ghiChu: {
       type: String,
     },
+    phuongThucThanhToan: {
+      type: String,
+      enum: ["COD", "BANKING"],
+      default: "COD",
+    },
+    trangThaiThanhToan: {
+      type: String,
+      enum: ["Pending", "Paid", "Failed"],
+      default: "Pending",
+    },
+    maGiaoDich: {
+      type: String,
+      trim: true,
+    },
     isStockUpdated: {
       type: Boolean,
       default: false,
