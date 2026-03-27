@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Outlet, useNavigate, Link } from 'react-router-dom';
+import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
 import { 
     Search, ShoppingCart, User, LogOut, 
-    ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive 
+    ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive, MessageSquareText 
 } from 'lucide-react'; // Cài đặt: npm install lucide-react
 
 const UserLayout = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { cartItems } = useContext(CartContext);
     const [user, setUser] = useState(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
@@ -109,6 +110,14 @@ const UserLayout = () => {
 
                         <Link to="/build" className="hidden lg:block font-bold text-sm uppercase text-orange-400 hover:text-orange-300 transition-colors">Build PC</Link>
 
+                        <Link
+                            to="/chat"
+                            className="hidden md:flex items-center gap-2 font-bold text-sm uppercase text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                            <MessageSquareText size={16} />
+                            Chat AI
+                        </Link>
+
                         {/* GIỎ HÀNG */}
                         <div 
                             className="relative p-2 hover:bg-slate-800 rounded-full cursor-pointer transition-colors"
@@ -162,6 +171,21 @@ const UserLayout = () => {
             <main className="flex-grow">
                 <Outlet />
             </main>
+
+            {location.pathname !== "/chat" && (
+                <Link
+                    to="/chat"
+                    className="fixed bottom-4 right-4 z-[1200] group"
+                    aria-label="Mở Chat AI"
+                >
+                    <span className="relative w-11 h-11 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-xl shadow-blue-500/35 border border-white/70 hover:scale-105 transition-transform">
+                        <MessageSquareText size={18} />
+                    </span>
+                    <span className="absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-900 text-white text-xs font-semibold px-2.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        Chat với AI
+                    </span>
+                </Link>
+            )}
 
             {/* --- FOOTER --- */}
             <footer className="bg-slate-950 text-white pt-20 pb-10 mt-20">

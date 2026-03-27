@@ -18,6 +18,7 @@ import TrangChiTiet from "../views/users/TrangChiTiet";
 import TrangGioHang from "../views/users/TrangGioHang";
 import TrangSanPham from "../views/users/TrangSanPham";
 import TrangDonHangCuaToi from "../views/users/TrangDonHangCuaToi";
+import ChatAI from "../views/users/ChatAI";
 import DangNhap from "../views/DangNhap";
 import DangKy from "../views/DangKy";
 import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
       { path: "gio-hang", element: <TrangGioHang /> },
       { path: "thanh-toan", element: <TrangThanhToan /> },
       { path: "don-hang-cua-toi", element: <TrangDonHangCuaToi /> },
+      { path: "chat", element: <ChatAI /> },
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },
       { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },
