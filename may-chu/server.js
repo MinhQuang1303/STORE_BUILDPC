@@ -21,7 +21,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 // --- KẾT NỐI DATABASE ---
 mongoose
   .connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/pc-builder")
@@ -54,6 +54,7 @@ const userRoute = require("./src/routes/userRoute");
 const bienTheRoute = require("./src/routes/bienTheRoute");
 const orderRoute = require("./src/routes/orderRoute");
 const thongKeRoute = require("./src/routes/thongKeRoute");
+const chatRoute = require("./src/routes/chatRoute");
 
 app.use("/api/auth", authRoute);
 app.use("/api/danh-muc", danhMucRoute);
@@ -63,6 +64,7 @@ app.use("/api/users", userRoute);
 app.use("/api/bien-the", bienTheRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/thong-ke", thongKeRoute);
+app.use("/api/chat", chatRoute);
 
 app.get("/", (req, res) => {
   res.send("🚀 Máy chủ STORE_BUILDPC đang hoạt động!");
