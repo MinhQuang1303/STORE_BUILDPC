@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import PromoBanner from "../../components/PromoBanner";
-import FlashSale from "../../components/FlashSale"; // <-- 1. Thêm import này
 import { useNavigate } from "react-router-dom";
+import PromoBanner from "../../components/PromoBanner";
+import FlashSale from "../../components/FlashSale";
+
+// IMPORT CONTEXT
+import { CartContext } from "../../context/CartContext"; 
 
 const TrangChu = () => {
   const navigate = useNavigate();
+  
+  // Lấy hàm addToCart từ Context - Hàm này đã bao gồm logic hiện Toast ở trên cao
+  const { addToCart } = useContext(CartContext); 
 
-  // 1. Cải tiến State: Thêm Loading và Error để UX chuyên nghiệp hơn
   const [sanPhams, setSanPhams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,371 +27,170 @@ const TrangChu = () => {
     { id: "Case", icon: "🗄️", name: "Vỏ máy (Case)" },
   ];
 
-  const combos = [
-    {
-      ten: "PC Gaming Esport",
-      moTa: "Chiến mượt LOL, CS:GO, Valorant 144Hz",
-      gia: 12500000,
-      tag: "BÁN CHẠY",
-    },
-    {
-      ten: "PC Creator Pro",
-      moTa: "Render Video 4K, Edit Premiere mượt mà",
-      gia: 35000000,
-      tag: "CAO CẤP",
-    },
-    {
-      ten: "PC Office Standard",
-      moTa: "Gọn nhẹ, tối ưu tác vụ văn phòng",
-      gia: 7900000,
-      tag: "TIẾT KIỆM",
-    },
-  ];
-
-  // 2. Tải dữ liệu an toàn
   useEffect(() => {
     const fetchSanPhams = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/san-pham");
-        setSanPhams(res.data.slice(0, 8)); // Lấy 8 sản phẩm nổi bật
+        setSanPhams(res.data.slice(0, 8)); 
         setIsLoading(false);
       } catch (err) {
-        console.error("Lỗi lấy sản phẩm:", err);
-        setError("Không thể tải danh sách sản phẩm lúc này.");
+        setError("Không thể tải danh sách sản phẩm.");
         setIsLoading(false);
       }
     };
     fetchSanPhams();
   }, []);
 
+  // HÀM XỬ LÝ CLICK: Gọi trực tiếp từ Context
+  const handleAddToCart = (e, item) => {
+    e.stopPropagation(); // Không cho nhảy vào trang chi tiết khi bấm nút giỏ hàng
+    if (addToCart) {
+      // Truyền item vào, Context sẽ tự lo việc hiện Toast "kính mờ" phía trên
+      addToCart(item, 1); 
+    }
+  };
+
   return (
     <div style={styles.pageBackground}>
+      {/* Hiệu ứng Hover & Animation toàn cục */}
+      <style>
+        {`
+          .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e2e8f0; }
+          .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-color: #3b82f6; }
+          .category-item { transition: all 0.2s; cursor: pointer; }
+          .category-item:hover { background: #eff6ff; transform: scale(1.05); color: #2563eb; }
+          .btn-cart-main:hover { background-color: #2563eb !important; color: white !important; transform: scale(1.1); }
+          .btn-detail-main:hover { background-color: #f1f5f9 !important; }
+        `}
+      </style>
+
       <div style={styles.container}>
         <PromoBanner />
-
-        {/* 2. FLASH SALE (Chèn trực tiếp vào đây) */}
         <FlashSale />
 
-        {/* 1. DANH MỤC LINH KIỆN */}
+        {/* SECTION DANH MỤC - Thiết kế tối giản */}
         <div style={styles.sectionHeader}>
           <h2 style={styles.sectionTitle}>Danh mục linh kiện</h2>
-          <span style={styles.sectionSubtitle}>Tìm kiếm nhanh theo nhóm</span>
+          <div style={styles.underline}></div>
         </div>
-
         <div style={styles.categoryGrid}>
           {categories.map((cat) => (
-            <div
-              key={cat.id}
-              style={styles.categoryCard}
-              onClick={() => navigate("/build")}
-            >
+            <div key={cat.id} className="category-item" style={styles.categoryCard} onClick={() => navigate("/build")}>
               <div style={styles.categoryIcon}>{cat.icon}</div>
               <div style={styles.categoryName}>{cat.name}</div>
             </div>
           ))}
         </div>
 
-        {/* 2. SẢN PHẨM MỚI NHẤT */}
+        {/* SECTION SẢN PHẨM MỚI */}
         <div style={styles.sectionHeader}>
           <h2 style={styles.sectionTitle}>Sản phẩm mới nhất</h2>
-          <span style={styles.sectionSubtitle}>
-            Những linh kiện vừa cập bến
-          </span>
+          <div style={styles.underline}></div>
         </div>
 
         {isLoading ? (
-          <div
-            style={{ textAlign: "center", padding: "50px 0", color: "#64748b" }}
-          >
-            Đang tải dữ liệu sản phẩm...
-          </div>
-        ) : error ? (
-          <div
-            style={{ textAlign: "center", color: "#ef4444", padding: "20px" }}
-          >
-            {error}
-          </div>
+          <div style={styles.loadingText}>Đang tải sản phẩm...</div>
         ) : (
           <div style={styles.productGrid}>
             {sanPhams.map((item) => (
-              <div
-                key={item._id}
-                style={styles.productCard}
-                onClick={() => navigate(`/san-pham/${item._id}`)}
-              >
+              <div key={item._id} className="product-card" style={styles.productCard} onClick={() => navigate(`/san-pham/${item._id}`)}>
                 <div style={styles.imageBox}>
-                  <img
-                    src={item.anh}
-                    alt={item.ten}
-                    style={styles.productImg}
+                  <img 
+                    src={item.anh || item.hinhAnh} 
+                    alt={item.ten} 
+                    style={styles.productImg} 
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/200' }} 
                   />
                 </div>
+                
                 <div style={styles.productInfo}>
-                  <h3 style={styles.productName} title={item.ten}>
-                    {item.ten}
-                  </h3>
+                  <div style={styles.typeTag}>{item.loai}</div>
+                  <h3 style={styles.productName}>{item.ten}</h3>
+                  
                   <div style={styles.priceRow}>
-                    <span style={styles.productPrice}>
-                      {item.gia?.toLocaleString("vi-VN")} đ
-                    </span>
+                    <div style={styles.productPrice}>{item.gia?.toLocaleString()} đ</div>
+                    <div style={styles.oldPrice}>{(item.gia * 1.1).toLocaleString()} đ</div>
                   </div>
-                  <button style={styles.detailBtn}>Xem chi tiết</button>
+
+                  <div style={styles.actionRow}>
+                    <button 
+                       className="btn-detail-main" 
+                       style={styles.btnDetail}
+                    >
+                      Chi tiết
+                    </button>
+                    <button 
+                      className="btn-cart-main" 
+                      style={styles.btnCart} 
+                      onClick={(e) => handleAddToCart(e, item)}
+                    >
+                      🛒
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* 3. CTA TỰ BUILD PC (HERO SECTION) */}
-        <div style={styles.buildCtaWrapper}>
-          <div style={styles.buildCtaContent}>
-            <h2 style={styles.buildCtaTitle}>
-              TỰ TAY XÂY DỰNG CỖ MÁY TRONG MƠ
-            </h2>
-            <p style={styles.buildCtaDesc}>
-              Công cụ Build PC thông minh giúp bạn kiểm tra tính tương thích và
-              quản lý ngân sách dễ dàng.
-            </p>
-            <button
-              onClick={() => navigate("/build")}
-              style={styles.buildCtaBtn}
-            >
-              🚀 Trải nghiệm Build PC ngay
+        {/* BANNER BUILD PC - Chuyên nghiệp hơn */}
+        <div style={styles.buildBanner}>
+          <div style={styles.buildOverlay}>
+            <h2 style={styles.buildTitle}>BẠN MUỐN TỰ BUILD PC THEO Ý MÌNH?</h2>
+            <p style={styles.buildDesc}>Công cụ của chúng tôi giúp bạn chọn linh kiện chuẩn xác, tự động kiểm tra Socket và công suất nguồn.</p>
+            <button style={styles.buildBtn} onClick={() => navigate("/build")}>
+               BẮT ĐẦU BUILD MÁY NGAY 🚀
             </button>
           </div>
-        </div>
-
-        {/* 4. COMBO ĐỀ XUẤT */}
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>PC Build Sẵn Tối Ưu</h2>
-          <span style={styles.sectionSubtitle}>
-            Lắp ráp bởi chuyên gia - Cắm là chạy
-          </span>
-        </div>
-
-        <div style={styles.comboGrid}>
-          {combos.map((combo) => (
-            <div key={combo.ten} style={styles.comboCard}>
-              <div style={styles.comboBadge}>{combo.tag}</div>
-              <h3 style={styles.comboTitle}>{combo.ten}</h3>
-              <p style={styles.comboDesc}>{combo.moTa}</p>
-              <div style={styles.comboPriceWrapper}>
-                <span style={styles.comboPriceLabel}>Giá trọn bộ:</span>
-                <span style={styles.comboPrice}>
-                  {combo.gia.toLocaleString("vi-VN")} đ
-                </span>
-              </div>
-              <button style={styles.buyNowBtn}>Mua Ngay</button>
-            </div>
-          ))}
         </div>
       </div>
     </div>
   );
 };
 
-// CSS-in-JS (Hệ thống màu sắc và layout chuẩn mực)
 const styles = {
-  pageBackground: {
-    backgroundColor: "#f8fafc",
-    minHeight: "100vh",
-    fontFamily: "'Segoe UI', Roboto, sans-serif",
-    paddingBottom: "60px",
-  },
-  container: { maxWidth: "1280px", margin: "0 auto", padding: "0 20px" },
+  pageBackground: { backgroundColor: "#f8fafc", minHeight: "100vh", paddingBottom: "100px" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "0 20px" },
+  
+  sectionHeader: { marginTop: "60px", marginBottom: "30px", textAlign: "center" },
+  sectionTitle: { fontSize: "28px", fontWeight: "800", color: "#1e293b", marginBottom: "10px" },
+  underline: { width: "60px", height: "4px", backgroundColor: "#2563eb", margin: "0 auto", borderRadius: "2px" },
 
-  // Headers
-  sectionHeader: {
-    margin: "50px 0 25px 0",
-    borderBottom: "2px solid #e2e8f0",
-    paddingBottom: "10px",
-  },
-  sectionTitle: {
-    fontSize: "24px",
-    color: "#0f172a",
-    margin: "0 0 5px 0",
-    textTransform: "uppercase",
-    fontWeight: "800",
-  },
-  sectionSubtitle: { color: "#64748b", fontSize: "15px" },
-
-  // Categories
-  categoryGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: "15px",
-  },
-  categoryCard: {
-    backgroundColor: "#ffffff",
-    padding: "20px 15px",
-    borderRadius: "16px",
-    textAlign: "center",
-    cursor: "pointer",
-    border: "1px solid #e2e8f0",
-    transition: "all 0.2s",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-  },
+  categoryGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "15px" },
+  categoryCard: { backgroundColor: "#fff", padding: "20px", borderRadius: "16px", textAlign: "center", border: "1px solid #f1f5f9", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" },
   categoryIcon: { fontSize: "32px", marginBottom: "10px" },
-  categoryName: { fontSize: "14px", fontWeight: "600", color: "#334155" },
+  categoryName: { fontSize: "14px", fontWeight: "700", color: "#475569" },
 
-  // Products
-  productGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-    gap: "24px",
-  },
-  productCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    overflow: "hidden",
-    cursor: "pointer",
-    border: "1px solid #e2e8f0",
-    transition: "transform 0.2s, box-shadow 0.2s",
-    display: "flex",
-    flexDirection: "column",
-  },
-  imageBox: {
-    padding: "20px",
-    backgroundColor: "#f8fafc",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "180px",
-  },
+  productGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "25px" },
+  productCard: { backgroundColor: "#fff", borderRadius: "20px", overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" },
+  imageBox: { height: "240px", padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#fff" },
   productImg: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" },
-  productInfo: {
-    padding: "20px",
-    display: "flex",
-    flexDirection: "column",
-    flex: 1,
-  },
-  productName: {
-    fontSize: "15px",
-    color: "#0f172a",
-    margin: "0 0 10px 0",
-    height: "44px",
-    overflow: "hidden",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    lineHeight: "1.4",
-  },
-  priceRow: { marginTop: "auto", marginBottom: "15px" },
-  productPrice: { color: "#ef4444", fontWeight: "800", fontSize: "18px" },
-  detailBtn: {
-    width: "100%",
-    padding: "10px",
-    backgroundColor: "#eff6ff",
-    color: "#2563eb",
-    border: "1px solid #bfdbfe",
-    borderRadius: "8px",
-    fontWeight: "600",
-    cursor: "pointer",
-    transition: "background 0.2s",
-  },
+  
+  productInfo: { padding: "20px", flex: 1, display: "flex", flexDirection: "column" },
+  typeTag: { fontSize: "11px", fontWeight: "800", color: "#2563eb", textTransform: "uppercase", marginBottom: "10px" },
+  productName: { fontSize: "16px", fontWeight: "700", color: "#1e293b", height: "45px", overflow: "hidden", marginBottom: "15px", lineHeight: "1.4" },
+  
+  priceRow: { marginBottom: "20px" },
+  productPrice: { color: "#ef4444", fontSize: "20px", fontWeight: "900" },
+  oldPrice: { color: "#94a3b8", fontSize: "14px", textDecoration: "line-through" },
 
-  // Build PC Call to Action
-  buildCtaWrapper: {
-    marginTop: "60px",
-    borderRadius: "24px",
-    background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-    padding: "3px",
-    boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
-  },
-  buildCtaContent: {
-    backgroundColor: "#1e293b",
-    borderRadius: "21px",
-    padding: "50px 30px",
-    textAlign: "center",
-    backgroundImage:
-      "radial-gradient(circle at top right, rgba(37, 99, 235, 0.2), transparent)",
-  },
-  buildCtaTitle: {
-    color: "#ffffff",
-    fontSize: "32px",
-    fontWeight: "900",
-    margin: "0 0 15px 0",
-  },
-  buildCtaDesc: {
-    color: "#94a3b8",
-    fontSize: "18px",
-    maxWidth: "600px",
-    margin: "0 auto 30px",
-    lineHeight: "1.6",
-  },
-  buildCtaBtn: {
-    backgroundColor: "#10b981",
-    color: "#ffffff",
-    padding: "16px 40px",
-    border: "none",
-    borderRadius: "12px",
-    fontSize: "18px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 4px 6px -1px rgba(16, 185, 129, 0.4)",
-  },
+  actionRow: { display: "flex", gap: "10px", marginTop: "auto" },
+  btnDetail: { flex: 1, padding: "12px", border: "1px solid #e2e8f0", borderRadius: "12px", background: "#fff", fontWeight: "700", cursor: "pointer", transition: "0.2s" },
+  btnCart: { width: "50px", height: "48px", border: "none", borderRadius: "12px", background: "#f1f5f9", fontSize: "20px", cursor: "pointer", transition: "0.3s" },
 
-  // Combos
-  comboGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "30px",
+  buildBanner: { 
+    marginTop: "80px", 
+    borderRadius: "30px", 
+    overflow: "hidden", 
+    backgroundImage: "url('https://img.freepik.com/free-photo/view-illuminated-neon-gaming-keyboard-setup_23-2149529350.jpg')",
+    backgroundSize: "cover",
+    backgroundPosition: "center"
   },
-  comboCard: {
-    backgroundColor: "#ffffff",
-    padding: "30px",
-    borderRadius: "20px",
-    border: "1px solid #e2e8f0",
-    position: "relative",
-    display: "flex",
-    flexDirection: "column",
-  },
-  comboBadge: {
-    position: "absolute",
-    top: "-12px",
-    left: "30px",
-    backgroundColor: "#f59e0b",
-    color: "#fff",
-    padding: "4px 12px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "bold",
-  },
-  comboTitle: {
-    fontSize: "22px",
-    color: "#0f172a",
-    margin: "15px 0 10px 0",
-    fontWeight: "800",
-  },
-  comboDesc: {
-    color: "#64748b",
-    fontSize: "15px",
-    margin: "0 0 20px 0",
-    lineHeight: "1.5",
-  },
-  comboPriceWrapper: {
-    marginTop: "auto",
-    backgroundColor: "#f8fafc",
-    padding: "15px",
-    borderRadius: "12px",
-    marginBottom: "20px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  comboPriceLabel: { color: "#475569", fontSize: "14px", fontWeight: "600" },
-  comboPrice: { color: "#ef4444", fontSize: "22px", fontWeight: "900" },
-  buyNowBtn: {
-    width: "100%",
-    padding: "14px",
-    backgroundColor: "#2563eb",
-    color: "#ffffff",
-    border: "none",
-    borderRadius: "10px",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
+  buildOverlay: { backgroundColor: "rgba(15, 23, 42, 0.85)", padding: "80px 40px", textAlign: "center", color: "#fff" },
+  buildTitle: { fontSize: "36px", fontWeight: "900", marginBottom: "20px" },
+  buildDesc: { fontSize: "18px", color: "#cbd5e1", maxWidth: "700px", margin: "0 auto 40px" },
+  buildBtn: { backgroundColor: "#2563eb", color: "#fff", padding: "18px 40px", border: "none", borderRadius: "15px", fontSize: "18px", fontWeight: "800", cursor: "pointer", boxShadow: "0 10px 20px rgba(37, 99, 235, 0.3)" },
+  loadingText: { textAlign: "center", padding: "100px", color: "#64748b", fontSize: "18px" }
 };
 
 export default TrangChu;

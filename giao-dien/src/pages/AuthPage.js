@@ -13,7 +13,7 @@ const DangNhap = () => {
             if (isLogin) {
                 const data = await dangNhap({ email: formData.email, matKhau: formData.matKhau });
                 
-                // QUAN TRỌNG: Lưu thông tin đăng nhập để Banner có thể hiện "Hi, Quang"
+                
                 localStorage.setItem('user', JSON.stringify(data));
                 
                 alert('Chào mừng ' + data.user.ten);

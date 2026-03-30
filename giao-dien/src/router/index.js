@@ -17,10 +17,14 @@ import TrangBuildPC from "../views/users/TrangBuildPC";
 import TrangChiTiet from "../views/users/TrangChiTiet";
 import TrangGioHang from "../views/users/TrangGioHang";
 import TrangSanPham from "../views/users/TrangSanPham";
+import TrangDonHangCuaToi from "../views/users/TrangDonHangCuaToi";
 import DangNhap from "../views/DangNhap";
 import DangKy from "../views/DangKy";
-import DatLaiMatKhau from "../views/DatLaiMatKhau"; // Lệnh import đã được đưa lên đầu file đúng chuẩn
+import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
 import TrangThanhToan from "../views/users/TrangThanhToan";
+
+// Component tạm thời để tránh lỗi "AuthSuccess is not defined"
+const AuthSuccess = () => <div>Đăng nhập thành công! Đang chuyển hướng...</div>;
 
 const router = createBrowserRouter([
   {
@@ -34,10 +38,13 @@ const router = createBrowserRouter([
       { path: "build-pc", element: <TrangBuildPC /> },
       { path: "gio-hang", element: <TrangGioHang /> },
       { path: "thanh-toan", element: <TrangThanhToan /> },
+      { path: "don-hang-cua-toi", element: <TrangDonHangCuaToi /> },
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },
-      // Route đặt lại mật khẩu
       { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },
+      
+      // THÊM DÒNG NÀY ĐỂ HẾT LỖI TRẮNG TRANG
+      { path: "auth-success", element: <AuthSuccess /> }, 
       
       { path: "login", element: <Navigate to="/dang-nhap" replace /> },
       { path: "register", element: <Navigate to="/dang-ky" replace /> },

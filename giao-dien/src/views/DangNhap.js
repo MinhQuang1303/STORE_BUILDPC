@@ -22,14 +22,14 @@ const DangNhap = () => {
       if (response.ok) {
         // --- LƯU DỮ LIỆU ---
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data));
         
         alert("Đăng nhập thành công!");
 
         // --- CHUYỂN TRANG VÀ LÀM MỚI TRẠNG THÁI (QUAN TRỌNG) ---
         // Dùng window.location.href để trang chủ nhận diện được localStorage mới ngay lập tức
         if (data.user.role === 'admin') {
-          window.location.href = "/admin";
+          window.location.href = "/";
         } else {
           window.location.href = "/";
         }
