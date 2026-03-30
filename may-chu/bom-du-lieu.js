@@ -7,7 +7,7 @@ const danhSachFlashSale = [
     // ================================================================
     // CPU (20 sản phẩm)
     // ================================================================
-    { ten: "Intel Core i9-14900K", loai: "CPU", gia: 15500000, anh: "https://tse2.mm.bing.net/th/id/OIP.npXBd3C4CnFJL77HtxLwXwHaIl?pid=Api&P=0&h=180", thongSo: "24 Cores (8P+16E), 32 Threads, Turbo 6.0GHz, LGA1700" },
+    { ten: "Intel Core i9-14900K", loai: "CPU", gia: 15500000, anh: "/images/cpu/Intel Core i9-14900K.jpg", thongSo: "24 Cores (8P+16E), 32 Threads, Turbo 6.0GHz, LGA1700" },
     { ten: "Intel Core i9-13900K", loai: "CPU", gia: 13500000, anh: "https://tse1.mm.bing.net/th/id/OIP.pMi7ToFzNO7AYSuAZ7084QHaEc?pid=Api&P=0&h=180", thongSo: "24 Cores (8P+16E), 32 Threads, Turbo 5.8GHz, LGA1700" },
     { ten: "Intel Core i7-14700K", loai: "CPU", gia: 10200000, anh: "https://tse2.mm.bing.net/th/id/OIP.Bu5PUPy2hosEtEXeED0-XAHaIe?pid=Api&P=0&h=180", thongSo: "20 Cores (8P+12E), 28 Threads, Turbo 5.6GHz, LGA1700" },
     { ten: "Intel Core i7-13700K", loai: "CPU", gia: 9500000, anh: "https://tse3.mm.bing.net/th/id/OIP.Q-LbQMyCSWKbeiuAdYXNLwHaEC?pid=Api&P=0&h=180", thongSo: "16 Cores (8P+8E), 24 Threads, Turbo 5.4GHz, LGA1700" },
