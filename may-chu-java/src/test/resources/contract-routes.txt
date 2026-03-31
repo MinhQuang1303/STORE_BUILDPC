@@ -1,0 +1,9 @@
+/|GET
+/api/danh-muc|GET
+/api/san-pham|GET
+/api/ma-giam-gia|GET
+/api/bien-the|GET
+/api/thong-ke/overview|GET
+/api/thong-ke/doanh-thu|GET
+/api/thong-ke/trang-thai-don-hang|GET
+/api/thong-ke/recent|GET
