@@ -27,6 +27,7 @@ export const CartProvider = ({ children }) => {
     setCartItems((prev) => {
       let newCart = [...prev];
       productsToAdd.forEach((p) => {
+        // Tìm theo _id (đã bao gồm biến thể id nếu có)
         const exist = newCart.find((item) => item._id === p._id);
         if (exist) {
           newCart = newCart.map((item) => item._id === p._id ? { ...item, qty: item.qty + quantity } : item);
@@ -39,7 +40,7 @@ export const CartProvider = ({ children }) => {
     
     const msg = productsToAdd.length > 1 
       ? `Đã thêm cấu hình máy vào giỏ! 🚀` 
-      : `Đã thêm "${productsToAdd[0].ten}" vào giỏ!`;
+      : `Đã thêm "${productsToAdd[0].ten}${productsToAdd[0].tenBienThe ? ' - ' + productsToAdd[0].tenBienThe : ''}" vào giỏ!`;
     showToast(msg, "success");
   };
 

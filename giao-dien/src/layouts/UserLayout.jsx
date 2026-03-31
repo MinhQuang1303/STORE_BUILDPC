@@ -4,7 +4,8 @@ import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
 import { 
     Search, ShoppingCart, User, LogOut, 
-    ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive 
+    ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive,
+    Keyboard, Mouse, Headphones, Speaker
 } from 'lucide-react'; // Cài đặt: npm install lucide-react
 
 const UserLayout = () => {
@@ -15,35 +16,58 @@ const UserLayout = () => {
 
     // Danh sách danh mục mẫu
     const categories = [
-        { name: "CPU - Bộ vi xử lý", icon: <Cpu size={18}/>, path: "/san-pham?cat=cpu" },
-        { name: "VGA - Card màn hình", icon: <Monitor size={18}/>, path: "/san-pham?cat=vga" },
+        { name: "CPU - Vi xử lý", icon: <Cpu size={18}/>, path: "/san-pham?cat=cpu" },
+        { name: "Mainboard - Bo mạch chủ", icon: <LayoutGrid size={18}/>, path: "/san-pham?cat=mainboard" },
+        { name: "RAM - Bộ nhớ trong", icon: <HardDrive size={18}/>, path: "/san-pham?cat=ram" },
+        { name: "HDD - Ổ cứng cơ", icon: <HardDrive size={18}/>, path: "/san-pham?cat=hdd" },
         { name: "SSD - Ổ cứng", icon: <HardDrive size={18}/>, path: "/san-pham?cat=ssd" },
-        { name: "Mainboard - Bo mạch chủ", icon: <LayoutGrid size={18}/>, path: "/san-pham?cat=main" },
+        { name: "VGA - Card màn hình", icon: <Monitor size={18}/>, path: "/san-pham?cat=vga" },
+        { name: "PSU - Nguồn", icon: <Cpu size={18}/>, path: "/san-pham?cat=psu" },
+        { name: "Case - Vỏ máy tính", icon: <Monitor size={18}/>, path: "/san-pham?cat=case" },
+        { name: "Tản nhiệt", icon: <Cpu size={18}/>, path: "/san-pham?cat=cooler" },
+        { name: "Màn hình", icon: <Monitor size={18}/>, path: "/san-pham?cat=monitor" },
+        { name: "Bàn phím", icon: <Keyboard size={18}/>, path: "/san-pham?cat=keyboard" },
+        { name: "Chuột", icon: <Mouse size={18}/>, path: "/san-pham?cat=mouse" },
+        { name: "Tai nghe", icon: <Headphones size={18}/>, path: "/san-pham?cat=headphone" },
+        { name: "Loa máy tính", icon: <Speaker size={18}/>, path: "/san-pham?cat=speaker" },
     ];
 
     useEffect(() => {
-        const checkUser = () => {
-            const savedUser = localStorage.getItem("user");
-            if (savedUser) {
+        const loadUserFromStorage = () => {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
                 try {
-                    const parsedData = JSON.parse(savedUser);
-                    const userData = parsedData.user || parsedData;
+                    const parsed = JSON.parse(storedUser);
+                    const userData = parsed.user || parsed;
                     setUser({
                         ...userData,
                         username: userData.username || userData.ten || "Khách"
                     });
-                } catch (e) { setUser(null); }
-            } else { setUser(null); }
+                } catch (error) {
+                    console.error("Lỗi parse thông tin user:", error);
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
         };
-        checkUser();
-        window.addEventListener('storage', checkUser);
-        return () => window.removeEventListener('storage', checkUser);
+        loadUserFromStorage();
+        window.addEventListener('storage', loadUserFromStorage);
+        return () => window.removeEventListener('storage', loadUserFromStorage);
     }, []);
 
     const handleDangXuat = () => {
         localStorage.clear();
         setUser(null);
         navigate("/dang-nhap");
+    };
+
+    const getAvatarUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('/uploads')) {
+            return `${process.env.REACT_APP_API_URL.replace('/api', '')}${url}`;
+        }
+        return url;
     };
 
     return (
@@ -130,12 +154,13 @@ const UserLayout = () => {
                                     <p className="text-sm font-bold text-blue-400">{user.username}</p>
                                 </div>
                                 <div className="relative group">
-                                    <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center font-bold cursor-pointer hover:scale-105 transition-transform">
-                                        {user.username.charAt(0).toUpperCase()}
+                                    <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center font-bold cursor-pointer hover:scale-105 transition-transform overflow-hidden shadow-inner font-black text-white outline outline-2 outline-white shadow-sm">
+                                        {user.avatar ? <img src={getAvatarUrl(user.avatar)} className="w-full h-full object-cover" alt="Avatar"/> : user.username.charAt(0).toUpperCase()}
                                     </div>
                                     {/* USER MENU */}
                                     <div className="absolute top-full right-0 mt-4 w-48 bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                                         <div className="p-2 space-y-1">
+                                            <Link to="/ho-so" className="flex items-center gap-2 p-3 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors">👤 Hồ sơ của tôi</Link>
                                             <Link to="/don-hang-cua-toi" className="flex items-center gap-2 p-3 hover:bg-slate-50 rounded-xl text-sm font-medium transition-colors">📦 Đơn hàng của tôi</Link>
                                             {user.role === "admin" && <Link to="/admin" className="flex items-center gap-2 p-3 text-purple-600 hover:bg-purple-50 rounded-xl text-sm font-bold transition-colors">🛠 Quản trị hệ thống</Link>}
                                             <button onClick={handleDangXuat} className="w-full flex items-center gap-2 p-3 text-red-500 hover:bg-red-50 rounded-xl text-sm font-medium transition-colors">

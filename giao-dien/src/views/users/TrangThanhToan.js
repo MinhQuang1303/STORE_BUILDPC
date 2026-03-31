@@ -60,7 +60,9 @@ const TrangThanhToan = () => {
                     ghiChu: form.ghiChu,
                     phuongThucThanhToan,
                     items: (items || []).map((item) => ({
-                        idSanPham: item._id,
+                        // idSanPhamGoc nếu có (khi dùng biến thể), còn lại dùng _id
+                        idSanPham: item.idSanPhamGoc || item._id,
+                        idBienThe: item.idBienThe || null,
                         soLuong: item.qty,
                     })),
                     tongTien: tongCuoi

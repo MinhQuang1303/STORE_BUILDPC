@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 
@@ -9,6 +10,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
 const Banner = () => {
+    const navigate = useNavigate();
     const banners = [
         { 
             id: 1, 
@@ -53,7 +55,9 @@ const Banner = () => {
                             <p style={{ fontSize: '22px', marginBottom: '20px', color: '#ccc' }}>
                                 {b.sub}
                             </p>
-                            <button style={{ 
+                            <button 
+                                onClick={() => navigate('/san-pham')}
+                                style={{ 
                                 width: '180px', 
                                 padding: '15px', 
                                 backgroundColor: '#6366f1', 

@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios"; // Sử dụng axios để lấy ID thật từ Backend
 
+const fallbackImage = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%3E.bg%7Bfill%3A%23f3f4f6%3B%7D.text%7Bfill%3A%239ca3af%3Bfont-family%3A%27Arial%27%2Csans-serif%3Bfont-size%3A18px%3Bfont-weight%3Abold%3B%7D%3C%2Fstyle%3E%3C%2Fdefs%3E%3Crect%20class%3D%22bg%22%20width%3D%22200%22%20height%3D%22200%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20class%3D%22text%22%3ESTORE%20BUILDPC%3C%2Ftext%3E%3C%2Fsvg%3E";
+
+const formatImageUrl = (url) => {
+  if (!url) return fallbackImage;
+  if (url.startsWith('/uploads')) return `${process.env.REACT_APP_API_URL.replace('/api', '')}${url}`;
+  return url;
+};
+
 const FlashSale = () => {
   const [danhSachHienTai, setDanhSachHienTai] = useState([]);
   const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
@@ -76,7 +84,12 @@ const FlashSale = () => {
 
             {/* ⚡ QUAN TRỌNG: Link dùng item._id lấy từ Backend */}
             <Link to={`/san-pham/${item._id}`} style={styles.linkWrapper}>
-              <img src={item.anh} alt={item.ten} style={styles.productImg} />
+              <img 
+                src={formatImageUrl(item.anh)} 
+                alt={item.ten} 
+                style={styles.productImg} 
+                onError={(e) => { e.target.src = fallbackImage }}
+              />
             </Link>
 
             <Link to={`/san-pham/${item._id}`} style={styles.linkWrapper}>

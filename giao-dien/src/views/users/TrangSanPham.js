@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
+
+const formatImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/200';
+  if (url.startsWith('/uploads')) return `${process.env.REACT_APP_API_URL.replace('/api', '')}${url}`;
+  return url;
+};
 
 const TrangSanPham = () => {
   const navigate = useNavigate();
@@ -16,16 +22,43 @@ const TrangSanPham = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
-    "Tất cả",
-    "CPU",
-    "Mainboard",
-    "RAM",
-    "VGA",
-    "SSD",
-    "PSU",
-    "Case",
-    "Tản nhiệt",
+    { id: "Tất cả", label: "📦 Tất cả linh kiện" },
+    { id: "CPU", label: "🧠 Vi xử lý (CPU)" },
+    { id: "Mainboard", label: "🎛️ Bo mạch chủ (Mainboard)" },
+    { id: "RAM", label: "💾 Bộ nhớ trong (RAM)" },
+    { id: "HDD", label: "💽 Ổ cứng (HDD)" },
+    { id: "SSD", label: "⚡ Ổ cứng (SSD)" },
+    { id: "VGA", label: "🎮 Card màn hình (VGA)" },
+    { id: "PSU", label: "🔌 Nguồn (PSU)" },
+    { id: "Case", label: "🖥️ Vỏ máy tính (Case)" },
+    { id: "Tản nhiệt", label: "❄️ Tản nhiệt" },
+    { id: "Màn hình", label: "📺 Màn hình" },
+    { id: "Bàn phím", label: "⌨️ Bàn phím" },
+    { id: "Chuột", label: "🖱️ Chuột" },
+    { id: "Tai nghe", label: "🎧 Tai nghe" },
+    { id: "Loa", label: "🔊 Loa máy tính" },
   ];
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get("q");
+    if (q !== null) {
+      setSearchQuery(q);
+    }
+
+    const cat = params.get("cat");
+    if (cat) {
+      const matchedCat = categories.find(c => c.id.toLowerCase() === cat.toLowerCase());
+      if (matchedCat) {
+        setDanhMucChon(matchedCat.id);
+      }
+    } else {
+       // Nếu không truyền cat, và đang ở trang sản phẩm,
+       // có thể reset danh mục nếu cần, hoặc để nguyên mặc định.
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchAllProducts = async () => {
@@ -43,7 +76,8 @@ const TrangSanPham = () => {
   }, []);
 
   let filteredProducts = sanPhams.filter((sp) => {
-    const matchCategory = danhMucChon === "Tất cả" || sp.loai === danhMucChon;
+    const categoryName = sp.idDanhMuc?.ten || sp.loai;
+    const matchCategory = danhMucChon === "Tất cả" || categoryName === danhMucChon;
     const matchSearch = sp.ten.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
   });
@@ -154,15 +188,15 @@ const TrangSanPham = () => {
             </p>
           </div>
 
-          <div style={styles.searchWrapper}>
-            <input
-              type="text"
-              placeholder="Tìm tên linh kiện..."
-              style={styles.searchInput}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+                <div style={styles.searchWrapper}>
+                  <input
+                    type="text"
+                    placeholder="Tìm tên linh kiện..."
+                    style={styles.searchInput}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
         </div>
 
         <div style={styles.layout} className="product-layout">
@@ -172,14 +206,11 @@ const TrangSanPham = () => {
               <div style={styles.filterList}>
                 {categories.map((cat) => (
                   <div
-                    key={cat}
-                    className={`filter-item ${danhMucChon === cat ? "active-filter" : ""}`}
-                    onClick={() => setDanhMucChon(cat)}
+                    key={cat.id}
+                    className={`filter-item ${danhMucChon === cat.id ? "active-filter" : ""}`}
+                    onClick={() => setDanhMucChon(cat.id)}
                   >
-                    <span style={{ fontSize: "18px" }}>
-                      {cat === "Tất cả" ? "📦" : "🔹"}
-                    </span>
-                    {cat}
+                    <span>{cat.label}</span>
                   </div>
                 ))}
               </div>
@@ -220,8 +251,8 @@ const TrangSanPham = () => {
                     onClick={() => navigate(`/san-pham/${sp._id}`)}
                   >
                     <div style={styles.imageBox}>
-                      <img src={sp.anh} alt={sp.ten} style={styles.img} />
-                      <div style={styles.typeTag}>{sp.loai}</div>
+                      <img src={formatImageUrl(sp.anh)} alt={sp.ten} style={styles.img} />
+                      <div style={styles.typeTag}>{sp.idDanhMuc?.ten || sp.loai}</div>
                     </div>
 
                     <div style={styles.info}>

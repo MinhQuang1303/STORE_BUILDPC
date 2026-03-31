@@ -2,6 +2,8 @@ import React from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import UserLayout from "../layouts/UserLayout";
+import AdminRoute from "../components/AdminRoute";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 // Admin views
 import Dashboard from "../views/admin/Dashboard";
@@ -18,6 +20,7 @@ import TrangChiTiet from "../views/users/TrangChiTiet";
 import TrangGioHang from "../views/users/TrangGioHang";
 import TrangSanPham from "../views/users/TrangSanPham";
 import TrangDonHangCuaToi from "../views/users/TrangDonHangCuaToi";
+import TrangHoSo from "../views/users/TrangHoSo";
 import DangNhap from "../views/DangNhap";
 import DangKy from "../views/DangKy";
 import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
@@ -39,6 +42,7 @@ const router = createBrowserRouter([
       { path: "gio-hang", element: <TrangGioHang /> },
       { path: "thanh-toan", element: <TrangThanhToan /> },
       { path: "don-hang-cua-toi", element: <TrangDonHangCuaToi /> },
+      { path: "ho-so", element: <ProtectedRoute><TrangHoSo /></ProtectedRoute> },
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },
       { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },
@@ -53,14 +57,20 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: <AdminRoute />,
     children: [
-      { index: true, element: <Dashboard /> },
-      { path: "categories", element: <QuanLyDanhMuc /> },
-      { path: "products", element: <QuanLySanPham /> },
-      { path: "vouchers", element: <QuanLyMaGiamGia /> },
-      { path: "users", element: <QuanLyUser /> },
-      { path: "orders", element: <QuanLyOrder /> },
+      {
+        path: "",
+        element: <AdminLayout />,
+        children: [
+          { index: true, element: <Dashboard /> },
+          { path: "categories", element: <QuanLyDanhMuc /> },
+          { path: "products", element: <QuanLySanPham /> },
+          { path: "vouchers", element: <QuanLyMaGiamGia /> },
+          { path: "users", element: <QuanLyUser /> },
+          { path: "orders", element: <QuanLyOrder /> },
+        ],
+      }
     ],
   },
   {

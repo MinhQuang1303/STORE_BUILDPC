@@ -4,6 +4,12 @@ import { CartContext } from '../../context/CartContext';
 import axios from 'axios';
 import VoucherModal from '../../components/VoucherModal';
 
+const formatImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/200';
+  if (url.startsWith('/uploads')) return `${process.env.REACT_APP_API_URL.replace('/api', '')}${url}`;
+  return url;
+};
+
 const TrangGioHang = () => {
     // Lấy thêm showToast từ Context (Nhớ đảm bảo trong CartContext có export hàm này)
     const { 
@@ -124,9 +130,10 @@ const TrangGioHang = () => {
                         ) : cartItems.map((item) => (
                             <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px 0', borderBottom: '1px solid #eee' }}>
                                 <input type="checkbox" checked={selectedItems.includes(item._id)} onChange={() => setSelectedItems(prev => prev.includes(item._id) ? prev.filter(i => i !== item._id) : [...prev, item._id])} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
-                                <img src={item.anh} alt="" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
+                                <img src={formatImageUrl(item.anh)} alt="" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
                                 <div style={{ flex: 1 }}>
                                     <h4 style={{ margin: 0, fontSize: '15px' }}>{item.ten}</h4>
+                                    {item.tenBienThe && <div style={{ fontSize: '13px', color: '#7f8c8d' }}>Phiên bản: {item.tenBienThe}</div>}
                                     <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: '5px 0' }}>{item.gia?.toLocaleString()}đ</p>
                                     <button onClick={() => luuMuaSau(item._id)} style={{ color: '#3498db', background: 'none', border: 'none', fontSize: '12px', cursor: 'pointer', padding: 0 }}>❤️ Lưu mua sau</button>
                                 </div>
@@ -146,9 +153,10 @@ const TrangGioHang = () => {
                             <h3 style={{ color: '#636e72', marginBottom: '20px', fontSize: '16px' }}>❤️ SẢN PHẨM ĐÃ LƯU (MUA SAU)</h3>
                             {wishlistItems.map(item => (
                                 <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '15px', backgroundColor: '#fcfcfc', borderRadius: '10px', marginBottom: '10px', border: '1px solid #f1f1f1' }}>
-                                    <img src={item.anh} alt="" style={{ width: '50px' }} />
+                                    <img src={formatImageUrl(item.anh)} alt="" style={{ width: '50px' }} />
                                     <div style={{ flex: 1 }}>
                                         <b style={{ fontSize: '14px' }}>{item.ten}</b>
+                                        {item.tenBienThe && <div style={{ fontSize: '12px', color: '#7f8c8d' }}>Phân loại: {item.tenBienThe}</div>}
                                         <p style={{ color: '#e74c3c', margin: 0, fontWeight: 'bold' }}>{item.gia?.toLocaleString()}đ</p>
                                     </div>
                                     <button onClick={() => moveBackToCart(item)} style={{ backgroundColor: '#0984e3', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Thêm lại giỏ</button>

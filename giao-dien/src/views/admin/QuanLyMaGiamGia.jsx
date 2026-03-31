@@ -98,10 +98,16 @@ const QuanLyMaGiamGia = () => {
 
     try {
       setSubmitting(true);
+      // Chuyển date string "yyyy-MM-dd" thành LocalDateTime format "yyyy-MM-ddT00:00:00"
+      const payload = {
+        ...formData,
+        ngayBatDau: formData.ngayBatDau ? formData.ngayBatDau + "T00:00:00" : null,
+        ngayHetHan: formData.ngayHetHan ? formData.ngayHetHan + "T23:59:59" : null,
+      };
       if (editData) {
-        await axios.put(`${API_URL}/${editData._id}`, formData);
+        await axios.put(`${API_URL}/${editData._id}`, payload);
       } else {
-        await axios.post(API_URL, formData);
+        await axios.post(API_URL, payload);
       }
       setShowModal(false);
       fetchMaGiamGias();

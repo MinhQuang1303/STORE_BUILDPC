@@ -29,7 +29,7 @@ const DangNhap = () => {
         // --- CHUYỂN TRANG VÀ LÀM MỚI TRẠNG THÁI (QUAN TRỌNG) ---
         // Dùng window.location.href để trang chủ nhận diện được localStorage mới ngay lập tức
         if (data.user.role === 'admin') {
-          window.location.href = "/";
+          window.location.href = "/admin";
         } else {
           window.location.href = "/";
         }

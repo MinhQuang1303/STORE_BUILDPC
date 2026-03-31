@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PhanTrang from "../../components/PhanTrang";
 
+const formatImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/200';
+  if (url.startsWith('/uploads')) return `${process.env.REACT_APP_API_URL.replace('/api', '')}${url}`;
+  return url;
+};
+
 const QuanLySanPham = () => {
   const [sanPhams, setSanPhams] = useState([]);
   const [danhMucs, setDanhMucs] = useState([]);
@@ -286,7 +292,7 @@ const QuanLySanPham = () => {
                   >
                     <td className="px-6 py-4">
                       <img
-                        src={item.anh}
+                        src={formatImageUrl(item.anh)}
                         alt={item.ten}
                         className="w-12 h-12 object-contain rounded border border-gray-100 bg-white p-1"
                       />
