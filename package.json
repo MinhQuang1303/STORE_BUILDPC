@@ -6,7 +6,10 @@
     "dev": "concurrently \"npm run backend\" \"npm run frontend\""
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.27",
     "concurrently": "^9.2.1",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3"
   },
   "version": "1.0.0",

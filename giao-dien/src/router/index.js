@@ -22,6 +22,7 @@ import DangNhap from "../views/DangNhap";
 import DangKy from "../views/DangKy";
 import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
 import TrangThanhToan from "../views/users/TrangThanhToan";
+import TrangProfile from "../views/users/TrangProfile";
 
 // Component tạm thời để tránh lỗi "AuthSuccess is not defined"
 const AuthSuccess = () => <div>Đăng nhập thành công! Đang chuyển hướng...</div>;
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
       { path: "build-pc", element: <TrangBuildPC /> },
       { path: "gio-hang", element: <TrangGioHang /> },
       { path: "thanh-toan", element: <TrangThanhToan /> },
+      { path: "profile", element: <TrangProfile /> },
       { path: "don-hang-cua-toi", element: <TrangDonHangCuaToi /> },
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },

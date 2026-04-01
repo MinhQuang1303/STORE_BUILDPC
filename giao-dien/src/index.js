@@ -5,7 +5,9 @@ import App from "./App";
 import { CartProvider } from "./context/CartContext";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <App />
+ <React.StrictMode>
+    <CartProvider> {/* Nên bọc ở đây để dùng được giỏ hàng */}
+      <App />
+    </CartProvider>
   </React.StrictMode>
 );

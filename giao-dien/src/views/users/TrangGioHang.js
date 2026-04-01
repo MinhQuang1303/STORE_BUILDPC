@@ -5,11 +5,10 @@ import axios from 'axios';
 import VoucherModal from '../../components/VoucherModal';
 
 const TrangGioHang = () => {
-    // Lấy thêm showToast từ Context (Nhớ đảm bảo trong CartContext có export hàm này)
     const { 
         cartItems, removeFromCart, updateQty, 
         wishlistItems, moveBackToCart, removeFromWishlist, luuMuaSau,
-        showToast // nhớ thêm hàm này vào chỗ bóc tách nhé
+        showToast 
     } = useContext(CartContext);
     const navigate = useNavigate();
 
@@ -35,7 +34,6 @@ const TrangGioHang = () => {
 
     const phiVanChuyen = (tongTienSelected > 5000000 || tongTienSelected === 0) ? 0 : 30000;
     
-    // Logic quà tặng 
     const quaTang = 
         tongTienSelected > 200000000 ? "Ghế Công thái học Herman Miller Aeron (Bản Limited)" : 
         tongTienSelected > 150000000 ? "Màn hình Samsung Odyssey Neo G9 49 inch Dual UHD" : 
@@ -50,22 +48,18 @@ const TrangGioHang = () => {
 
     const thanhTienCuoiCung = tongTienSelected + phiVanChuyen - discount;
 
-    // 3. XỬ LÝ MÃ GIẢM GIÁ VỚI TOAST XỊN
     const handleApplyCoupon = async (codeFromModal) => {
         const codeToUse = codeFromModal || couponCode;
-        
-        // Thay alert bằng showToast
         if (!codeToUse) {
             showToast("Vui lòng nhập hoặc chọn mã giảm giá ! 🎫", "error");
             return;
         }
-        
         try {
             const res = await axios.get(`${process.env.REACT_APP_API_URL}/ma-giam-gia/kiem-tra/${codeToUse}`);
             const voucher = res.data;
 
             if (tongTienSelected < voucher.giaTriDonHangToiThieu) {
-                showToast(`Đơn hàng phải từ ${voucher.giaTriDonHangToiThieu.toLocaleString()}đ mới dùng được mã này nha! ⚠️`, "error");
+                showToast(`Đơn hàng tối thiểu ${voucher.giaTriDonHangToiThieu.toLocaleString()}đ! ⚠️`, "error");
                 return;
             }
 
@@ -74,19 +68,16 @@ const TrangGioHang = () => {
             
             setDiscount(soTienGiam);
             setCouponCode(codeToUse);
-            showToast(`Áp mã thành công! Bạn được giảm ${soTienGiam.toLocaleString()}đ 💸`, "success");
-
+            showToast(`Áp mã thành công! Giảm ${soTienGiam.toLocaleString()}đ 💸`, "success");
         } catch (err) {
-            const errorMsg = err.response?.data?.message || "Mã giảm giá này hẻo rồi!";
-            showToast(errorMsg, "error");
+            showToast(err.response?.data?.message || "Mã không hợp lệ!", "error");
             setDiscount(0);
         }
     };
 
-    // Hàm xử lý đặt hàng
     const handleCheckout = () => {
         if (selectedItems.length === 0) {
-            showToast("Chọn ít nhất một món để thanh toán! 🛒", "error");
+            showToast("Chọn sản phẩm để thanh toán! 🛒", "error");
             return;
         }
         navigate('/thanh-toan', { 
@@ -102,7 +93,7 @@ const TrangGioHang = () => {
     };
 
     return (
-        <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+        <div className="bg-slate-50 dark:bg-[#0b0f1a] min-h-screen py-10 px-5 transition-colors duration-300">
             <VoucherModal 
                 isOpen={isVoucherOpen} 
                 vouchers={allVouchers} 
@@ -110,90 +101,115 @@ const TrangGioHang = () => {
                 onApply={(code) => handleApplyCoupon(code)} 
             />
 
-            <div style={{ maxWidth: '1100px', margin: '30px auto', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+            <div className="max-w-[1100px] mx-auto flex flex-col lg:flex-row gap-6">
                 
                 {/* BÊN TRÁI: GIỎ HÀNG & MUA SAU */}
-                <div style={{ flex: 2, minWidth: '350px' }}>
-                    <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-                        <h2 style={{ marginBottom: '20px' }}>🛒 GIỎ HÀNG</h2>
+                <div className="flex-[2] space-y-6">
+                    {/* GIỎ HÀNG */}
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                        <h2 className="text-xl font-black mb-6 dark:text-white flex items-center gap-2">
+                            🛒 GIỎ HÀNG 
+                            <span className="text-sm font-normal text-slate-400">({cartItems.length})</span>
+                        </h2>
+                        
                         {cartItems.length === 0 ? (
-                            <div style={{textAlign: 'center', padding: '40px'}}>
-                                <p style={{fontSize: '50px'}}>🧸</p>
-                                <p style={{color: '#95a5a6'}}>Giỏ hàng trống trơn à!</p>
+                            <div className="text-center py-12">
+                                <p className="text-5xl mb-4">🧸</p>
+                                <p className="text-slate-500 dark:text-slate-400">Giỏ hàng đang trống trơn!</p>
                             </div>
                         ) : cartItems.map((item) => (
-                            <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px 0', borderBottom: '1px solid #eee' }}>
-                                <input type="checkbox" checked={selectedItems.includes(item._id)} onChange={() => setSelectedItems(prev => prev.includes(item._id) ? prev.filter(i => i !== item._id) : [...prev, item._id])} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
-                                <img src={item.anh} alt="" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '15px' }}>{item.ten}</h4>
-                                    <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: '5px 0' }}>{item.gia?.toLocaleString()}đ</p>
-                                    <button onClick={() => luuMuaSau(item._id)} style={{ color: '#3498db', background: 'none', border: 'none', fontSize: '12px', cursor: 'pointer', padding: 0 }}>❤️ Lưu mua sau</button>
+                            <div key={item._id} className="flex items-center gap-4 py-4 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                                <input 
+                                    type="checkbox" 
+                                    className="w-5 h-5 cursor-pointer accent-blue-600"
+                                    checked={selectedItems.includes(item._id)} 
+                                    onChange={() => setSelectedItems(prev => prev.includes(item._id) ? prev.filter(i => i !== item._id) : [...prev, item._id])} 
+                                />
+                                <div className="w-20 h-20 bg-white p-2 rounded-lg flex items-center justify-center">
+                                    <img src={item.anh} alt="" className="max-w-full max-h-full object-contain" />
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '5px' }}>
-                                    <button onClick={() => updateQty(item._id, item.qty - 1)} style={{ padding: '5px 10px', border: 'none', cursor: 'pointer' }}>-</button>
-                                    <span style={{ padding: '0 10px', fontWeight: 'bold' }}>{item.qty}</span>
-                                    <button onClick={() => updateQty(item._id, item.qty + 1)} style={{ padding: '5px 10px', border: 'none', cursor: 'pointer' }}>+</button>
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-bold dark:text-slate-100 line-clamp-2 leading-tight mb-1">{item.ten}</h4>
+                                    <p className="text-red-500 font-black mb-2 text-base">{item.gia?.toLocaleString()}đ</p>
+                                    <button onClick={() => luuMuaSau(item._id)} className="text-blue-500 text-xs font-bold hover:underline">❤️ Lưu mua sau</button>
                                 </div>
-                                <button onClick={() => removeFromCart(item._id)} style={{ color: '#ccc', border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}>🗑️</button>
+                                
+                                <div className="flex items-center border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden">
+                                    <button onClick={() => updateQty(item._id, item.qty - 1)} className="px-3 py-1 bg-slate-50 dark:bg-slate-700 dark:text-white hover:bg-slate-200">-</button>
+                                    <span className="px-3 font-bold dark:text-white">{item.qty}</span>
+                                    <button onClick={() => updateQty(item._id, item.qty + 1)} className="px-3 py-1 bg-slate-50 dark:bg-slate-700 dark:text-white hover:bg-slate-200">+</button>
+                                </div>
+                                
+                                <button onClick={() => removeFromCart(item._id)} className="text-slate-300 hover:text-red-500 transition-colors text-xl ml-2">🗑️</button>
                             </div>
                         ))}
                     </div>
 
-                    {/* KHỐI SẢN PHẨM ĐÃ LƯU */}
-                    {wishlistItems && wishlistItems.length > 0 && (
-                        <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-                            <h3 style={{ color: '#636e72', marginBottom: '20px', fontSize: '16px' }}>❤️ SẢN PHẨM ĐÃ LƯU (MUA SAU)</h3>
-                            {wishlistItems.map(item => (
-                                <div key={item._id} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '15px', backgroundColor: '#fcfcfc', borderRadius: '10px', marginBottom: '10px', border: '1px solid #f1f1f1' }}>
-                                    <img src={item.anh} alt="" style={{ width: '50px' }} />
-                                    <div style={{ flex: 1 }}>
-                                        <b style={{ fontSize: '14px' }}>{item.ten}</b>
-                                        <p style={{ color: '#e74c3c', margin: 0, fontWeight: 'bold' }}>{item.gia?.toLocaleString()}đ</p>
+                    {/* MUA SAU */}
+                    {wishlistItems?.length > 0 && (
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                            <h3 className="text-slate-500 dark:text-slate-400 font-bold text-sm mb-4">❤️ SẢN PHẨM ĐÃ LƯU</h3>
+                            <div className="space-y-3">
+                                {wishlistItems.map(item => (
+                                    <div key={item._id} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                                        <img src={item.anh} alt="" className="w-12 h-12 object-contain" />
+                                        <div className="flex-1">
+                                            <b className="text-xs dark:text-slate-200 block line-clamp-1">{item.ten}</b>
+                                            <p className="text-red-500 text-sm font-bold">{item.gia?.toLocaleString()}đ</p>
+                                        </div>
+                                        <button onClick={() => moveBackToCart(item)} className="bg-blue-600 text-white text-xs px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all">Thêm lại</button>
+                                        <button onClick={() => removeFromWishlist(item._id)} className="text-slate-400 text-xs hover:text-red-500">Xóa</button>
                                     </div>
-                                    <button onClick={() => moveBackToCart(item)} style={{ backgroundColor: '#0984e3', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Thêm lại giỏ</button>
-                                    <button onClick={() => removeFromWishlist(item._id)} style={{ color: '#b2bec3', background: 'none', border: 'none', cursor: 'pointer' }}>Xóa</button>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* BÊN PHẢI: THANH TOÁN */}
-                <div style={{ flex: 1, minWidth: '300px' }}>
-                    <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', position: 'sticky', top: '20px' }}>
-                        <h3 style={{ marginTop: 0, borderBottom: '2px solid #f1f1f1', paddingBottom: '10px' }}>THANH TOÁN</h3>
+                {/* BÊN PHẢI: TỔNG KẾT */}
+                <div className="flex-1">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 sticky top-5 transition-all">
+                        <h3 className="font-black text-lg mb-5 pb-3 border-b border-slate-100 dark:border-slate-700 dark:text-white">THANH TOÁN</h3>
                         
-                        <button onClick={() => setIsVoucherOpen(true)} style={{ width: '100%', padding: '12px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', marginBottom: '15px', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s' }}>
+                        <button 
+                            onClick={() => setIsVoucherOpen(true)} 
+                            className="w-100 py-3 bg-indigo-500 text-white rounded-xl mb-5 font-bold hover:bg-indigo-600 shadow-md shadow-indigo-200 dark:shadow-none transition-all block text-center w-full"
+                        >
                             🎁 KHO VOUCHER 
                         </button>
 
-                        <div style={{ display: 'flex', gap: '5px', marginBottom: '20px' }}>
-                            <input type="text" placeholder="NHẬP MÃ..." value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} style={{ flex: 1, padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }} />
-                            <button onClick={() => handleApplyCoupon()} style={{ padding: '10px 20px', backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>DÙNG</button>
+                        <div className="flex gap-2 mb-6">
+                            <input 
+                                type="text" 
+                                placeholder="MÃ GIẢM GIÁ..." 
+                                className="flex-1 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:outline-none focus:border-blue-500"
+                                value={couponCode} 
+                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())} 
+                            />
+                            <button onClick={() => handleApplyCoupon()} className="px-5 bg-slate-800 dark:bg-blue-600 text-white rounded-lg font-bold text-sm hover:opacity-90">DÙNG</button>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#636e72' }}><span>Tạm tính:</span><span>{tongTienSelected.toLocaleString()}đ</span></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#636e72' }}><span>Phí ship:</span><span>{phiVanChuyen === 0 ? "Miễn phí" : phiVanChuyen.toLocaleString() + "đ"}</span></div>
-                            {discount > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', color: '#27ae60', fontWeight: 'bold' }}><span>Giảm giá:</span><span>-{discount.toLocaleString()}đ</span></div>}
+                        <div className="space-y-3 mb-6">
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-sm"><span>Tạm tính:</span><b>{tongTienSelected.toLocaleString()}đ</b></div>
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-sm"><span>Phí ship:</span><b>{phiVanChuyen === 0 ? "Miễn phí" : phiVanChuyen.toLocaleString() + "đ"}</b></div>
+                            {discount > 0 && <div className="flex justify-between text-green-600 font-bold text-sm"><span>Giảm giá:</span><span>-{discount.toLocaleString()}đ</span></div>}
                             
                             {quaTang && (
-                                <div style={{ backgroundColor: '#fff9db', padding: '12px', borderRadius: '10px', border: '1px dashed #f1c40f', marginTop: '5px' }}>
-                                    <span style={{ color: '#f39c12', fontWeight: 'bold', fontSize: '11px', display: 'block' }}>✨ QUÀ TẶNG KÈM:</span>
-                                    <b style={{ color: '#2c3e50', fontSize: '13px' }}>{quaTang}</b>
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-xl border border-dashed border-yellow-400 mt-2">
+                                    <span className="text-[10px] font-black text-yellow-600 block uppercase mb-1">✨ Quà tặng kèm:</span>
+                                    <b className="text-xs text-slate-800 dark:text-yellow-200 leading-tight">{quaTang}</b>
                                 </div>
                             )}
 
-                            <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '10px 0' }} />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '22px', fontWeight: '900', color: '#e74c3c' }}>
-                                <span>TỔNG:</span><span>{thanhTienCuoiCung.toLocaleString()}đ</span>
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
+                                <span className="font-bold dark:text-white">TỔNG CỘNG:</span>
+                                <span className="text-2xl font-black text-red-500">{thanhTienCuoiCung.toLocaleString()}đ</span>
                             </div>
                         </div>
 
                         <button 
                             onClick={handleCheckout}
-                            style={{ width: '100%', padding: '16px', marginTop: '20px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(39, 174, 96, 0.3)' }}
+                            className="w-full py-4 bg-green-500 text-white rounded-2xl font-black text-lg shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-600 hover:-translate-y-1 transition-all"
                         >
                             ĐẶT HÀNG NGAY 🚀
                         </button>

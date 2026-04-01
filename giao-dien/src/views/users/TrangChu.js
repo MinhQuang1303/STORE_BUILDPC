@@ -51,77 +51,77 @@ const TrangChu = () => {
   };
 
   return (
-    <div style={styles.pageBackground}>
-      {/* Hiệu ứng Hover & Animation toàn cục */}
+    <div className="bg-slate-50 dark:bg-[#0b0f1a] min-h-screen pb-24 transition-colors duration-300">
+      {/* Hiệu ứng Hover cũ giữ lại trong thẻ style hoặc chuyển hẳn sang Tailwind */}
       <style>
         {`
-          .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e2e8f0; }
-          .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-color: #3b82f6; }
-          .category-item { transition: all 0.2s; cursor: pointer; }
-          .category-item:hover { background: #eff6ff; transform: scale(1.05); color: #2563eb; }
-          .btn-cart-main:hover { background-color: #2563eb !important; color: white !important; transform: scale(1.1); }
-          .btn-detail-main:hover { background-color: #f1f5f9 !important; }
+          .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+          .product-card:hover { transform: translateY(-8px); }
         `}
       </style>
 
-      <div style={styles.container}>
+      <div className="max-w-[1300px] mx-auto px-5">
         <PromoBanner />
         <FlashSale />
 
-        {/* SECTION DANH MỤC - Thiết kế tối giản */}
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Danh mục linh kiện</h2>
-          <div style={styles.underline}></div>
+        {/* SECTION DANH MỤC */}
+        <div className="mt-14 mb-8 text-center">
+          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Danh mục linh kiện</h2>
+          <div className="w-16 h-1 bg-blue-600 mx-auto rounded-full"></div>
         </div>
-        <div style={styles.categoryGrid}>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {categories.map((cat) => (
-            <div key={cat.id} className="category-item" style={styles.categoryCard} onClick={() => navigate("/build")}>
-              <div style={styles.categoryIcon}>{cat.icon}</div>
-              <div style={styles.categoryName}>{cat.name}</div>
+            <div 
+              key={cat.id} 
+              className="bg-white dark:bg-slate-800 p-5 rounded-2xl text-center border border-slate-100 dark:border-slate-700 shadow-sm hover:scale-105 hover:text-blue-600 transition-all cursor-pointer"
+              onClick={() => navigate("/build")}
+            >
+              <div className="text-3xl mb-2">{cat.icon}</div>
+              <div className="text-sm font-bold text-slate-600 dark:text-slate-300">{cat.name}</div>
             </div>
           ))}
         </div>
 
         {/* SECTION SẢN PHẨM MỚI */}
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Sản phẩm mới nhất</h2>
-          <div style={styles.underline}></div>
+        <div className="mt-14 mb-8 text-center">
+          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Sản phẩm mới nhất</h2>
+          <div className="w-16 h-1 bg-blue-600 mx-auto rounded-full"></div>
         </div>
 
         {isLoading ? (
-          <div style={styles.loadingText}>Đang tải sản phẩm...</div>
+          <div className="text-center py-24 text-slate-500 dark:text-slate-400 text-lg">Đang tải sản phẩm...</div>
         ) : (
-          <div style={styles.productGrid}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {sanPhams.map((item) => (
-              <div key={item._id} className="product-card" style={styles.productCard} onClick={() => navigate(`/san-pham/${item._id}`)}>
-                <div style={styles.imageBox}>
+              <div 
+                key={item._id} 
+                className="product-card bg-white dark:bg-slate-800 rounded-3xl overflow-hidden cursor-pointer flex flex-col border border-slate-100 dark:border-slate-700 shadow-sm"
+                onClick={() => navigate(`/san-pham/${item._id}`)}
+              >
+                <div className="h-60 p-5 flex justify-center items-center bg-white">
                   <img 
                     src={item.anh || item.hinhAnh} 
-                    alt={item.ten} 
-                    style={styles.productImg} 
+                    className="max-w-full max-h-full object-contain"
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/200' }} 
                   />
                 </div>
                 
-                <div style={styles.productInfo}>
-                  <div style={styles.typeTag}>{item.loai}</div>
-                  <h3 style={styles.productName}>{item.ten}</h3>
+                <div className="p-5 flex-1 flex flex-col">
+                  <div className="text-[11px] font-extrabold text-blue-600 uppercase mb-2">{item.loai}</div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 h-11 overflow-hidden mb-4 line-clamp-2">{item.ten}</h3>
                   
-                  <div style={styles.priceRow}>
-                    <div style={styles.productPrice}>{item.gia?.toLocaleString()} đ</div>
-                    <div style={styles.oldPrice}>{(item.gia * 1.1).toLocaleString()} đ</div>
+                  <div className="mb-5">
+                    <div className="text-red-500 text-xl font-black">{item.gia?.toLocaleString()} đ</div>
+                    <div className="text-slate-400 text-sm line-through">{(item.gia * 1.1).toLocaleString()} đ</div>
                   </div>
 
-                  <div style={styles.actionRow}>
-                    <button 
-                       className="btn-detail-main" 
-                       style={styles.btnDetail}
-                    >
+                  <div className="flex gap-3 mt-auto">
+                    <button className="flex-1 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-transparent dark:text-white font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
                       Chi tiết
                     </button>
                     <button 
-                      className="btn-cart-main" 
-                      style={styles.btnCart} 
+                      className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl text-xl hover:bg-blue-600 hover:text-white transition-all"
                       onClick={(e) => handleAddToCart(e, item)}
                     >
                       🛒
@@ -132,6 +132,9 @@ const TrangChu = () => {
             ))}
           </div>
         )}
+      
+    
+  
 
         {/* BANNER BUILD PC - Chuyên nghiệp hơn */}
         <div style={styles.buildBanner}>

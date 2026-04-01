@@ -18,223 +18,149 @@ const TrangChiTiet = () => {
   }, [id]);
 
   if (!sp) return (
-    <div style={styles.loadingContainer}>
-      <div className="spinner"></div>
-      <p>Đang chuẩn bị dữ liệu sản phẩm...</p>
+    <div className="flex flex-col items-center justify-center h-screen bg-slate-50 dark:bg-[#0b0f1a] text-slate-500 transition-colors duration-300">
+      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+      <p className="font-medium">Đang chuẩn bị dữ liệu sản phẩm...</p>
     </div>
   );
 
   const listSpecs = sp.thongSo ? sp.thongSo.split(",").map((s) => s.trim()) : [];
 
   return (
-    <div style={styles.pageWrapper}>
-      {/* CSS ANIMATIONS & HOVER */}
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10)px; } to { opacity: 1; transform: translateY(0); } }
-        .product-container { animation: fadeIn 0.6s ease-out; }
-        .image-zoom:hover { transform: scale(1.1); transition: all 0.5s ease; cursor: zoom-in; }
-        .btn-buy:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4); }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      `}</style>
-
-      <div style={styles.container} className="product-container">
-        {/* BREADCRUMB - Đường dẫn */}
-        <div style={styles.breadcrumb}>
-           Trang chủ / {sp.loai} / <span style={{color: "#1e293b", fontWeight: "600"}}>{sp.ten}</span>
+    <div className="bg-slate-50 dark:bg-[#0b0f1a] min-h-screen py-8 transition-colors duration-300">
+      <div className="max-w-[1300px] mx-auto px-4">
+        
+        {/* BREADCRUMB */}
+        <div className="text-sm text-slate-400 dark:text-slate-500 mb-6">
+           Trang chủ / {sp.loai} / <span className="text-slate-900 dark:text-slate-200 font-semibold">{sp.ten}</span>
         </div>
 
-        <div style={styles.mainLayout}>
-          {/* CỘT TRÁI: HÌNH ẢNH */}
-          <div style={styles.imageCol}>
-            <div style={styles.imageMainBox}>
-              <img src={sp.anh} alt={sp.ten} style={styles.image} className="image-zoom" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+          
+          {/* CỘT TRÁI: HÌNH ẢNH (4/12) */}
+          <div className="lg:col-span-5">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 sticky top-5">
+              <img 
+                src={sp.anh} 
+                alt={sp.ten} 
+                className="max-w-full max-h-[450px] object-contain hover:scale-105 transition-transform duration-500 cursor-zoom-in" 
+              />
             </div>
-            <div style={styles.imageThumbnails}>
-                {[1,2,3].map(i => (
-                    <div key={i} style={styles.thumbBox}><img src={sp.anh} style={{width: "100%"}} /></div>
+            <div className="flex gap-4 mt-4">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="w-20 h-20 bg-white dark:bg-slate-800 rounded-xl p-2 border border-slate-200 dark:border-slate-700 cursor-pointer overflow-hidden">
+                        <img src={sp.anh} className="w-full h-full object-contain opacity-60 hover:opacity-100 transition-opacity" alt="thumbnail" />
+                    </div>
                 ))}
             </div>
           </div>
 
-          {/* CỘT GIỮA: THÔNG TIN VÀ MUA HÀNG */}
-          <div style={styles.infoCol}>
-            <span style={styles.categoryBadge}>{sp.loai}</span>
-            <h1 style={styles.productTitle}>{sp.ten}</h1>
-            
-            <div style={styles.ratingRow}>
-                <div style={styles.stars}>⭐⭐⭐⭐⭐</div>
-                <span style={styles.reviewCount}>(24 đánh giá)</span>
-                <span style={styles.divider}>|</span>
-                <span style={styles.skuText}>Mã: {sp._id.substring(18).toUpperCase()}</span>
-            </div>
-
-            <div style={styles.priceSection}>
-                <div style={styles.priceMain}>{sp.gia?.toLocaleString()} <span style={{fontSize: '18px'}}>đ</span></div>
-                <div style={styles.priceOld}>{(sp.gia * 1.1).toLocaleString()} đ</div>
-                <div style={styles.discountTag}>-10%</div>
-            </div>
-
-            <div style={styles.shortDesc}>
-                <p>• Bảo hành chính hãng 36 tháng</p>
-                <p>• Hỗ trợ trả góp 0% qua thẻ tín dụng</p>
-                <p>• Miễn phí lắp đặt khi Build PC tại cửa hàng</p>
-            </div>
-
-            <div style={styles.actionBox}>
-              <div style={styles.qtyRow}>
-                <span style={{fontWeight: "700", color: "#475569"}}>Số lượng:</span>
-                <div style={styles.qtyGroup}>
-                  <button onClick={() => setSoLuong(Math.max(1, soLuong - 1))} style={styles.qtyBtn}>-</button>
-                  <input type="number" value={soLuong} readOnly style={styles.qtyInput} />
-                  <button onClick={() => setSoLuong(soLuong + 1)} style={styles.qtyBtn}>+</button>
+          {/* CỘT GIỮA: THÔNG TIN (7/12) */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
+                <span className="text-blue-600 dark:text-blue-400 font-black text-xs uppercase tracking-widest">{sp.loai}</span>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white mt-2 mb-4 leading-tight">{sp.ten}</h1>
+                
+                <div className="flex items-center gap-4 mb-6 text-sm">
+                    <div className="text-yellow-400 flex">⭐⭐⭐⭐⭐</div>
+                    <span className="text-slate-400 dark:text-slate-500">(24 đánh giá)</span>
+                    <span className="text-slate-200 dark:text-slate-700">|</span>
+                    <span className="text-slate-500 font-mono">ID: {sp._id.substring(18).toUpperCase()}</span>
                 </div>
-                <span style={styles.stockText}>⚡ Chỉ còn 5 sản phẩm cuối</span>
-              </div>
 
-              <div style={styles.btnRow}>
-                <button 
-                  className="btn-buy"
-                  style={styles.btnAddCart} 
-                  onClick={() => addToCart(sp, soLuong)}
-                >
-                  <span style={{fontSize: "20px"}}>🛒</span> THÊM VÀO GIỎ HÀNG
-                </button>
-                <button 
-                  className="btn-buy"
-                  style={styles.btnBuild} 
-                  onClick={() => navigate("/build")}
-                >
-                  🛠️ THÊM VÀO CẤU HÌNH PC
-                </button>
-              </div>
-            </div>
-          </div>
+                <div className="flex items-baseline gap-4 mb-8 bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl">
+                    <div className="text-4xl font-black text-red-500">{sp.gia?.toLocaleString()} <span className="text-lg">đ</span></div>
+                    <div className="text-lg text-slate-400 line-through">{(sp.gia * 1.1).toLocaleString()} đ</div>
+                    <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-1 rounded-lg font-bold text-sm">-10%</div>
+                </div>
 
-          {/* CỘT PHẢI: CHÍNH SÁCH DỊCH VỤ */}
-          <div style={styles.policyCol}>
-            <div style={styles.policyCard}>
-                <h4 style={styles.policyTitle}>Yên tâm mua sắm</h4>
-                <div style={styles.policyItem}>
-                    <span style={styles.policyIcon}>🚚</span>
-                    <div>
-                        <div style={styles.policyLabel}>Giao hàng nhanh</div>
-                        <div style={styles.policySub}>Nội thành trong 2h</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-sm text-slate-600 dark:text-slate-400 font-medium">
+                    <div className="flex items-center gap-2">✅ Bảo hành chính hãng 36 tháng</div>
+                    <div className="flex items-center gap-2">💳 Hỗ trợ trả góp 0%</div>
+                    <div className="flex items-center gap-2">🛠️ Miễn phí lắp đặt tận nơi</div>
+                    <div className="flex items-center gap-2">🚚 Giao hàng hỏa tốc 2h</div>
+                </div>
+
+                {/* ACTION BOX */}
+                <div className="border-t border-slate-100 dark:border-slate-700 pt-8">
+                    <div className="flex items-center gap-6 mb-6">
+                        <span className="font-bold text-slate-700 dark:text-slate-300">Số lượng:</span>
+                        <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
+                            <button onClick={() => setSoLuong(Math.max(1, soLuong - 1))} className="w-10 h-10 flex items-center justify-center text-xl font-bold hover:text-blue-500 transition-colors">-</button>
+                            <input type="number" value={soLuong} readOnly className="w-12 text-center bg-transparent font-black dark:text-white" />
+                            <button onClick={() => setSoLuong(soLuong + 1)} className="w-10 h-10 flex items-center justify-center text-xl font-bold hover:text-blue-500 transition-colors">+</button>
+                        </div>
+                        <span className="text-orange-500 text-xs font-bold animate-pulse italic">⚡ Chỉ còn 5 sản phẩm cuối!</span>
                     </div>
-                </div>
-                <div style={styles.policyItem}>
-                    <span style={styles.policyIcon}>🔄</span>
-                    <div>
-                        <div style={styles.policyLabel}>Đổi trả dễ dàng</div>
-                        <div style={styles.policySub}>Lỗi 1 đổi 1 trong 15 ngày</div>
-                    </div>
-                </div>
-                <div style={styles.policyItem}>
-                    <span style={styles.policyIcon}>🛡️</span>
-                    <div>
-                        <div style={styles.policyLabel}>Chính hãng 100%</div>
-                        <div style={styles.policySub}>Phát hiện hàng giả đền x10</div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <button 
+                            onClick={() => addToCart(sp, soLuong)}
+                            className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3"
+                        >
+                            <span className="text-2xl text-white">🛒</span> THÊM VÀO GIỎ HÀNG
+                        </button>
+                        <button 
+                            onClick={() => navigate("/build")}
+                            className="flex-1 py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-black text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                        >
+                            🛠️ BUILD PC
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div style={styles.promoCard}>
-                <div style={{fontWeight: "700", marginBottom: "10px", color: "#c2410c"}}>🎁 Khuyến mãi kèm theo</div>
-                <p style={{fontSize: "13px", color: "#7c2d12"}}>Tặng Voucher 200k khi mua kèm Màn hình Gaming.</p>
+            {/* CHÍNH SÁCH NHANH */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                    <span className="text-2xl">🔄</span>
+                    <div>
+                        <p className="text-xs font-bold dark:text-white">Lỗi là đổi</p>
+                        <p className="text-[10px] text-slate-400">1 đổi 1 trong 15 ngày</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                    <span className="text-2xl">🛡️</span>
+                    <div>
+                        <p className="text-xs font-bold dark:text-white">Chính hãng</p>
+                        <p className="text-[10px] text-slate-400">Đền x10 nếu hàng giả</p>
+                    </div>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-2xl border border-orange-100 dark:border-orange-900/30 flex items-center gap-3">
+                    <span className="text-2xl">🎁</span>
+                    <p className="text-[11px] font-bold text-orange-700 dark:text-orange-400">Tặng Voucher 200k khi mua kèm Màn hình.</p>
+                </div>
             </div>
           </div>
         </div>
 
-        {/* PHẦN DƯỚI: THÔNG SỐ KỸ THUẬT */}
-        <div style={styles.specsWrapper}>
-            <div style={styles.specsHeader}>
-                <div style={styles.activeTab}>Thông số kỹ thuật</div>
-                <div style={styles.inactiveTab}>Đánh giá người dùng</div>
+        {/* THÔNG SỐ KỸ THUẬT */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex border-b border-slate-100 dark:border-slate-700">
+                <button className="px-8 py-5 font-black text-blue-600 border-b-4 border-blue-600 text-sm">THÔNG SỐ KỸ THUẬT</button>
+                <button className="px-8 py-5 font-bold text-slate-400 dark:text-slate-500 text-sm hover:text-slate-600 transition-colors">ĐÁNH GIÁ (24)</button>
             </div>
-            <div style={styles.specsContent}>
-                <table style={styles.specsTable}>
-                    <tbody>
-                    {listSpecs.map((spec, index) => {
-                        const [label, value] = spec.split(":");
-                        return (
-                        <tr key={index} style={index % 2 === 0 ? {backgroundColor: "#f8fafc"} : {}}>
-                            <td style={styles.specLabel}>{label?.trim() || "Tính năng"}</td>
-                            <td style={styles.specValue}>{value?.trim() || spec}</td>
-                        </tr>
-                        );
-                    })}
-                    </tbody>
-                </table>
+            <div className="p-8">
+                <div className="max-w-3xl">
+                    <table className="w-full text-sm text-left">
+                        <tbody>
+                            {listSpecs.map((spec, index) => {
+                                const [label, value] = spec.split(":");
+                                return (
+                                    <tr key={index} className={`${index % 2 === 0 ? "bg-slate-50/50 dark:bg-slate-900/20" : ""} border-b border-slate-50 dark:border-slate-700/50`}>
+                                        <td className="py-4 px-6 font-bold text-slate-500 dark:text-slate-400 w-1/3 italic">{label?.trim() || "Tính năng"}</td>
+                                        <td className="py-4 px-6 font-semibold text-slate-900 dark:text-slate-200">{value?.trim() || spec}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  pageWrapper: { backgroundColor: "#f1f5f9", minHeight: "100vh", padding: "20px 0" },
-  container: { maxWidth: "1300px", margin: "0 auto", padding: "0 15px" },
-  loadingContainer: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "80vh", color: "#64748b" },
-  
-  breadcrumb: { fontSize: "14px", color: "#94a3b8", marginBottom: "20px" },
-  
-  mainLayout: { display: "flex", gap: "25px", marginBottom: "40px", flexWrap: "wrap" },
-  
-  // Cột ảnh
-  imageCol: { flex: "1.2", minWidth: "400px" },
-  imageMainBox: { backgroundColor: "#fff", borderRadius: "20px", padding: "40px", height: "500px", display: "flex", justifyContent: "center", alignItems: "center", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", overflow: "hidden" },
-  image: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" },
-  imageThumbnails: { display: "flex", gap: "10px", marginTop: "15px" },
-  thumbBox: { width: "80px", height: "80px", backgroundColor: "#fff", borderRadius: "10px", padding: "10px", border: "1px solid #e2e8f0", cursor: "pointer" },
-
-  // Cột thông tin
-  infoCol: { flex: "1.5", minWidth: "400px", backgroundColor: "#fff", padding: "35px", borderRadius: "24px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" },
-  categoryBadge: { color: "#2563eb", fontWeight: "800", fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" },
-  productTitle: { fontSize: "32px", fontWeight: "800", color: "#0f172a", margin: "10px 0 15px 0", lineHeight: "1.2" },
-  
-  ratingRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "25px" },
-  stars: { color: "#fbbf24", fontSize: "14px" },
-  reviewCount: { color: "#94a3b8", fontSize: "14px" },
-  skuText: { color: "#94a3b8", fontSize: "13px" },
-
-  priceSection: { display: "flex", alignItems: "baseline", gap: "15px", marginBottom: "25px", borderBottom: "1px solid #f1f5f9", paddingBottom: "20px" },
-  priceMain: { fontSize: "36px", fontWeight: "900", color: "#ef4444" },
-  priceOld: { fontSize: "18px", color: "#94a3b8", textDecoration: "line-through" },
-  discountTag: { backgroundColor: "#fee2e2", color: "#ef4444", padding: "4px 10px", borderRadius: "6px", fontWeight: "700", fontSize: "14px" },
-
-  shortDesc: { fontSize: "14px", color: "#475569", lineHeight: "1.8", marginBottom: "30px" },
-
-  actionBox: { backgroundColor: "#f8fafc", padding: "25px", borderRadius: "16px" },
-  qtyRow: { display: "flex", alignItems: "center", gap: "20px", marginBottom: "25px" },
-  qtyGroup: { display: "flex", alignItems: "center", backgroundColor: "#fff", borderRadius: "10px", border: "1px solid #e2e8f0", overflow: "hidden" },
-  qtyBtn: { width: "45px", height: "45px", border: "none", background: "none", fontSize: "20px", cursor: "pointer", transition: "all 0.2s" },
-  qtyInput: { width: "50px", textAlign: "center", border: "none", fontWeight: "800", fontSize: "16px" },
-  stockText: { color: "#f97316", fontSize: "13px", fontWeight: "600" },
-
-  btnRow: { display: "flex", gap: "15px" },
-  btnAddCart: { flex: 2, backgroundColor: "#2563eb", color: "#fff", border: "none", padding: "18px", borderRadius: "12px", fontWeight: "800", fontSize: "16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", transition: "all 0.3s" },
-  btnBuild: { flex: 1.2, backgroundColor: "#1e293b", color: "#fff", border: "none", padding: "18px", borderRadius: "12px", fontWeight: "800", fontSize: "14px", cursor: "pointer", transition: "all 0.3s" },
-
-  // Cột chính sách
-  policyCol: { flex: "0.8", minWidth: "250px" },
-  policyCard: { backgroundColor: "#fff", padding: "25px", borderRadius: "20px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)", marginBottom: "20px" },
-  policyTitle: { fontSize: "16px", fontWeight: "800", marginBottom: "20px", color: "#1e293b" },
-  policyItem: { display: "flex", gap: "15px", marginBottom: "20px" },
-  policyIcon: { fontSize: "24px" },
-  policyLabel: { fontWeight: "700", fontSize: "14px", color: "#334155" },
-  policySub: { fontSize: "12px", color: "#94a3b8" },
-  promoCard: { backgroundColor: "#fff7ed", padding: "20px", borderRadius: "15px", border: "1px dashed #fdba74" },
-
-  // Thông số kỹ thuật
-  specsWrapper: { backgroundColor: "#fff", borderRadius: "24px", overflow: "hidden", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" },
-  specsHeader: { display: "flex", borderBottom: "1px solid #f1f5f9" },
-  activeTab: { padding: "20px 40px", fontWeight: "800", color: "#2563eb", borderBottom: "3px solid #2563eb" },
-  inactiveTab: { padding: "20px 40px", fontWeight: "600", color: "#94a3b8", cursor: "pointer" },
-  specsContent: { padding: "40px" },
-  specsTable: { width: "100%", borderCollapse: "collapse" },
-  specLabel: { padding: "15px 25px", fontWeight: "700", color: "#64748b", width: "30%", fontSize: "15px" },
-  specValue: { padding: "15px 25px", color: "#1e293b", fontSize: "15px" },
 };
 
 export default TrangChiTiet;

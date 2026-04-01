@@ -22,7 +22,23 @@ exports.dangKy = async (req, res) => {
     });
   }
 };
+// Cập nhật thông tin profile
+exports.updateProfile = async (req, res) => {
+    try {
+        const { username, phone } = req.body;
+        const userId = req.user._id; // Lấy ID từ token hoặc session
 
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { username, phone },
+            { new: true } // Trả về data mới sau khi update
+        );
+
+        res.json({ success: true, user: updatedUser });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 // Lấy danh sách tất cả người dùng
 exports.layTatCa = async (req, res) => {
   try {
