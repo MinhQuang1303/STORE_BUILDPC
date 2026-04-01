@@ -4,73 +4,87 @@ import { useNavigate } from "react-router-dom";
 import PromoBanner from "../../components/PromoBanner";
 import FlashSale from "../../components/FlashSale";
 
-// IMPORT CONTEXT
-import { CartContext } from "../../context/CartContext"; 
+import { CartContext } from "../../context/CartContext";
 
 const fallbackImage = "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%3E.bg%7Bfill%3A%23f3f4f6%3B%7D.text%7Bfill%3A%239ca3af%3Bfont-family%3A%27Arial%27%2Csans-serif%3Bfont-size%3A18px%3Bfont-weight%3Abold%3B%7D%3C%2Fstyle%3E%3C%2Fdefs%3E%3Crect%20class%3D%22bg%22%20width%3D%22200%22%20height%3D%22200%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%20class%3D%22text%22%3ESTORE%20BUILDPC%3C%2Ftext%3E%3C%2Fsvg%3E";
 
 const formatImageUrl = (url) => {
   if (!url) return fallbackImage;
-  if (url.startsWith('/uploads')) return `${process.env.REACT_APP_API_URL.replace('/api', '')}${url}`;
+  if (url.startsWith('/uploads')) return `${process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:5000'}${url}`;
   return url;
 };
 
-const ProductCard = ({ item, navigate, handleAddToCart }) => (
-  <div className="product-card" style={styles.productCard} onClick={() => navigate(`/san-pham/${item._id || item.id}`)}>
-    <div style={styles.imageBox}>
-      <img 
-        src={formatImageUrl(item.anh || item.hinhAnh)} 
-        alt={item.ten} 
-        style={styles.productImg} 
-        onError={(e) => { e.target.src = fallbackImage }} 
-      />
-    </div>
-    <div style={styles.productInfo}>
-      <div style={styles.typeTag}>{item.loai}</div>
-      <h3 style={styles.productName}>{item.ten}</h3>
-      <div style={styles.priceRow}>
-        <div style={styles.productPrice}>{item.gia?.toLocaleString()} đ</div>
-        <div style={styles.oldPrice}>{(item.gia * 1.1).toLocaleString()} đ</div>
+// Component thẻ sản phẩm mới (Theo thiết kế GearVN/Phong Vũ)
+const ProductCard = ({ item, navigate, handleAddToCart, isFavorite, toggleFavorite }) => {
+  const words = item.ten.split(' ');
+  let brand = "OEM";
+  if (words.length > 1) {
+    const w1 = words[0].toUpperCase();
+    if (["CPU", "VGA", "RAM", "SSD", "HDD", "PSU", "MAINBOARD", "CASE", "LAPTOP", "CHUỘT", "BÀN", "CÁP"].includes(w1)) {
+       brand = words[1].toUpperCase();
+       if(w1 === "CHUỘT") brand = words.length > 2 && words[1].toUpperCase()==="GAMING" ? words[2].toUpperCase() : words[1].toUpperCase();
+       if(w1 === "BÀN" && words[1].toUpperCase()==="PHÍM") brand = words[2]?.toUpperCase() || "OEM";
+    } else {
+       brand = w1;
+    }
+  }
+
+  // Tỷ lệ giả lập giảm giá
+  const discountRate = 0.18;
+  const oldPrice = Math.round(item.gia * (1 + discountRate));
+  const saveAmount = oldPrice - item.gia;
+  
+  return (
+    <div className="product-card" style={styles.productCard} onClick={() => navigate(`/san-pham/${item._id || item.id}`)}>
+      <div style={styles.imageBox}>
+        <img 
+          src={formatImageUrl(item.anh || item.hinhAnh)} 
+          alt={item.ten} 
+          style={styles.productImg} 
+          onError={(e) => { e.target.src = fallbackImage }} 
+        />
+        <div style={styles.saveBadge}>
+          <div style={styles.saveBadgeTop}>TIẾT KIỆM</div>
+          <div style={styles.saveBadgeBottom}>{saveAmount.toLocaleString()} ₫</div>
+        </div>
       </div>
-      <div style={styles.actionRow}>
-        <button className="btn-detail-main" style={styles.btnDetail} onClick={(e) => { e.stopPropagation(); navigate(`/san-pham/${item._id || item.id}`); }}>
-          Chi tiết
-        </button>
-        <button className="btn-cart-main" style={styles.btnCart} onClick={(e) => handleAddToCart(e, item)}>
-          🛒
-        </button>
+      
+      <div style={styles.productInfo}>
+        <div style={styles.brandRow}>
+          <span style={styles.brandName}>{brand}</span>
+          <span className="heart-icon" style={isFavorite ? styles.heartActive : styles.heartNormal} onClick={(e) => toggleFavorite(e, item._id || item.id)}>
+            {isFavorite ? "💙" : "♡"}
+          </span>
+        </div>
+        
+        <h3 style={styles.productName} title={item.ten}>{item.ten}</h3>
+        
+        <div style={styles.priceContainer}>
+          <div style={styles.productPrice}>{item.gia?.toLocaleString()} ₫</div>
+          <div style={styles.oldPriceBlock}>
+            <span style={styles.oldPrice}>{oldPrice.toLocaleString()} ₫</span>
+            <span style={styles.discountPercent}>-{Math.round(discountRate * 100)}%</span>
+          </div>
+        </div>
+        
+        <div style={styles.actionRow}>
+          <button className="btn-add-cart-new" style={styles.btnCartNew} onClick={(e) => handleAddToCart(e, item)}>
+            Thêm vào giỏ
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const TrangChu = () => {
   const navigate = useNavigate();
-  
-  // Lấy hàm addToCart từ Context - Hàm này đã bao gồm logic hiện Toast ở trên cao
   const { addToCart } = useContext(CartContext); 
 
   const [sanPhams, setSanPhams] = useState([]);
   const [viewedProducts, setViewedProducts] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const categories = [
-    { id: "CPU", icon: "🧠", name: "Vi xử lý (CPU)" },
-    { id: "Mainboard", icon: "🎛️", name: "Bo mạch chủ" },
-    { id: "RAM", icon: "💾", name: "RAM" },
-    { id: "VGA", icon: "🎮", name: "Card màn hình" },
-    { id: "SSD", icon: "⚡", name: "Ổ cứng SSD" },
-    { id: "HDD", icon: "💽", name: "Ổ cứng HDD" },
-    { id: "PSU", icon: "🔌", name: "Nguồn (PSU)" },
-    { id: "Case", icon: "🖥️", name: "Vỏ máy (Case)" },
-    { id: "Tản nhiệt", icon: "❄️", name: "Tản nhiệt" },
-    { id: "Màn hình", icon: "📺", name: "Màn hình" },
-    { id: "Bàn phím", icon: "⌨️", name: "Bàn phím" },
-    { id: "Chuột", icon: "🖱️", name: "Chuột" },
-    { id: "Tai nghe", icon: "🎧", name: "Tai nghe" },
-    { id: "Loa", icon: "🔊", name: "Loa máy tính" },
-  ];
 
   useEffect(() => {
     const fetchSanPhams = async () => {
@@ -79,37 +93,119 @@ const TrangChu = () => {
         setSanPhams(res.data); 
         setIsLoading(false);
       } catch (err) {
-        setError("Không thể tải danh sách sản phẩm.");
         setIsLoading(false);
       }
     };
     fetchSanPhams();
 
-    // Lấy danh sách sản phẩm đã xem từ LocalStorage
     const storedViewed = JSON.parse(localStorage.getItem('viewedProducts') || '[]');
     setViewedProducts(storedViewed);
+
+    const savedFavs = JSON.parse(localStorage.getItem('savedFavs') || '[]');
+    setFavorites(savedFavs);
   }, []);
 
-  // HÀM XỬ LÝ CLICK: Gọi trực tiếp từ Context
   const handleAddToCart = (e, item) => {
-    e.stopPropagation(); // Không cho nhảy vào trang chi tiết khi bấm nút giỏ hàng
-    if (addToCart) {
-      // Truyền item vào, Context sẽ tự lo việc hiện Toast "kính mờ" phía trên
-      addToCart(item, 1); 
-    }
+    e.stopPropagation(); 
+    if (addToCart) addToCart(item, 1); 
   };
+
+  const toggleFavorite = (e, id) => {
+    e.stopPropagation();
+    let newFavs = [...favorites];
+    if (newFavs.includes(id)) {
+      newFavs = newFavs.filter(favId => favId !== id);
+    } else {
+      newFavs.push(id);
+    }
+    setFavorites(newFavs);
+    localStorage.setItem('savedFavs', JSON.stringify(newFavs));
+  };
+
+  const isGear = (p) => {
+    const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
+    return (c.includes("màn hình") && !c.includes("vga") && !c.includes("card")) || c.includes("gear") || c.includes("phím") || c.includes("chuột") || c.includes("tai nghe") || c.includes("loa");
+  };
+  const isCore = (p) => {
+    const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
+    return c.includes("cpu") || c.includes("vi xử lý") || c.includes("mainboard") || c.includes("bo mạch") || c.includes("ram") || c.includes("bộ nhớ") || c.includes("vga") || c.includes("card") || c.includes("ssd") || c.includes("hdd") || c.includes("ổ cứng") || c.includes("psu") || c.includes("nguồn") || c.includes("tản");
+  };
+  const isCase = (p) => {
+    const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
+    return c.includes("case") || c.includes("vỏ");
+  };
+
+  const gearProducts = sanPhams.filter(isGear);
+  const coreProducts = sanPhams.filter(isCore);
+  const buildProducts = sanPhams.filter(isCase);
 
   return (
     <div style={styles.pageBackground}>
-      {/* Hiệu ứng Hover & Animation toàn cục */}
       <style>
         {`
-          .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e2e8f0; }
-          .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-color: #3b82f6; }
-          .category-item { transition: all 0.2s; cursor: pointer; }
-          .category-item:hover { background: #eff6ff; transform: scale(1.05); color: #2563eb; }
-          .btn-cart-main:hover { background-color: #2563eb !important; color: white !important; transform: scale(1.1); }
-          .btn-detail-main:hover { background-color: #f1f5f9 !important; }
+          .product-card { 
+             transition: all 0.3s ease; 
+             border: 1px solid #e5e7eb; 
+             background: #fff;
+             height: 100%;
+          }
+          .product-card:hover { 
+             transform: translateY(-2px); 
+             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
+             border-color: #3b82f6; 
+          }
+          
+          .btn-add-cart-new {
+             transition: all 0.2s ease;
+             background-color: transparent;
+             color: #2563eb;
+             border: 1px solid #2563eb;
+             outline: none;
+          }
+          .btn-add-cart-new:hover {
+             background-color: #2563eb;
+             color: #ffffff;
+             cursor: pointer;
+          }
+          
+          .heart-icon {
+             transition: transform 0.2s;
+             cursor: pointer;
+          }
+          .heart-icon:hover {
+             transform: scale(1.2);
+          }
+
+          .horizontal-scroll {
+             display: flex;
+             overflow-x: auto;
+             scroll-snap-type: x mandatory;
+             padding: 15px 20px 25px 20px;
+             gap: 15px;
+             scrollbar-width: none;
+             -ms-overflow-style: none;
+          }
+          .horizontal-scroll::-webkit-scrollbar {
+             display: none;
+          }
+          .p-card-wrap {
+             scroll-snap-align: start;
+             flex: 0 0 calc(20% - 12px);
+             min-width: 230px;
+             max-width: 250px;
+          }
+
+          @media (max-width: 1024px) {
+             .p-card-wrap { flex: 0 0 calc(25% - 12px); }
+          }
+          @media (max-width: 768px) {
+             .p-card-wrap { flex: 0 0 calc(33.333% - 10px); min-width: 200px; }
+          }
+          @media (max-width: 480px) {
+             .p-card-wrap { flex: 0 0 calc(50% - 8px); min-width: 160px; }
+          }
+          
+          .view-more-text:hover { opacity: 0.8; text-decoration: underline; }
         `}
       </style>
 
@@ -117,101 +213,83 @@ const TrangChu = () => {
         <PromoBanner />
         <FlashSale />
 
-        {/* SECTION DANH MỤC - Thiết kế tối giản */}
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Danh mục linh kiện</h2>
-          <div style={styles.underline}></div>
-        </div>
-        <div style={styles.categoryGrid}>
-          {categories.map((cat) => (
-            <div key={cat.id} className="category-item" style={styles.categoryCard} onClick={() => navigate(`/san-pham?cat=${cat.id}`)}>
-              <div style={styles.categoryIcon}>{cat.icon}</div>
-              <div style={styles.categoryName}>{cat.name}</div>
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div style={styles.loadingText}>Đang tải danh sách linh kiện...</div>
+        ) : (
+          <>
+            {gearProducts.length > 0 && (
+              <div style={styles.tieredSection}>
+                <div style={styles.headerGaming}>
+                  <h2 style={styles.tieredTitle}>GAMING GEAR & MÀN HÌNH</h2>
+                  <span className="view-more-text" style={styles.viewMoreText} onClick={() => navigate('/san-pham?cat=Gear')}>Xem tất cả &gt;</span>
+                </div>
+                <div className="horizontal-scroll">
+                  {gearProducts.map(item => (
+                     <div key={item._id} className="p-card-wrap">
+                        <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* SECTION SẢN PHẨM KHÁCH VỪA XEM */}
+            {coreProducts.length > 0 && (
+              <div style={styles.tieredSection}>
+                <div style={styles.headerCore}>
+                  <h2 style={styles.tieredTitle}>LINH KIỆN MÁY TÍNH & NÂNG CẤP</h2>
+                  <span className="view-more-text" style={styles.viewMoreText} onClick={() => navigate('/san-pham')}>Xem tất cả &gt;</span>
+                </div>
+                <div className="horizontal-scroll">
+                  {coreProducts.map(item => (
+                     <div key={item._id} className="p-card-wrap">
+                        <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {buildProducts.length > 0 && (
+              <div style={styles.tieredSection}>
+                <div style={styles.headerBuild}>
+                  <h2 style={styles.tieredTitle}>PC BUILD SẴN & VỎ THÙNG MÁY</h2>
+                  <span className="view-more-text" style={styles.viewMoreText} onClick={() => navigate('/san-pham?cat=Case')}>Xem tất cả &gt;</span>
+                </div>
+                <div className="horizontal-scroll">
+                  {buildProducts.map(item => (
+                     <div key={item._id} className="p-card-wrap">
+                        <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* SECTION SẢN PHẨM KHÁCH VỪA XEM (Dạng Lưới / Ngang) */}
         {viewedProducts.length > 0 && (
-          <div style={styles.tieredSection}>
-            <div style={styles.tieredHeaderWhite}>
-              <h2 style={styles.tieredTitleDark}>🕒 Sản phẩm vừa xem</h2>
+          <div style={styles.tieredSectionBoxless}>
+            <div style={styles.headerViewed}>
+              <h2 style={styles.tieredTitleDark}>Sản phẩm vừa xem</h2>
             </div>
-            <div style={styles.productGrid}>
-              {viewedProducts.map(item => <ProductCard key={item._id || item.id} item={item} navigate={navigate} handleAddToCart={handleAddToCart} />)}
+            <div className="horizontal-scroll" style={{ paddingLeft: 0, paddingRight: 0 }}>
+              {viewedProducts.map(item => (
+                 <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                 </div>
+              ))}
             </div>
           </div>
         )}
 
-        {isLoading ? (
-          <div style={styles.loadingText}>Đang tải sản phẩm...</div>
-        ) : (
-          <>
-            {/* TẦNG 1: MÁY TÍNH ĐỂ BÀN (Lọc qua Case làm cấu hình giả lập PC) */}
-            {sanPhams.filter(p => ["Case"].includes(p.loai)).length > 0 && (
-              <div style={styles.tieredSection}>
-                <div style={styles.tieredHeaderBlue}>
-                  <h2 style={styles.tieredTitleWhite}>🖥️ MÁY TÍNH & PC Build Sẵn</h2>
-                  <span className="view-more-btn-white" style={styles.tieredViewAllWhite} onClick={() => navigate('/san-pham?cat=Case')}>Xem tất cả &gt;</span>
-                </div>
-                <div style={styles.productGrid}>
-                  {sanPhams.filter(p => ["Case"].includes(p.loai)).slice(0, 8).map(item => (
-                     <ProductCard key={item._id} item={item} navigate={navigate} handleAddToCart={handleAddToCart} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TẦNG 2: LINH KIỆN MÁY TÍNH */}
-            {sanPhams.filter(p => ["CPU", "Mainboard", "RAM", "VGA", "SSD", "HDD", "PSU", "Tản nhiệt"].includes(p.loai)).length > 0 && (
-              <div style={styles.tieredSection}>
-                <div style={styles.tieredHeaderTeal}>
-                  <h2 style={styles.tieredTitleWhite}>⚙️ LINH KIỆN MÁY TÍNH</h2>
-                  <span className="view-more-btn-white" style={styles.tieredViewAllWhite} onClick={() => navigate('/san-pham')}>Xem tất cả &gt;</span>
-                </div>
-                <div style={styles.productGrid}>
-                  {sanPhams.filter(p => ["CPU", "Mainboard", "RAM", "VGA", "SSD", "HDD", "PSU", "Tản nhiệt"].includes(p.loai)).slice(0, 8).map(item => (
-                     <ProductCard key={item._id} item={item} navigate={navigate} handleAddToCart={handleAddToCart} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TẦNG 3: MÀN HÌNH & PHỤ KIỆN */}
-            {sanPhams.filter(p => ["Màn hình", "Bàn phím", "Chuột", "Tai nghe", "Loa"].includes(p.loai)).length > 0 && (
-              <div style={styles.tieredSection}>
-                <div style={styles.tieredHeaderOrange}>
-                  <h2 style={styles.tieredTitleWhite}>🎮 MÀN HÌNH & PHỤ KIỆN GEAR</h2>
-                  <span className="view-more-btn-white" style={styles.tieredViewAllWhite} onClick={() => navigate('/san-pham')}>Xem tất cả &gt;</span>
-                </div>
-                <div style={styles.productGrid}>
-                  {sanPhams.filter(p => ["Màn hình", "Bàn phím", "Chuột", "Tai nghe", "Loa"].includes(p.loai)).slice(0, 8).map(item => (
-                     <ProductCard key={item._id} item={item} navigate={navigate} handleAddToCart={handleAddToCart} />
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* TẦNG SẢN PHẨM TỔNG HỢP MỚI NHẤT (Nếu có đồ không thuộc mấy loại trên) */}
-            <div style={styles.sectionHeader}>
-              <h2 style={styles.sectionTitle}>Sản phẩm mới nhất</h2>
-              <div style={styles.underline}></div>
-            </div>
-            <div style={styles.productGrid}>
-               {sanPhams.slice(0, 8).map((item) => (
-                  <ProductCard key={item._id} item={item} navigate={navigate} handleAddToCart={handleAddToCart} />
-               ))}
-            </div>
-          </>
-        )}
-
-        {/* BANNER BUILD PC - Chuyên nghiệp hơn */}
+        {/* BANNER BUILD PC TÙY CHỈNH */}
         <div style={styles.buildBanner}>
           <div style={styles.buildOverlay}>
             <h2 style={styles.buildTitle}>BẠN MUỐN TỰ BUILD PC THEO Ý MÌNH?</h2>
-            <p style={styles.buildDesc}>Công cụ của chúng tôi giúp bạn chọn linh kiện chuẩn xác, tự động kiểm tra Socket và công suất nguồn.</p>
+            <p style={styles.buildDesc}>Công cụ của chúng tôi giúp bạn chọn linh kiện chuẩn xác, tự động kiểm tra Socket và công suất nguồn tương thích 100%.</p>
             <button style={styles.buildBtn} onClick={() => navigate("/build")}>
-               BẮT ĐẦU BUILD MÁY NGAY 🚀
+               BẮT ĐẦU CHỌN LINH KIỆN 🚀
             </button>
           </div>
         </div>
@@ -221,60 +299,80 @@ const TrangChu = () => {
 };
 
 const styles = {
-  pageBackground: { backgroundColor: "#f8fafc", minHeight: "100vh", paddingBottom: "100px" },
-  container: { maxWidth: "1300px", margin: "0 auto", padding: "0 20px" },
-  
-  sectionHeader: { marginTop: "60px", marginBottom: "30px", textAlign: "center" },
-  sectionTitle: { fontSize: "28px", fontWeight: "800", color: "#1e293b", marginBottom: "10px" },
-  underline: { width: "60px", height: "4px", backgroundColor: "#2563eb", margin: "0 auto", borderRadius: "2px" },
+  pageBackground: { backgroundColor: "#f5f5f5", minHeight: "100vh", paddingBottom: "100px" },
+  container: { maxWidth: "1280px", margin: "0 auto", padding: "0 10px" },
 
-  categoryGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "15px" },
-  categoryCard: { backgroundColor: "#fff", padding: "18px 10px", borderRadius: "20px", textAlign: "center", border: "1px solid #f1f5f9", boxShadow: "0 4px 6px rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" },
-  categoryIcon: { fontSize: "36px", marginBottom: "12px" },
-  categoryName: { fontSize: "12px", fontWeight: "700", color: "#475569" },
+  // STYLE KHỐI PHÂN TẦNG ĐÚNG CHUẨN MẪU ẢNH
+  tieredSection: { backgroundColor: "#fff", marginBottom: "30px", overflow: "hidden" }, // Không viền, Flat Design
+  tieredSectionBoxless: { backgroundColor: "transparent", marginBottom: "30px", marginTop: "40px" },
 
-  productGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "25px" },
-  productCard: { backgroundColor: "#fff", borderRadius: "24px", overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid transparent" },
-  imageBox: { height: "240px", padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#fff" },
+  headerGaming: { backgroundColor: "#7dd3fc", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerCore: { backgroundColor: "#60a5fa", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerBuild: { backgroundColor: "#cbd5e1", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerViewed: { padding: "12px 0px", borderBottom: "2px solid #e5e7eb", marginBottom: "10px" },
+
+  tieredTitle: { color: "#fff", margin: 0, fontSize: "18px", fontWeight: "800", textTransform: "uppercase" },
+  tieredTitleDark: { color: "#111827", margin: 0, fontSize: "20px", fontWeight: "700" },
+  viewMoreText: { color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600", padding: "4px 8px" },
+
+  // PRODUCT CARD STYLES
+  productCard: { display: "flex", flexDirection: "column" },
+  imageBox: { height: "220px", position: "relative", padding: "20px", display: "flex", justifyContent: "center", alignItems: "center" },
   productImg: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" },
   
-  productInfo: { padding: "20px", flex: 1, display: "flex", flexDirection: "column" },
-  typeTag: { fontSize: "11px", fontWeight: "800", color: "#2563eb", textTransform: "uppercase", marginBottom: "10px" },
-  productName: { fontSize: "16px", fontWeight: "700", color: "#1e293b", height: "45px", overflow: "hidden", marginBottom: "15px", lineHeight: "1.4" },
-  
-  priceRow: { marginBottom: "20px" },
-  productPrice: { color: "#ef4444", fontSize: "20px", fontWeight: "900" },
-  oldPrice: { color: "#94a3b8", fontSize: "14px", textDecoration: "line-through" },
+  saveBadge: {
+    position: "absolute",
+    bottom: "10px",
+    left: "10px",
+    background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
+    color: "#fff",
+    borderRadius: "4px",
+    overflow: "hidden",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+    zIndex: 2
+  },
+  saveBadgeTop: { fontSize: "9px", fontWeight: "800", textAlign: "center", padding: "3px 6px 1px", backgroundColor: "rgba(0,0,0,0.1)" },
+  saveBadgeBottom: { fontSize: "12px", fontWeight: "900", textAlign: "center", padding: "2px 6px 4px" },
 
-  actionRow: { display: "flex", gap: "10px", marginTop: "auto" },
-  btnDetail: { flex: 1, padding: "12px", border: "1px solid #e2e8f0", borderRadius: "12px", background: "#fff", fontWeight: "700", cursor: "pointer", transition: "0.2s" },
-  btnCart: { width: "50px", height: "48px", border: "none", borderRadius: "12px", background: "#f1f5f9", fontSize: "20px", cursor: "pointer", transition: "0.3s" },
+  productInfo: { padding: "15px", flex: 1, display: "flex", flexDirection: "column", borderTop: "1px solid #f3f4f6" },
+  
+  brandRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" },
+  brandName: { fontSize: "11px", fontWeight: "700", color: "#9ca3af", textTransform: "uppercase" },
+  heartNormal: { color: "#9ca3af", fontSize: "16px" },
+  heartActive: { color: "#3b82f6", fontSize: "16px" },
+
+  // Tên SP giới hạn 2 dòng (line-clamp)
+  productName: { 
+    fontSize: "14px", fontWeight: "500", color: "#1f2937", margin: "0 0 10px 0", 
+    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", height: "40px", lineHeight: "1.4" 
+  },
+  
+  priceContainer: { marginBottom: "15px", marginTop: "auto" },
+  productPrice: { color: "#1e3a8a", fontSize: "18px", fontWeight: "800", marginBottom: "2px" },
+  oldPriceBlock: { display: "flex", alignItems: "center", gap: "10px" },
+  oldPrice: { color: "#9ca3af", fontSize: "12px", textDecoration: "line-through" },
+  discountPercent: { color: "#ef4444", fontSize: "11px", fontWeight: "700" },
+
+  actionRow: { marginTop: "5px" },
+  btnCartNew: { 
+    width: "100%", padding: "10px 0", borderRadius: "6px",
+    fontSize: "13px", fontWeight: "700", textAlign: "center",
+  },
+
+  loadingText: { textAlign: "center", padding: "100px", color: "#64748b", fontSize: "18px" },
 
   buildBanner: { 
-    marginTop: "80px", 
-    borderRadius: "30px", 
+    marginTop: "60px", 
+    borderRadius: "20px", 
     overflow: "hidden", 
     backgroundImage: "url('https://img.freepik.com/free-photo/view-illuminated-neon-gaming-keyboard-setup_23-2149529350.jpg')",
     backgroundSize: "cover",
     backgroundPosition: "center"
   },
-  buildOverlay: { backgroundColor: "rgba(15, 23, 42, 0.85)", padding: "80px 40px", textAlign: "center", color: "#fff" },
-  buildTitle: { fontSize: "36px", fontWeight: "900", marginBottom: "20px" },
-  buildDesc: { fontSize: "18px", color: "#cbd5e1", maxWidth: "700px", margin: "0 auto 40px" },
-  buildBtn: { backgroundColor: "#2563eb", color: "#fff", padding: "18px 40px", border: "none", borderRadius: "15px", fontSize: "18px", fontWeight: "800", cursor: "pointer", boxShadow: "0 10px 20px rgba(37, 99, 235, 0.3)" },
-  loadingText: { textAlign: "center", padding: "100px", color: "#64748b", fontSize: "18px" },
-
-  // STYLE KHỐI PHÂN TẦNG (SECTIONING)
-  tieredSection: { backgroundColor: "#fff", borderRadius: "20px", padding: "20px", marginBottom: "40px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" },
-  tieredHeaderBlue: { backgroundColor: "#2563eb", padding: "15px 25px", borderRadius: "14px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" },
-  tieredHeaderTeal: { backgroundColor: "#0d9488", padding: "15px 25px", borderRadius: "14px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" },
-  tieredHeaderOrange: { backgroundColor: "#ea580c", padding: "15px 25px", borderRadius: "14px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" },
-  tieredHeaderWhite: { backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", padding: "15px 25px", borderRadius: "14px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" },
-  
-  tieredTitleWhite: { color: "#fff", margin: 0, fontSize: "22px", fontWeight: "900", letterSpacing: "0.5px" },
-  tieredTitleDark: { color: "#1e293b", margin: 0, fontSize: "20px", fontWeight: "800" },
-  
-  tieredViewAllWhite: { color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600", border: "1px solid rgba(255,255,255,0.4)", padding: "8px 18px", borderRadius: "8px", transition: "0.2s" },
+  buildOverlay: { backgroundColor: "rgba(15, 23, 42, 0.8)", padding: "60px 20px", textAlign: "center", color: "#fff" },
+  buildTitle: { fontSize: "28px", fontWeight: "900", marginBottom: "15px" },
+  buildDesc: { fontSize: "16px", color: "#cbd5e1", maxWidth: "600px", margin: "0 auto 30px" },
+  buildBtn: { backgroundColor: "#2563eb", color: "#fff", padding: "15px 30px", border: "none", borderRadius: "10px", fontSize: "16px", fontWeight: "800", cursor: "pointer" },
 };
 
 export default TrangChu;

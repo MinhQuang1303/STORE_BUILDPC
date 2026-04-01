@@ -1,2 +1,9 @@
 node_modules
 .env
+/target
+/.env
+.DS_Store
+.idea
+.vscode
+may-chu-java/uploads/
+.idea/

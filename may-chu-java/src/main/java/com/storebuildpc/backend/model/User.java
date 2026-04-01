@@ -29,6 +29,9 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    private String dob;
+    private String gender;
+
     @Column(unique = true)
     private String googleId;
 

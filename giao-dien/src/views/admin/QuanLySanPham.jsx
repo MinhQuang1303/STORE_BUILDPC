@@ -25,6 +25,8 @@ const QuanLySanPham = () => {
   const [submitting, setSubmitting] = useState(false);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [filesPhu, setFilesPhu] = useState([]);
+  const [previewsPhu, setPreviewsPhu] = useState([]);
 
   // Pagination and filter state
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,6 +73,7 @@ const QuanLySanPham = () => {
           })) || [], // Lấy biến thể hiện có
       });
       setPreview(data.anh);
+      setPreviewsPhu(data.hinhAnhKhac || []);
     } else {
       setEditData(null);
       setFormData({
@@ -81,8 +84,10 @@ const QuanLySanPham = () => {
         bienThe: [], // Khởi tạo mảng rỗng
       });
       setPreview(null);
+      setPreviewsPhu([]);
     }
     setFile(null);
+    setFilesPhu([]);
     setShowModal(true);
   };
 
@@ -117,6 +122,13 @@ const QuanLySanPham = () => {
     }
   };
 
+  const handleFilesPhuChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFilesPhu(selectedFiles);
+    const previews = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviewsPhu(previews);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -134,6 +146,10 @@ const QuanLySanPham = () => {
     if (file) {
       data.append("anh", file);
     }
+
+    filesPhu.forEach((f) => {
+      data.append("hinhAnhKhac", f);
+    });
 
     // Gửi mảng biến thể dưới dạng JSON string để Backend xử lý
     // Lưu ý: sanPhamController cần nhận req.body.bienThe đã parse nếu dùng multer,
@@ -429,21 +445,7 @@ const QuanLySanPham = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                      Thông số kỹ thuật
-                    </label>
-                    <textarea
-                      value={formData.thongSo}
-                      onChange={(e) =>
-                        setFormData({ ...formData, thongSo: e.target.value })
-                      }
-                      rows="2"
-                      placeholder="Băng thông, xung nhịp, dung lượng..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
-                      Hình ảnh
+                      Hình ảnh chính
                     </label>
                     <div className="flex items-center space-x-4">
                       <input
@@ -454,12 +456,55 @@ const QuanLySanPham = () => {
                       />
                       {preview && (
                         <img
-                          src={preview}
+                          src={preview.startsWith('blob:') ? preview : formatImageUrl(preview)}
                           alt="Preview"
                           className="h-12 w-12 object-contain rounded border"
                         />
                       )}
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                      Hình ảnh phụ (Nhiều ảnh để làm Album)
+                    </label>
+                    <div className="flex flex-col space-y-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFilesPhuChange}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                      />
+                      {previewsPhu && previewsPhu.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {previewsPhu.map((src, idx) => (
+                            <img
+                              key={idx}
+                              src={src.startsWith('blob:') ? src : formatImageUrl(src)}
+                              alt={`Preview Phu ${idx}`}
+                              className="h-12 w-12 object-contain rounded border"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase text-gray-500 mb-2">
+                      Thông số kỹ thuật
+                    </label>
+                    <textarea
+                      value={formData.thongSo}
+                      onChange={(e) =>
+                        setFormData({ ...formData, thongSo: e.target.value })
+                      }
+                      rows="3"
+                      placeholder="VD: CPU: Intel Core i5, RAM: 16GB, Ổ cứng: 512GB SSD..."
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Sử dụng dấu phẩy (,) để ngăn cách các thông số.</p>
                   </div>
                 </div>
 

@@ -77,7 +77,37 @@ const TrangSanPham = () => {
 
   let filteredProducts = sanPhams.filter((sp) => {
     const categoryName = sp.idDanhMuc?.ten || sp.loai;
-    const matchCategory = danhMucChon === "Tất cả" || categoryName === danhMucChon;
+    const normalize = (str) => str ? str.toLowerCase().trim() : "";
+    const catName = normalize(categoryName);
+    const chosenCat = normalize(danhMucChon);
+    
+    let matchCategory = false;
+    if (chosenCat === "tất cả" || chosenCat === "") {
+        matchCategory = true;
+    } else if (chosenCat === "cpu") {
+        matchCategory = catName.includes("cpu") || catName.includes("vi xử lý");
+    } else if (chosenCat === "mainboard") {
+        matchCategory = catName.includes("mainboard") || catName.includes("bo mạch");
+    } else if (chosenCat === "ram") {
+        matchCategory = catName.includes("ram") || catName.includes("bộ nhớ");
+    } else if (chosenCat === "hdd" || chosenCat === "ssd") {
+        matchCategory = catName.includes("ssd") || catName.includes("hdd") || catName.includes("ổ cứng");
+    } else if (chosenCat === "vga") {
+        matchCategory = catName.includes("vga") || catName.includes("card màn hình");
+    } else if (chosenCat === "psu") {
+        matchCategory = catName.includes("psu") || catName.includes("nguồn");
+    } else if (chosenCat === "case") {
+        matchCategory = catName.includes("case") || catName.includes("vỏ");
+    } else if (chosenCat === "tản nhiệt") {
+        matchCategory = catName.includes("tản");
+    } else if (chosenCat === "màn hình") {
+        matchCategory = catName.includes("màn hình");
+    } else if (["bàn phím", "chuột", "tai nghe", "loa"].includes(chosenCat)) {
+        matchCategory = catName.includes("gear") || catName.includes(chosenCat);
+    } else {
+        matchCategory = catName.includes(chosenCat);
+    }
+
     const matchSearch = sp.ten.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
   });

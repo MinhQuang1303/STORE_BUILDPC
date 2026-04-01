@@ -32,14 +32,18 @@ public class SanPhamController {
     private final SanPhamRepository sanPhamRepository;
     private final DanhMucRepository danhMucRepository;
     private final BienTheRepository bienTheRepository;
+    private final com.storebuildpc.backend.repository.DanhGiaRepository danhGiaRepository;
+    private final com.storebuildpc.backend.repository.OrderItemRepository orderItemRepository;
 
     @Value("${app.server.url:http://localhost:5000}")
     private String serverUrl;
 
-    public SanPhamController(SanPhamRepository sanPhamRepository, DanhMucRepository danhMucRepository, BienTheRepository bienTheRepository) {
+    public SanPhamController(SanPhamRepository sanPhamRepository, DanhMucRepository danhMucRepository, BienTheRepository bienTheRepository, com.storebuildpc.backend.repository.DanhGiaRepository danhGiaRepository, com.storebuildpc.backend.repository.OrderItemRepository orderItemRepository) {
         this.sanPhamRepository = sanPhamRepository;
         this.danhMucRepository = danhMucRepository;
         this.bienTheRepository = bienTheRepository;
+        this.danhGiaRepository = danhGiaRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @GetMapping
@@ -50,6 +54,7 @@ public class SanPhamController {
             DanhMuc dm = danhMucRepository.findById(IdUtil.toLong(idDanhMuc)).orElse(null);
             data = dm == null ? List.of() : sanPhamRepository.findByIdDanhMuc(dm);
         }
+        data.sort(java.util.Comparator.comparing(SanPham::getCreatedAt).reversed());
         return data.stream().map(this::toResponse).toList();
     }
 
@@ -60,9 +65,26 @@ public class SanPhamController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Không tìm thấy sản phẩm")));
     }
 
+    @GetMapping("/lien-quan/{idDanhMuc}")
+    public ResponseEntity<?> layLienQuan(@PathVariable String idDanhMuc, @RequestParam(defaultValue = "5") int limit) {
+        try {
+            DanhMuc dm = danhMucRepository.findById(IdUtil.toLong(idDanhMuc)).orElse(null);
+            if (dm == null) return ResponseEntity.ok(List.of());
+            List<SanPham> data = sanPhamRepository.findByIdDanhMuc(dm);
+            // Limit to top items
+            if (data.size() > limit) {
+                data = data.subList(0, limit);
+            }
+            return ResponseEntity.ok(data.stream().map(this::toResponse).toList());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Lỗi: " + e.getMessage()));
+        }
+    }
+
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> taoMoi(
             @RequestParam(value = "anh", required = false) MultipartFile anhFile,
+            @RequestParam(value = "hinhAnhKhac", required = false) List<MultipartFile> hinhAnhKhacFiles,
             HttpServletRequest request) {
         String ten = request.getParameter("ten");
         String idDanhMucStr = request.getParameter("idDanhMuc");
@@ -94,6 +116,20 @@ public class SanPhamController {
             if (anhUrl != null) sp.setAnh(anhUrl);
         }
 
+        // Xử lý upload ảnh phụ
+        if (hinhAnhKhacFiles != null && !hinhAnhKhacFiles.isEmpty()) {
+            List<String> urls = new ArrayList<>();
+            for (MultipartFile file : hinhAnhKhacFiles) {
+                if (file != null && !file.isEmpty()) {
+                    String url = saveFile(file);
+                    if (url != null) urls.add(url);
+                }
+            }
+            if (!urls.isEmpty()) {
+                sp.setHinhAnhKhac(String.join(",", urls));
+            }
+        }
+
         int tongSoLuong = variants.stream().mapToInt(v -> Integer.parseInt(v.getOrDefault("soLuong", "0"))).sum();
         sp.setSoLuong(tongSoLuong);
         sp.setDaBan(0);
@@ -108,6 +144,7 @@ public class SanPhamController {
     public ResponseEntity<?> capNhat(
             @PathVariable String id, 
             @RequestParam(value = "anh", required = false) MultipartFile anhFile,
+            @RequestParam(value = "hinhAnhKhac", required = false) List<MultipartFile> hinhAnhKhacFiles,
             HttpServletRequest request) {
         return sanPhamRepository.findById(IdUtil.toLong(id)).map(sp -> {
             String ten = request.getParameter("ten");
@@ -128,17 +165,54 @@ public class SanPhamController {
                 String anhUrl = saveFile(anhFile);
                 if (anhUrl != null) sp.setAnh(anhUrl);
             }
+
+            // Xử lý upload ảnh phụ (thêm vào hoặc thay thế)
+            if (hinhAnhKhacFiles != null && !hinhAnhKhacFiles.isEmpty()) {
+                List<String> urls = new ArrayList<>();
+                for (MultipartFile file : hinhAnhKhacFiles) {
+                    if (file != null && !file.isEmpty()) {
+                        String url = saveFile(file);
+                        if (url != null) urls.add(url);
+                    }
+                }
+                if (!urls.isEmpty()) {
+                    // Cập nhật (thay thế hoàn toàn danh sách cũ)
+                    sp.setHinhAnhKhac(String.join(",", urls));
+                }
+            }
+
             sanPhamRepository.save(sp);
 
             // Cập nhật biến thể nếu có
             List<Map<String, String>> variants = parseVariants(request);
             if (!variants.isEmpty()) {
-                bienTheRepository.deleteByIdSanPham(sp);
+                List<BienThe> existing = bienTheRepository.findByIdSanPham(sp);
+                List<BienThe> toDelete = new java.util.ArrayList<>(existing);
+
+                for (Map<String, String> v : variants) {
+                    String tenVar = v.get("ten");
+                    BienThe target = existing.stream().filter(e -> e.getTen().equals(tenVar)).findFirst().orElse(new BienThe());
+                    target.setTen(tenVar);
+                    try { target.setGia(Double.parseDouble(v.getOrDefault("gia", "0"))); } catch (Exception e) { target.setGia(0d); }
+                    try { target.setSoLuong(Integer.parseInt(v.getOrDefault("soLuong", "0"))); } catch (Exception e) { target.setSoLuong(0); }
+                    try { target.setDaBan(Integer.parseInt(v.getOrDefault("daBan", "0"))); } catch (Exception e) { target.setDaBan(0); }
+                    target.setIdSanPham(sp);
+                    bienTheRepository.save(target);
+                    toDelete.remove(target);
+                }
+
+                for (BienThe b : toDelete) {
+                    try {
+                        bienTheRepository.delete(b);
+                    } catch (Exception ignored) {
+                        // Bỏ qua lỗi khóa ngoại nếu biến thể này đã từng được đặt hàng mua
+                    }
+                }
+
                 SanPham finalSp = sp;
                 int tongSoLuong = variants.stream().mapToInt(v -> Integer.parseInt(v.getOrDefault("soLuong", "0"))).sum();
                 finalSp.setSoLuong(tongSoLuong);
                 sanPhamRepository.save(finalSp);
-                variants.forEach(v -> saveBienThe(v, finalSp));
             }
             return ResponseEntity.ok(toResponse(sp));
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Không tìm thấy sản phẩm")));
@@ -148,9 +222,19 @@ public class SanPhamController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> xoa(@PathVariable String id) {
         return sanPhamRepository.findById(IdUtil.toLong(id)).map(sp -> {
-            bienTheRepository.deleteByIdSanPham(sp);
-            sanPhamRepository.delete(sp);
-            return ResponseEntity.ok(Map.of("message", "Đã xoá sản phẩm và các biến thể liên quan thành công"));
+            try {
+                // 1. Xóa đánh giá (danh_gia) liên quan
+                danhGiaRepository.deleteAll(danhGiaRepository.findByIdSanPhamOrderByCreatedAtDesc(sp));
+                // 2. Đặt null FK trong order_item (bảo toàn lịch sử đơn hàng)
+                orderItemRepository.nullifyBySanPham(sp);
+                // 3. Xóa các biến thể
+                bienTheRepository.deleteByIdSanPham(sp);
+                // 4. Xóa sản phẩm
+                sanPhamRepository.delete(sp);
+                return ResponseEntity.ok(Map.of("message", "Đã xoá sản phẩm thành công"));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Lỗi khi xoá: " + e.getMessage()));
+            }
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Không tìm thấy sản phẩm")));
     }
 
@@ -218,6 +302,11 @@ public class SanPhamController {
         data.put("soLuong", sp.getSoLuong());
         data.put("daBan", sp.getDaBan());
         data.put("anh", sp.getAnh());
+        if (sp.getHinhAnhKhac() != null && !sp.getHinhAnhKhac().isEmpty()) {
+            data.put("hinhAnhKhac", sp.getHinhAnhKhac().split(","));
+        } else {
+            data.put("hinhAnhKhac", new String[]{});
+        }
         data.put("bienThe", bienTheRepository.findByIdSanPham(sp));
         data.put("createdAt", sp.getCreatedAt());
         data.put("updatedAt", sp.getUpdatedAt());

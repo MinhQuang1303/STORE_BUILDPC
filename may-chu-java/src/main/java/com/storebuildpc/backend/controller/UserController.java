@@ -60,10 +60,14 @@ public class UserController {
                 String fullName = request.getParameter("fullName");
                 String phone = request.getParameter("phone");
                 String address = request.getParameter("address");
+                String dob = request.getParameter("dob");
+                String gender = request.getParameter("gender");
 
                 if (fullName != null) user.setFullName(fullName);
                 if (phone != null) user.setPhone(phone);
                 if (address != null) user.setAddress(address);
+                if (dob != null) user.setDob(dob);
+                if (gender != null) user.setGender(gender);
 
                 if (avatarFile != null && !avatarFile.isEmpty()) {
                     try {

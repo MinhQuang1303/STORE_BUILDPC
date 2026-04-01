@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import UserSidebar from "../../components/UserSidebar";
 
 const TrangDonHangCuaToi = () => {
   const [orders, setOrders] = useState([]);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -27,7 +29,11 @@ const TrangDonHangCuaToi = () => {
     const fetchMyOrders = async () => {
       let userData = null;
       try {
-        userData = JSON.parse(localStorage.getItem("user"));
+        const savedUser = localStorage.getItem("user");
+        if (savedUser) {
+          userData = JSON.parse(savedUser);
+          setUser(userData.user || userData);
+        }
       } catch (error) {
         localStorage.removeItem("user");
       }
@@ -62,13 +68,20 @@ const TrangDonHangCuaToi = () => {
   }, [API_ORDERS, navigate]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-slate-800 uppercase">Đơn hàng của tôi</h1>
-        <p className="text-sm text-gray-500">Theo dõi trạng thái xử lí các đơn bạn đã đặt</p>
-      </div>
+    <div className="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+        {/* Sidebar Left */}
+        <UserSidebar user={user} />
 
-      {loading ? (
+        {/* Content Right */}
+        <div className="md:w-3/4">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+            <div className="mb-6 border-b border-slate-100 pb-6">
+              <h1 className="text-2xl font-black text-slate-800 uppercase">Đơn hàng của tôi</h1>
+              <p className="text-sm text-gray-500">Theo dõi trạng thái xử lí các đơn bạn đã đặt</p>
+            </div>
+
+            {loading ? (
         <div className="flex justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" />
         </div>
@@ -139,7 +152,10 @@ const TrangDonHangCuaToi = () => {
             </div>
           ))}
         </div>
-      )}
+          )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

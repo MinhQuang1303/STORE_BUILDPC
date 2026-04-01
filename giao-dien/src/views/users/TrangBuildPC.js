@@ -31,29 +31,23 @@ const SLOTS = [
   { id: "Loa", name: "Loa máy tính", icon: "🔊" },
 ];
 
-const SLOT_ALIASES = {
-  HDD: ["HDD", "Ổ cứng HDD", "Ổ cứng cơ"],
-  SSD: ["SSD", "Ổ cứng SSD", "Ổ cứng thể rắn"],
-  PSU: ["PSU", "Nguồn", "Nguồn máy tính"],
-  Mainboard: ["Mainboard", "Bo mạch chủ"],
-  "Tản nhiệt": ["Tản nhiệt", "Tản nhiệt khí", "Tản nhiệt nước"],
-  "Màn hình": ["Màn hình", "Monitor"],
-  "Bàn phím": ["Bàn phím", "Keyboard"],
-  "Chuột": ["Chuột", "Mouse"],
-  "Tai nghe": ["Tai nghe", "Headphone", "Headset"],
-  "Loa": ["Loa", "Loa máy tính", "Speaker"],
-};
-
 function isCategoryMatch(slotId, categoryName) {
   if (!categoryName) return false;
-  categoryName = categoryName.toUpperCase().trim();
-  slotId = slotId.toUpperCase().trim();
-  if (categoryName === slotId) return true;
-  if (SLOT_ALIASES[slotId] || SLOT_ALIASES[Object.keys(SLOT_ALIASES).find(k => k.toUpperCase() === slotId)]) {
-      const aliases = SLOT_ALIASES[slotId] || SLOT_ALIASES[Object.keys(SLOT_ALIASES).find(k => k.toUpperCase() === slotId)];
-      return aliases.map(a => a.toUpperCase()).includes(categoryName);
-  }
-  return false;
+  const catName = categoryName.toLowerCase().trim();
+  const slot = slotId.toLowerCase().trim();
+  
+  if (slot === "cpu") return catName.includes("cpu") || catName.includes("vi xử lý");
+  if (slot === "mainboard") return catName.includes("mainboard") || catName.includes("bo mạch");
+  if (slot === "ram") return catName.includes("ram") || catName.includes("bộ nhớ");
+  if (slot === "hdd" || slot === "ssd") return catName.includes("ssd") || catName.includes("hdd") || catName.includes("ổ cứng");
+  if (slot === "vga") return catName.includes("vga") || catName.includes("card màn hình");
+  if (slot === "psu") return catName.includes("psu") || catName.includes("nguồn");
+  if (slot === "case") return catName.includes("case") || catName.includes("vỏ");
+  if (slot === "tản nhiệt") return catName.includes("tản");
+  if (slot === "màn hình") return catName.includes("màn hình");
+  if (["bàn phím", "chuột", "tai nghe", "loa"].includes(slot)) return catName.includes("gear") || catName.includes(slot);
+  
+  return catName.includes(slot);
 }
 
 const TrangBuildPC = () => {

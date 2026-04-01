@@ -157,6 +157,16 @@ const QuanLyUser = () => {
 
                <div className="mt-6 space-y-4">
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-blue-200 transition-colors">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Họ và tên</span>
+                    <span className="font-semibold text-slate-800">{selectedUser.fullName || "Chưa cập nhật"}</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-blue-200 transition-colors">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Số điện thoại</span>
+                    <span className="font-semibold text-slate-800">{selectedUser.phone || "Chưa cập nhật"}</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-blue-200 transition-colors">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email</span>
                     <span className="font-semibold text-slate-800">{selectedUser.email}</span>
                   </div>

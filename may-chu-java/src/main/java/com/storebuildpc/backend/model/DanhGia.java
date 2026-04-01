@@ -12,25 +12,21 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "san_pham")
-public class SanPham extends BaseEntity {
-    @Column(nullable = false)
-    private String ten;
+@Table(name = "danh_gia")
+public class DanhGia extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_danh_muc", nullable = false)
-    private DanhMuc idDanhMuc;
+    @JoinColumn(name = "id_user", nullable = false)
+    private User idUser;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_san_pham", nullable = false)
+    private SanPham idSanPham;
 
     @Column(nullable = false)
-    private Double gia;
+    private Integer soSao;
 
     @Column(columnDefinition = "TEXT")
-    private String thongSo;
+    private String noiDung;
 
-    private Integer soLuong = 0;
-    private Integer daBan = 0;
-    private String anh;
-
-    @Column(columnDefinition = "TEXT")
-    private String hinhAnhKhac;
 }

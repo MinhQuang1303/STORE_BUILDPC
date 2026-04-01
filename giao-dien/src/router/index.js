@@ -26,6 +26,10 @@ import DangKy from "../views/DangKy";
 import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
 import TrangThanhToan from "../views/users/TrangThanhToan";
 
+// New Profile Views
+import TrangSanPhamYeuThich from "../views/users/TrangSanPhamYeuThich";
+import TrangSoDiaChi from "../views/users/TrangSoDiaChi";
+import TrangThongBao from "../views/users/TrangThongBao";
 // Component tạm thời để tránh lỗi "AuthSuccess is not defined"
 const AuthSuccess = () => <div>Đăng nhập thành công! Đang chuyển hướng...</div>;
 
@@ -41,8 +45,11 @@ const router = createBrowserRouter([
       { path: "build-pc", element: <TrangBuildPC /> },
       { path: "gio-hang", element: <TrangGioHang /> },
       { path: "thanh-toan", element: <TrangThanhToan /> },
-      { path: "don-hang-cua-toi", element: <TrangDonHangCuaToi /> },
+      { path: "don-hang-cua-toi", element: <ProtectedRoute><TrangDonHangCuaToi /></ProtectedRoute> },
       { path: "ho-so", element: <ProtectedRoute><TrangHoSo /></ProtectedRoute> },
+      { path: "san-pham-yeu-thich", element: <ProtectedRoute><TrangSanPhamYeuThich /></ProtectedRoute> },
+      { path: "so-dia-chi", element: <ProtectedRoute><TrangSoDiaChi /></ProtectedRoute> },
+      { path: "thong-bao", element: <ProtectedRoute><TrangThongBao /></ProtectedRoute> },
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },
       { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },

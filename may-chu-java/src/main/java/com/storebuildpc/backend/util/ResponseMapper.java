@@ -23,6 +23,8 @@ public final class ResponseMapper {
         map.put("fullName", user.getFullName());
         map.put("phone", user.getPhone());
         map.put("address", user.getAddress());
+        map.put("dob", user.getDob());
+        map.put("gender", user.getGender());
         map.put("createdAt", user.getCreatedAt());
         return map;
     }

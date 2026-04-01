@@ -35,3 +35,11 @@ yarn-error.log*
 .cache/
 node_modules/.cache/
 node_modules
+
+/target
+/.env
+.DS_Store
+.idea
+.vscode
+may-chu-java/uploads/
+.idea/

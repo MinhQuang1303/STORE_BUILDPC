@@ -15,6 +15,12 @@ const TrangChiTiet = () => {
   const [sp, setSp] = useState(null);
   const [soLuong, setSoLuong] = useState(1);
   const [bienTheChon, setBienTheChon] = useState(null); // Biến thể đang chọn
+  const [anhHienTai, setAnhHienTai] = useState(null);
+  const [danhGia, setDanhGia] = useState([]);
+  const [sanPhamLienQuan, setSanPhamLienQuan] = useState([]);
+  const [noiDungDG, setNoiDungDG] = useState('');
+  const [soSaoDG, setSoSaoDG] = useState(5);
+  const [isSubmittingDG, setIsSubmittingDG] = useState(false);
   const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
@@ -22,9 +28,17 @@ const TrangChiTiet = () => {
       .get(`${process.env.REACT_APP_API_URL}/san-pham/${id}`)
       .then((res) => {
         setSp(res.data);
+        setAnhHienTai(res.data.anh);
         // Tự động chọn biến thể đầu tiên
         if (res.data.bienThe && res.data.bienThe.length > 0) {
           setBienTheChon(res.data.bienThe[0]);
+        }
+
+        if (res.data.idDanhMuc?._id || res.data.idDanhMuc) {
+          const catId = res.data.idDanhMuc._id || res.data.idDanhMuc;
+          axios.get(`${process.env.REACT_APP_API_URL}/san-pham/lien-quan/${catId}?limit=5`)
+               .then(r => setSanPhamLienQuan(r.data.filter(p => p._id !== res.data._id)))
+               .catch(e => console.error("Lỗi lấy sản phẩm liên quan:", e));
         }
 
         // --- LƯU LỊCH SỬ XEM SẢN PHẨM ---
@@ -45,7 +59,38 @@ const TrangChiTiet = () => {
         }
       })
       .catch((err) => console.error("Lỗi lấy chi tiết:", err));
+
+    axios.get(`${process.env.REACT_APP_API_URL}/danh-gia/san-pham/${id}`)
+      .then(res => setDanhGia(res.data))
+      .catch(err => console.error("Lỗi lấy đánh giá:", err));
+
   }, [id]);
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return alert("Bạn cần đăng nhập để đánh giá!");
+    const user = JSON.parse(userStr).user || JSON.parse(userStr);
+    
+    setIsSubmittingDG(true);
+    try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/danh-gia`, {
+            idUser: user._id || user.id,
+            idSanPham: sp._id,
+            soSao: soSaoDG,
+            noiDung: noiDungDG
+        });
+        alert("Cảm ơn bạn đã đánh giá!");
+        setNoiDungDG('');
+        setSoSaoDG(5);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/danh-gia/san-pham/${id}`);
+        setDanhGia(res.data);
+    } catch(err) {
+        alert("Lỗi khi gửi đánh giá: " + (err.response?.data?.message || err.message));
+    } finally {
+        setIsSubmittingDG(false);
+    }
+  };
 
   if (!sp) return (
     <div style={styles.loadingContainer}>
@@ -95,15 +140,28 @@ const TrangChiTiet = () => {
           {/* CỘT TRÁI: HÌNH ẢNH */}
           <div style={styles.imageCol}>
             <div style={styles.imageMainBox}>
-              {sp.anh ? (
-                <img src={formatImageUrl(sp.anh)} alt={sp.ten} style={styles.image} className="image-zoom"
+              {anhHienTai ? (
+                <img src={formatImageUrl(anhHienTai)} alt={sp.ten} style={styles.image} className="image-zoom"
                   onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
                 />
               ) : null}
-              <div style={{...styles.noImage, display: sp.anh ? 'none' : 'flex'}}>
+              <div style={{...styles.noImage, display: anhHienTai ? 'none' : 'flex'}}>
                 <span style={{fontSize: '60px'}}>📦</span>
                 <span style={{color: '#94a3b8', marginTop: '10px'}}>Chưa có ảnh</span>
               </div>
+            </div>
+            
+            {/* THUMBNAILS */}
+            <div style={styles.thumbnailContainer}>
+                {[sp.anh, ...(sp.hinhAnhKhac || [])].filter(Boolean).map((imgUrl, idx) => (
+                    <div 
+                        key={idx} 
+                        style={{...styles.thumbnailBox, borderColor: anhHienTai === imgUrl ? '#2563eb' : 'transparent'}}
+                        onClick={() => setAnhHienTai(imgUrl)}
+                    >
+                        <img src={formatImageUrl(imgUrl)} alt="thumb" style={styles.thumbnailImg} />
+                    </div>
+                ))}
             </div>
           </div>
 
@@ -216,7 +274,7 @@ const TrangChiTiet = () => {
           </div>
         </div>
 
-        {/* PHẦN DƯỚI: THÔNG SỐ KỸ THUẬT */}
+        {/* PHẦN DƯỚI 1: THÔNG SỐ KỸ THUẬT */}
         <div style={styles.specsWrapper}>
             <div style={styles.specsHeader}>
                 <div style={styles.activeTab}>Thông số kỹ thuật</div>
@@ -226,7 +284,8 @@ const TrangChiTiet = () => {
                   <table style={styles.specsTable}>
                       <tbody>
                       {listSpecs.map((spec, index) => {
-                          const [label, value] = spec.split(":");
+                          const [label, ...valueParts] = spec.split(":");
+                          const value = valueParts.join(":");
                           return (
                           <tr key={index} style={index % 2 === 0 ? {backgroundColor: "#f8fafc"} : {}}>
                               <td style={styles.specLabel}>{label?.trim() || "Tính năng"}</td>
@@ -241,6 +300,84 @@ const TrangChiTiet = () => {
                 )}
             </div>
         </div>
+
+        {/* PHẦN DƯỚI 2: ĐÁNH GIÁ SẢN PHẨM */}
+        <div style={{...styles.specsWrapper, marginTop: "25px"}}>
+            <div style={styles.specsHeader}>
+                <div style={styles.activeTab}>Đánh giá ({danhGia.length} lượt)</div>
+            </div>
+            <div style={{padding: "30px"}}>
+                <form onSubmit={submitReview} style={{marginBottom: "30px", padding: "20px", backgroundColor: "#f8fafc", borderRadius: "12px"}}>
+                    <h4 style={{fontWeight: "700", marginBottom: "15px", color: "#1e293b"}}>Viết đánh giá của bạn</h4>
+                    <div style={{display: "flex", gap: "10px", marginBottom: "15px"}}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                            <span 
+                                key={star} 
+                                onClick={() => setSoSaoDG(star)}
+                                style={{fontSize: "24px", cursor: "pointer", color: star <= soSaoDG ? "#fbbf24" : "#cbd5e1"}}
+                            >★</span>
+                        ))}
+                    </div>
+                    <textarea 
+                        required
+                        value={noiDungDG}
+                        onChange={(e) => setNoiDungDG(e.target.value)}
+                        placeholder="Chia sẻ cảm nhận của bạn về sản phẩm này..."
+                        style={{width: "100%", padding: "15px", borderRadius: "8px", border: "1px solid #cbd5e1", minHeight: "100px", marginBottom: "15px", outline: "none", resize: "none"}}
+                    />
+                    <button 
+                        type="submit" 
+                        disabled={isSubmittingDG}
+                        style={{padding: "10px 20px", backgroundColor: "#2563eb", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "700", cursor: isSubmittingDG ? "not-allowed" : "pointer"}}
+                    >
+                        {isSubmittingDG ? "Đang gửi..." : "Gửi đánh giá"}
+                    </button>
+                </form>
+
+                <div style={{display: "flex", flexDirection: "column", gap: "20px"}}>
+                    {danhGia.map(dg => (
+                        <div key={dg._id} style={{borderBottom: "1px solid #f1f5f9", paddingBottom: "20px"}}>
+                            <div style={{display: "flex", alignItems: "center", gap: "15px", marginBottom: "10px"}}>
+                                <div style={{width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", color: "#64748b"}}>
+                                    {dg.nguoiDung?.avatar ? <img src={formatImageUrl(dg.nguoiDung.avatar)} alt="Avatar" style={{width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover"}} /> : dg.nguoiDung?.fullName?.charAt(0) || "U"}
+                                </div>
+                                <div>
+                                    <div style={{fontWeight: "700", color: "#0f172a"}}>{dg.nguoiDung?.fullName || "Người dùng ẩn danh"}</div>
+                                    <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
+                                        <div style={{color: "#fbbf24", fontSize: "14px"}}>
+                                            {"★".repeat(dg.soSao)}{"☆".repeat(5-dg.soSao)}
+                                        </div>
+                                        <div style={{fontSize: "12px", color: "#94a3b8"}}>{new Date(dg.ngayTao).toLocaleString("vi-VN")}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style={{color: "#475569", fontSize: "14px", lineHeight: "1.6", marginLeft: "55px"}}>{dg.noiDung}</p>
+                        </div>
+                    ))}
+                    {danhGia.length === 0 && <p style={{color: "#94a3b8", textAlign: "center"}}>Chưa có đánh giá nào cho sản phẩm này.</p>}
+                </div>
+            </div>
+        </div>
+
+        {/* PHẦN DƯỚI 3: SẢN PHẨM LIÊN QUAN */}
+        {sanPhamLienQuan && sanPhamLienQuan.length > 0 && (
+        <div style={{...styles.specsWrapper, marginTop: "25px"}}>
+            <div style={styles.specsHeader}>
+                <div style={styles.activeTab}>Sản phẩm liên quan</div>
+            </div>
+            <div style={{padding: "30px", display: "flex", gap: "20px", overflowX: "auto"}}>
+                {sanPhamLienQuan.map(spLq => (
+                    <div key={spLq._id} style={{minWidth: "220px", maxWidth: "220px", cursor: "pointer"}} onClick={() => { navigate(`/san-pham/${spLq._id}`); window.scrollTo(0,0); }}>
+                        <div style={{backgroundColor: "#fff", padding: "15px", borderRadius: "12px", border: "1px solid #e2e8f0", transition: "all 0.3s"}}>
+                            <img src={formatImageUrl(spLq.anh)} alt={spLq.ten} style={{width: "100%", height: "150px", objectFit: "contain", marginBottom: "15px"}} />
+                            <h5 style={{fontSize: "14px", fontWeight: "700", color: "#1e293b", marginBottom: "10px", lineHeight: "1.4", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis"}}>{spLq.ten}</h5>
+                            <div style={{color: "#ef4444", fontWeight: "800"}}>{spLq.gia ? spLq.gia.toLocaleString("vi-VN") : "0"}đ</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+        )}
       </div>
     </div>
   );
@@ -293,6 +430,9 @@ const styles = {
   specsTable: { width: "100%", borderCollapse: "collapse" },
   specLabel: { padding: "12px 20px", fontWeight: "700", color: "#64748b", width: "30%", fontSize: "14px" },
   specValue: { padding: "12px 20px", color: "#1e293b", fontSize: "14px" },
+  thumbnailContainer: { display: "flex", gap: "10px", marginTop: "15px", overflowX: "auto", paddingBottom: "5px" },
+  thumbnailBox: { width: "70px", height: "70px", borderRadius: "10px", backgroundColor: "#fff", cursor: "pointer", border: "2px solid", padding: "5px", flexShrink: 0, transition: "all 0.2s" },
+  thumbnailImg: { width: "100%", height: "100%", objectFit: "contain" },
 };
 
 export default TrangChiTiet;
