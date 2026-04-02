@@ -11,9 +11,10 @@ function TrangBuildPC() {
   const [loaiDangChon, setLoaiDangChon] = useState("Tất cả");
   const [loiCauHinh, setLoiCauHinh] = useState([]);
 
-  // Lấy hàm addToCart từ Context (bây giờ nó đã tự kèm Toast xịn rồi)
+  // Lấy hàm addToCart từ Context
   const { addToCart } = useContext(CartContext);
 
+  // Danh sách các loại linh kiện chính (Dùng để hiển thị Tab)
   const cacLoaiLinhKien = [
     "Tất cả", "CPU", "Mainboard", "RAM", "VGA", "Ổ cứng", "Nguồn", "Case", "Tản nhiệt",
   ];
@@ -27,12 +28,12 @@ function TrangBuildPC() {
       .catch((err) => console.error("Lỗi API:", err));
   }, []);
 
-  // Logic kiểm tra tương thích Socket & RAM
+  // Logic kiểm tra tương thích Socket & RAM (Dùng idDanhMuc.ten từ bản cũ)
   useEffect(() => {
     let errors = [];
-    const cpu = danhSachChon.find((item) => item.loai === "CPU");
-    const main = danhSachChon.find((item) => item.loai === "Mainboard");
-    const ram = danhSachChon.find((item) => item.loai === "RAM");
+    const cpu = danhSachChon.find((item) => item.idDanhMuc?.ten === "CPU");
+    const main = danhSachChon.find((item) => item.idDanhMuc?.ten === "Mainboard");
+    const ram = danhSachChon.find((item) => item.idDanhMuc?.ten === "RAM");
 
     if (cpu && main) {
       const regexSocket = /(LGA\s?\d+|AM\d+|Socket\s?\d+)/i;
@@ -53,9 +54,10 @@ function TrangBuildPC() {
     setLoiCauHinh(errors);
   }, [danhSachChon]);
 
+  // Chọn linh kiện: Thay thế linh kiện cũ cùng loại (Dựa trên ID Danh mục)
   const chonLinhKien = (sp) => {
     setDanhSachChon((prev) => {
-      const index = prev.findIndex((item) => item.loai === sp.loai);
+      const index = prev.findIndex((item) => item.idDanhMuc?._id === sp.idDanhMuc?._id);
       if (index !== -1) {
         const updated = [...prev];
         updated[index] = { ...sp, soLuong: 1 };
@@ -67,19 +69,18 @@ function TrangBuildPC() {
 
   const handleAction = (type) => {
     if (!userStorage) {
-      navigate("/login");
+      if (window.confirm("Bạn cần đăng nhập để tiếp tục. Đi đến trang đăng nhập?")) {
+        navigate("/login");
+      }
       return;
     }
 
-    if (loiCauHinh.length > 0) return; // CartContext sẽ không được gọi nếu có lỗi
+    if (loiCauHinh.length > 0) return;
 
     if (type === "ADD_ALL") {
       if (danhSachChon.length === 0) return;
-      
-      // Thêm từng món vào giỏ hàng
-      danhSachChon.forEach((sp) => {
-        addToCart(sp, 1);
-      });
+      // Thêm từng món vào giỏ hàng qua Context
+      danhSachChon.forEach((sp) => addToCart(sp, 1));
     } else {
       // Logic thanh toán
       navigate("/thanh-toan", { state: { buildPC: danhSachChon, total: tongTien } });
@@ -88,27 +89,27 @@ function TrangBuildPC() {
 
   const tongTien = danhSachChon.reduce((t, i) => t + (i.gia || 0) * (i.soLuong || 1), 0);
   
+  // Lọc sản phẩm (Dùng idDanhMuc.ten để đồng bộ dữ liệu)
   const sanPhamsHienThi = sanPhams.filter(
     (sp) =>
       sp.ten.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (loaiDangChon === "Tất cả" || sp.loai === loaiDangChon),
+      (loaiDangChon === "Tất cả" || sp.idDanhMuc?.ten === loaiDangChon)
   );
 
   return (
     <div style={styles.page}>
-      {/* CSS HOVER ANIMATION */}
       <style>{`
         .build-card:hover { transform: translateY(-5px); border-color: #2563eb !important; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-hover:hover { filter: brightness(1.1); transform: scale(1.02); }
         .tab-item { transition: all 0.2s; }
         .tab-item:hover { background: #e2e8f0; }
+        .build-card { transition: all 0.3s ease; }
       `}</style>
 
       <div style={styles.container}>
-        {/* HEADER TRANG BUILD */}
         <div style={styles.headerSection}>
             <h1 style={styles.mainTitle}>🛠️ Xây dựng cấu hình PC</h1>
-            <p style={styles.subTitle}>Chọn linh kiện phù hợp - Chúng tôi kiểm tra tính tương thích giúp bạn</p>
+            <p style={styles.subTitle}>Chọn linh kiện phù hợp - Hệ thống sẽ tự động kiểm tra tính tương thích</p>
         </div>
 
         <div style={styles.mainLayout}>
@@ -117,7 +118,7 @@ function TrangBuildPC() {
             <div style={styles.filterBar}>
                 <input 
                     type="text" 
-                    placeholder="Tìm nhanh linh kiện..." 
+                    placeholder="Tìm nhanh tên linh kiện (Ví dụ: i9, RTX 4090...)" 
                     style={styles.searchInput}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -139,12 +140,12 @@ function TrangBuildPC() {
               {sanPhamsHienThi.map((item) => (
                 <div key={item._id} className="build-card" style={styles.card}>
                   <div style={styles.imgWrap}>
-                    <img src={item.hinhAnh || item.anh} alt={item.ten} style={styles.img} />
+                    <img src={item.anh || item.hinhAnh} alt={item.ten} style={styles.img} />
                   </div>
                   <div style={styles.cardBody}>
                     <div style={styles.badgeRow}>
-                        <span style={styles.typeBadge}>{item.loai}</span>
-                        <span style={styles.stockBadge}>Còn hàng</span>
+                        <span style={styles.typeBadge}>{item.idDanhMuc?.ten || "Linh kiện"}</span>
+                        <span style={styles.stockBadge}>Sẵn hàng</span>
                     </div>
                     <h4 style={styles.pName} title={item.ten}>{item.ten}</h4>
                     <p style={styles.price}>{item.gia?.toLocaleString()} đ</p>
@@ -153,7 +154,7 @@ function TrangBuildPC() {
                       onClick={() => chonLinhKien(item)}
                       style={styles.btnAdd}
                     >
-                      + Thêm vào cấu hình
+                      + Chọn linh kiện này
                     </button>
                   </div>
                 </div>
@@ -161,12 +162,12 @@ function TrangBuildPC() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: CHI TIẾT CẤU HÌNH */}
+          {/* CỘT PHẢI: CHI TIẾT CẤU HÌNH (DARK MODE SIDEBAR) */}
           <div style={styles.rightCol}>
             <div style={styles.sidebar}>
               <div style={styles.sideHeader}>
-                <h3 style={styles.sideTitle}>Cấu hình hiện tại</h3>
-                <button onClick={() => setDanhSachChon([])} style={styles.clearBtn}>Xóa hết</button>
+                <h3 style={styles.sideTitle}>Dàn máy của bạn</h3>
+                <button onClick={() => setDanhSachChon([])} style={styles.clearBtn}>Làm mới</button>
               </div>
 
               {loiCauHinh.length > 0 && (
@@ -180,13 +181,15 @@ function TrangBuildPC() {
               <div style={styles.buildItems}>
                 {danhSachChon.length === 0 ? (
                   <div style={styles.emptyState}>
-                      <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="60" style={{opacity: 0.3}} />
-                      <p>Vui lòng chọn linh kiện bên trái</p>
+                      <p>Chưa chọn linh kiện nào</p>
+                      <small style={{display: 'block', marginTop: '5px'}}>Vui lòng chọn từ danh sách bên trái</small>
                   </div>
                 ) : (
                     danhSachChon.map((item) => (
                         <div key={item._id} style={styles.itemRow}>
-                          <div style={styles.itemIcon}>{item.loai === "CPU" ? "💻" : "🔌"}</div>
+                          <div style={styles.itemIcon}>
+                            {item.idDanhMuc?.ten === "CPU" ? "💻" : item.idDanhMuc?.ten === "VGA" ? "🎮" : "🔌"}
+                          </div>
                           <div style={{ flex: 1 }}>
                             <div style={styles.itemName}>{item.ten}</div>
                             <div style={styles.itemPrice}>{item.gia?.toLocaleString()} đ</div>
@@ -202,7 +205,7 @@ function TrangBuildPC() {
 
               <div style={styles.footer}>
                 <div style={styles.totalRow}>
-                  <span>Tổng tiền dự kiến:</span>
+                  <span>Tổng tiền:</span>
                   <span style={styles.totalPrice}>{tongTien.toLocaleString()} đ</span>
                 </div>
                 
@@ -224,7 +227,7 @@ function TrangBuildPC() {
                   🚀 Thanh toán ngay
                 </button>
                 
-                {loiCauHinh.length > 0 && <p style={styles.warningText}>* Vui lòng sửa lỗi tương thích để tiếp tục</p>}
+                {loiCauHinh.length > 0 && <p style={styles.warningText}>* Vui lòng kiểm tra lại tính tương thích</p>}
               </div>
             </div>
           </div>
@@ -252,7 +255,7 @@ const styles = {
   tabActive: { padding: "10px 18px", borderRadius: "8px", border: "none", cursor: "pointer", backgroundColor: "#2563eb", color: "#fff", fontWeight: "700", fontSize: "14px", boxShadow: "0 4px 10px rgba(37, 99, 235, 0.3)" },
   
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "20px" },
-  card: { backgroundColor: "#fff", borderRadius: "16px", padding: "18px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", transition: "all 0.3s ease" },
+  card: { backgroundColor: "#fff", borderRadius: "16px", padding: "18px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column" },
   imgWrap: { height: "160px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "15px" },
   img: { maxWidth: "90%", maxHeight: "90%", objectFit: "contain" },
   
@@ -262,7 +265,7 @@ const styles = {
   
   pName: { fontSize: "15px", margin: "0 0 10px 0", height: "44px", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", color: "#1e293b", lineHeight: "1.4" },
   price: { color: "#ef4444", fontWeight: "800", fontSize: "18px", marginBottom: "15px" },
-  btnAdd: { marginTop: "auto", padding: "12px", backgroundColor: "#f1f5f9", color: "#1e293b", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700", transition: "all 0.2s" },
+  btnAdd: { marginTop: "auto", padding: "12px", backgroundColor: "#f1f5f9", color: "#1e293b", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700" },
 
   rightCol: { width: "420px", position: "sticky", top: "20px" },
   sidebar: { backgroundColor: "#1e293b", padding: "25px", borderRadius: "20px", color: "#fff", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" },
@@ -273,7 +276,7 @@ const styles = {
   errorBox: { marginBottom: "20px" },
   errorItem: { backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#fca5a5", padding: "10px", borderRadius: "8px", fontSize: "12px", marginBottom: "8px", border: "1px solid rgba(239, 68, 68, 0.2)" },
   
-  buildItems: { minHeight: "200px", maxHeight: "400px", overflowY: "auto", marginBottom: "20px", paddingRight: "5px" },
+  buildItems: { minHeight: "200px", maxHeight: "400px", overflowY: "auto", marginBottom: "20px" },
   emptyState: { textAlign: "center", padding: "40px 0", color: "#94a3b8" },
   itemRow: { display: "flex", alignItems: "center", gap: "12px", padding: "12px 0", borderBottom: "1px solid #334155" },
   itemIcon: { fontSize: "20px" },
@@ -285,8 +288,8 @@ const styles = {
   totalRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" },
   totalPrice: { color: "#10b981", fontSize: "24px", fontWeight: "900" },
   
-  btnGreen: { width: "100%", padding: "15px", backgroundColor: "#10b981", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "800", marginBottom: "12px", cursor: "pointer", transition: "all 0.2s" },
-  btnBlue: { width: "100%", padding: "15px", backgroundColor: "#2563eb", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "800", cursor: "pointer", transition: "all 0.2s" },
+  btnGreen: { width: "100%", padding: "15px", backgroundColor: "#10b981", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "800", marginBottom: "12px", cursor: "pointer" },
+  btnBlue: { width: "100%", padding: "15px", backgroundColor: "#2563eb", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "800", cursor: "pointer" },
   warningText: { color: "#ef4444", fontSize: "12px", textAlign: "center", marginTop: "10px", fontWeight: "600" }
 };
 
