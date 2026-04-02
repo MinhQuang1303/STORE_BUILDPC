@@ -7,6 +7,7 @@ const TrangChiTiet = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [sp, setSp] = useState(null);
+  const [selectedBienThe, setSelectedBienThe] = useState(null);
   const [sanPhamTuongTu, setSanPhamTuongTu] = useState([]);
   const [soLuong, setSoLuong] = useState(1);
   const { addToCart } = useContext(CartContext);
@@ -21,7 +22,14 @@ const TrangChiTiet = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     // 1. Lấy chi tiết sản phẩm
     axios.get(`http://localhost:5000/api/san-pham/${id}`)
-      .then((res) => setSp(res.data))
+      .then((res) => {
+        setSp(res.data);
+        if (res.data.bienThe && res.data.bienThe.length > 0) {
+          setSelectedBienThe(res.data.bienThe[0]);
+        } else {
+          setSelectedBienThe(null);
+        }
+      })
       .catch((err) => console.error("Lỗi lấy chi tiết:", err));
 
     // 2. Lấy đánh giá riêng biệt từ LocalStorage cho sản phẩm này
@@ -33,6 +41,14 @@ const TrangChiTiet = () => {
         { id: 1, user: "Hệ thống", star: 5, comment: "Sản phẩm chính hãng, bảo hành tuyệt vời.", date: "01/01/2026", img: null }
       ]);
     }
+
+    // 3. Lưu vào lịch sử xem (recentlyViewed)
+    let viewedIds = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
+    viewedIds = viewedIds.filter(itemId => itemId !== String(id)); // Xóa nếu trùng để đẩy lên đầu
+    viewedIds.unshift(String(id)); // Thêm lên đầu danh sách
+    if (viewedIds.length > 10) viewedIds.pop(); // Giữ tối đa 10 sản phẩm
+    localStorage.setItem("recentlyViewed", JSON.stringify(viewedIds));
+
   }, [id]);
 
   useEffect(() => {
@@ -147,9 +163,31 @@ const TrangChiTiet = () => {
                 <span style={styles.reviewCount}>({reviews.length} đánh giá)</span>
                 <span style={styles.skuText}>| Mã: {String(id).slice(-6).toUpperCase()}</span>
             </div>
+            {/* LỰA CHỌN BIẾN THỂ */}
+            {sp.bienThe && sp.bienThe.length > 0 && (
+              <div style={styles.variantSection}>
+                <h4 style={styles.variantTitle}>Chọn tùy chọn:</h4>
+                <div style={styles.variantGrid}>
+                  {sp.bienThe.map((bt) => (
+                    <button
+                      key={bt._id}
+                      onClick={() => setSelectedBienThe(bt)}
+                      style={
+                        selectedBienThe?._id === bt._id
+                          ? styles.variantBtnActive
+                          : styles.variantBtn
+                      }
+                    >
+                      {bt.ten}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={styles.priceSection}>
-                <div style={styles.priceMain}>{sp.gia?.toLocaleString()} đ</div>
-                <div style={styles.priceOld}>{(sp.gia * 1.1).toLocaleString()} đ</div>
+                <div style={styles.priceMain}>{(selectedBienThe ? selectedBienThe.gia : sp.gia)?.toLocaleString()} đ</div>
+                <div style={styles.priceOld}>{((selectedBienThe ? selectedBienThe.gia : sp.gia) * 1.1).toLocaleString()} đ</div>
                 <div style={styles.discountTag}>-10%</div>
             </div>
             <div style={styles.shortDesc}>
@@ -163,7 +201,12 @@ const TrangChiTiet = () => {
                     <input type="number" value={soLuong} readOnly style={styles.qtyInput} />
                     <button onClick={() => setSoLuong(soLuong + 1)} style={styles.qtyBtn}>+</button>
                 </div>
-                <button className="btn-buy" style={styles.btnAddCart} onClick={() => addToCart(sp, soLuong)}>🛒 THÊM VÀO GIỎ HÀNG</button>
+                <button className="btn-buy" style={styles.btnAddCart} onClick={() => {
+                  const productToAdd = selectedBienThe 
+                    ? { ...sp, gia: selectedBienThe.gia, ten: `${sp.ten} - ${selectedBienThe.ten}`, _id: `${sp._id}-${selectedBienThe._id}` }
+                    : sp;
+                  addToCart(productToAdd, soLuong);
+                }}>🛒 THÊM VÀO GIỎ HÀNG</button>
             </div>
             <button className="btn-buy" style={styles.btnBuild} onClick={() => navigate("/build")}>🛠️ THÊM VÀO CẤU HÌNH PC</button>
           </div>
@@ -333,7 +376,14 @@ const styles = {
   reviewForm: { backgroundColor: "#f8fafc", padding: "30px", borderRadius: "20px" },
   reviewTextarea: { width: "100%", height: "120px", padding: "15px", borderRadius: "12px", border: "1px solid #e2e8f0", fontFamily: "inherit", fontSize: "14px" },
   imgPreview: { width: "100px", height: "100px", objectFit: "cover", borderRadius: "10px", marginTop: "10px" },
-  btnSubmitRev: { backgroundColor: "#2563eb", color: "#fff", border: "none", padding: "15px 35px", borderRadius: "10px", fontWeight: "800", cursor: "pointer" }
+  btnSubmitRev: { backgroundColor: "#2563eb", color: "#fff", border: "none", padding: "15px 35px", borderRadius: "10px", fontWeight: "800", cursor: "pointer" },
+
+  // Cấu hình UI biến thể
+  variantSection: { marginBottom: "25px" },
+  variantTitle: { fontSize: "14px", fontWeight: "700", marginBottom: "12px", color: "#475569" },
+  variantGrid: { display: "flex", gap: "12px", flexWrap: "wrap" },
+  variantBtn: { border: "1px solid #cbd5e1", backgroundColor: "#fff", color: "#475569", padding: "10px 18px", borderRadius: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" },
+  variantBtnActive: { border: "2px solid #2563eb", backgroundColor: "#eff6ff", color: "#2563eb", padding: "9px 17px", borderRadius: "12px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 0 0 3px rgba(37,99,235,0.1)" }
 };
 
 export default TrangChiTiet;

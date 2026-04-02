@@ -80,7 +80,17 @@ const TrangChu = () => {
         </div>
         <div style={styles.categoryGrid}>
           {categories.map((cat) => (
-            <div key={cat.id} style={styles.catCard} className="cat-item" onClick={() => navigate("/build")}>
+            <div 
+               key={cat.id} 
+               style={styles.catCard} 
+               className="cat-item" 
+               onClick={() => {
+                   let catName = cat.id;
+                   if (cat.id === "VGA") catName = "GPU";
+                   if (cat.id === "Main") catName = "Mainboard";
+                   navigate(`/san-pham?cat=${catName}`);
+               }}
+            >
               <img src={cat.icon} style={styles.catImg} alt={cat.name} />
               <span style={styles.catName}>{cat.name}</span>
             </div>

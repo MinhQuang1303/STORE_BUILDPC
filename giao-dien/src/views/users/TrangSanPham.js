@@ -27,10 +27,16 @@ const TrangSanPham = () => {
     setSearchQuery(querySearch);
     if (queryCat) {
         setDanhMucChon(queryCat);
-    } else if (!querySearch) {
+    } else if (querySearch) {
+        // Tự động nhảy vô Danh mục tương ứng nếu từ khoá có nhắc tới
+        const q = querySearch.toLowerCase();
+        const matchDm = danhMucs.find(dm => dm.ten.toLowerCase().includes(q) || q.includes(dm.ten.toLowerCase()));
+        if (matchDm) setDanhMucChon(matchDm.ten);
+        else setDanhMucChon("Tất cả");
+    } else {
         setDanhMucChon("Tất cả");
     }
-  }, [querySearch, queryCat]);
+  }, [querySearch, queryCat, danhMucs]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,20 +56,35 @@ const TrangSanPham = () => {
     fetchData();
   }, []);
 
-  // Logic Lọc sản phẩm (Kết hợp cả Danh mục và Tìm kiếm)
-  let filteredProducts = sanPhams.filter((sp) => {
-    const categoryName = sp.idDanhMuc?.ten || sp.loai;
-    const matchCategory = danhMucChon === "Tất cả" || categoryName === danhMucChon;
-    const matchSearch = sp.ten.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCategory && matchSearch;
-  });
+  // TUYỆT ĐỐI KHÔNG ẨN CÁC SẢN PHẨM KHÁC, CHỈ SẮP XẾP ƯU TIÊN LÊN ĐẦU
+  let filteredProducts = [...sanPhams];
 
-  // Sắp xếp giá
-  if (sapXepGia === "tang-dan") {
-    filteredProducts.sort((a, b) => a.gia - b.gia);
-  } else if (sapXepGia === "giam-dan") {
-    filteredProducts.sort((a, b) => b.gia - a.gia);
-  }
+  const q = searchQuery.toLowerCase().trim();
+  
+  filteredProducts.sort((a, b) => {
+      const aCat = a.idDanhMuc?.ten || a.loai || "";
+      const bCat = b.idDanhMuc?.ten || b.loai || "";
+      
+      // 1. Kiểm tra xem có trùng Danh mục đang chọn ở Sidebar không
+      const aCatMatch = danhMucChon !== "Tất cả" && aCat === danhMucChon;
+      const bCatMatch = danhMucChon !== "Tất cả" && bCat === danhMucChon;
+
+      // 2. Kiểm tra xem có khớp từ khoá nhập ở ô search không
+      const aSearchMatch = q !== "" && (a.ten.toLowerCase().includes(q) || aCat.toLowerCase().includes(q));
+      const bSearchMatch = q !== "" && (b.ten.toLowerCase().includes(q) || bCat.toLowerCase().includes(q));
+      
+      // Nếu là Sản phẩm được ưu tiên (bởi Danh mục hiện tại HOẶC Từ khoá tìm kiếm)
+      const aTotalMatch = aCatMatch || aSearchMatch;
+      const bTotalMatch = bCatMatch || bSearchMatch;
+
+      if (aTotalMatch && !bTotalMatch) return -1; // Đẩy lên trên
+      if (!aTotalMatch && bTotalMatch) return 1;  // Đẩy xuống dưới
+      
+      // Mới khét giá tiền nếu đồ ngang nhau
+      if (sapXepGia === "tang-dan") return a.gia - b.gia;
+      if (sapXepGia === "giam-dan") return b.gia - a.gia;
+      return 0;
+  });
 
   const handleQuickAdd = (e, item) => {
     e.stopPropagation();
@@ -111,7 +132,11 @@ const TrangSanPham = () => {
               <div style={styles.filterList}>
                 <div
                   className={`filter-item ${danhMucChon === "Tất cả" ? "active-filter" : ""}`}
-                  onClick={() => setDanhMucChon("Tất cả")}
+                  onClick={() => {
+                     setDanhMucChon("Tất cả");
+                     setSearchQuery("");
+                     navigate('/san-pham');
+                  }}
                 >
                   <span>📦</span> Tất cả
                 </div>
@@ -119,7 +144,11 @@ const TrangSanPham = () => {
                   <div
                     key={dm._id}
                     className={`filter-item ${danhMucChon === dm.ten ? "active-filter" : ""}`}
-                    onClick={() => setDanhMucChon(dm.ten)}
+                    onClick={() => {
+                        setDanhMucChon(dm.ten);
+                        setSearchQuery("");
+                        navigate(`/san-pham?cat=${dm.ten}`);
+                    }}
                   >
                     <span>🔹</span> {dm.ten}
                   </div>

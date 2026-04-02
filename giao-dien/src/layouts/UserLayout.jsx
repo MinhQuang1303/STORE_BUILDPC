@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
 import { 
@@ -13,12 +14,33 @@ const UserLayout = () => {
     const [user, setUser] = useState(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
+    // Live Search States
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [allProducts, setAllProducts] = useState([]);
+
+    useEffect(() => {
+        axios.get("http://localhost:5000/api/san-pham")
+            .then(res => setAllProducts(Array.isArray(res.data) ? res.data : (res.data.products || [])))
+            .catch(err => console.log(err));
+    }, []);
+
+    // Logic lọc sản phẩm theo từ khoá
+    const unaccent = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+    const suggestedProducts = searchTerm.trim() === "" ? [] : allProducts.filter((p) => {
+        const q = unaccent(searchTerm);
+        const nameMatch = unaccent(p.ten).includes(q);
+        const catMatch = p.loai && unaccent(p.loai).includes(q);
+        const catObjMatch = p.idDanhMuc?.ten && unaccent(p.idDanhMuc.ten).includes(q);
+        return nameMatch || catMatch || catObjMatch;
+    }).slice(0, 5); // Lấy tối đa 5 gợi ý
+
     // Danh sách danh mục mẫu
-    const categories = [
-        { name: "CPU - Bộ vi xử lý", icon: <Cpu size={18}/>, path: "/san-pham?cat=cpu" },
-        { name: "VGA - Card màn hình", icon: <Monitor size={18}/>, path: "/san-pham?cat=vga" },
-        { name: "SSD - Ổ cứng", icon: <HardDrive size={18}/>, path: "/san-pham?cat=ssd" },
-        { name: "Mainboard - Bo mạch chủ", icon: <LayoutGrid size={18}/>, path: "/san-pham?cat=main" },
+    const categoriesMenu = [
+        { name: "CPU - Bộ vi xử lý", icon: <Cpu size={18}/>, path: "/san-pham?cat=CPU" },
+        { name: "VGA - Card màn hình", icon: <Monitor size={18}/>, path: "/san-pham?cat=GPU" },
+        { name: "Bo mạch chủ", icon: <LayoutGrid size={18}/>, path: "/san-pham?cat=Mainboard" },
+        { name: "RAM & Ổ cứng", icon: <HardDrive size={18}/>, path: "/san-pham?cat=RAM" },
     ];
 
     useEffect(() => {
@@ -69,8 +91,60 @@ const UserLayout = () => {
                             type="text"
                             placeholder="Bạn cần tìm linh kiện gì? (Nhấn Enter)"
                             className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-800 transition-all text-sm"
-                            onKeyDown={(e) => e.key === "Enter" && navigate(`/san-pham?q=${e.target.value}`)}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                            onKeyDown={(e) => {
+                                if(e.key === "Enter") {
+                                    setIsSearchFocused(false);
+                                    navigate(`/san-pham?q=${e.target.value}`);
+                                }
+                            }}
                         />
+                        
+                        {/* HIỂN THỊ GỢI Ý KẾT QUẢ TÌM KIẾM */}
+                        {isSearchFocused && searchTerm.trim() !== "" && (
+                            <div className="absolute top-full left-0 w-full mt-2 bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
+                                {suggestedProducts.length > 0 ? (
+                                    <>
+                                        {suggestedProducts.map(p => (
+                                            <div 
+                                                key={p._id} 
+                                                className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault(); // Tránh bị onBlur cướp focus
+                                                    navigate(`/san-pham/${p._id}`);
+                                                    setSearchTerm("");
+                                                    setIsSearchFocused(false);
+                                                }}
+                                            >
+                                                <img src={p.anh} alt={p.ten} className="w-12 h-12 object-contain bg-white rounded-lg border border-slate-100 p-1" />
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h4 className="text-sm font-bold truncate text-slate-800">{p.ten}</h4>
+                                                    <p className="text-xs font-bold text-red-500 mt-1">{p.gia?.toLocaleString()} đ</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div 
+                                            className="p-3 bg-blue-50 text-center text-sm font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-100 cursor-pointer transition-colors"
+                                            onMouseDown={(e) => {
+                                                e.preventDefault(); // Tránh bị onBlur cướp focus
+                                                navigate(`/san-pham?q=${searchTerm}`);
+                                                setSearchTerm("");
+                                                setIsSearchFocused(false);
+                                            }}
+                                        >
+                                            Xem tất cả kết quả cho "{searchTerm}"
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="p-4 text-center text-sm text-slate-500">
+                                        Không tìm thấy sản phẩm nào khớp với "{searchTerm}".
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* ACTIONS */}
@@ -88,7 +162,7 @@ const UserLayout = () => {
                             {isCategoryOpen && (
                                 <div className="absolute top-full right-0 mt-4 w-64 bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2">
                                     <div className="p-2">
-                                        {categories.map((cat, idx) => (
+                                        {categoriesMenu.map((cat, idx) => (
                                             <Link 
                                                 key={idx} 
                                                 to={cat.path} 
