@@ -147,13 +147,16 @@ public class SanPhamController {
             @RequestParam(value = "hinhAnhKhac", required = false) List<MultipartFile> hinhAnhKhacFiles,
             HttpServletRequest request) {
         return sanPhamRepository.findById(IdUtil.toLong(id)).map(sp -> {
+            try {
             String ten = request.getParameter("ten");
             String giaStr = request.getParameter("gia");
             String thongSo = request.getParameter("thongSo");
             String idDanhMucStr = request.getParameter("idDanhMuc");
 
             if (ten != null && !ten.isEmpty()) sp.setTen(ten);
-            if (giaStr != null && !giaStr.isEmpty()) sp.setGia(Double.parseDouble(giaStr));
+            if (giaStr != null && !giaStr.trim().isEmpty()) {
+                try { sp.setGia(Double.parseDouble(giaStr.trim())); } catch (Exception ignored) {}
+            }
             if (thongSo != null) sp.setThongSo(thongSo);
             if (idDanhMucStr != null && !idDanhMucStr.isEmpty()) {
                 DanhMuc dm = danhMucRepository.findById(IdUtil.toLong(idDanhMucStr)).orElse(null);
@@ -176,7 +179,6 @@ public class SanPhamController {
                     }
                 }
                 if (!urls.isEmpty()) {
-                    // Cập nhật (thay thế hoàn toàn danh sách cũ)
                     sp.setHinhAnhKhac(String.join(",", urls));
                 }
             }
@@ -193,9 +195,9 @@ public class SanPhamController {
                     String tenVar = v.get("ten");
                     BienThe target = existing.stream().filter(e -> e.getTen().equals(tenVar)).findFirst().orElse(new BienThe());
                     target.setTen(tenVar);
-                    try { target.setGia(Double.parseDouble(v.getOrDefault("gia", "0"))); } catch (Exception e) { target.setGia(0d); }
-                    try { target.setSoLuong(Integer.parseInt(v.getOrDefault("soLuong", "0"))); } catch (Exception e) { target.setSoLuong(0); }
-                    try { target.setDaBan(Integer.parseInt(v.getOrDefault("daBan", "0"))); } catch (Exception e) { target.setDaBan(0); }
+                    try { target.setGia(Double.parseDouble(v.getOrDefault("gia", "0").trim())); } catch (Exception e) { target.setGia(0d); }
+                    try { target.setSoLuong(Integer.parseInt(v.getOrDefault("soLuong", "0").trim())); } catch (Exception e) { target.setSoLuong(0); }
+                    try { target.setDaBan(Integer.parseInt(v.getOrDefault("daBan", "0").trim())); } catch (Exception e) { target.setDaBan(0); }
                     target.setIdSanPham(sp);
                     bienTheRepository.save(target);
                     toDelete.remove(target);
@@ -210,11 +212,18 @@ public class SanPhamController {
                 }
 
                 SanPham finalSp = sp;
-                int tongSoLuong = variants.stream().mapToInt(v -> Integer.parseInt(v.getOrDefault("soLuong", "0"))).sum();
+                int tongSoLuong = variants.stream().mapToInt(v -> {
+                    try { return Integer.parseInt(v.getOrDefault("soLuong", "0").trim()); }
+                    catch (Exception e) { return 0; }
+                }).sum();
                 finalSp.setSoLuong(tongSoLuong);
                 sanPhamRepository.save(finalSp);
             }
             return ResponseEntity.ok(toResponse(sp));
+            } catch (Exception ex) {
+                return ResponseEntity.<Object>status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Lỗi cập nhật: " + ex.getMessage()));
+            }
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Không tìm thấy sản phẩm")));
     }
 

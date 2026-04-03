@@ -90,8 +90,10 @@ const TrangSanPham = () => {
         matchCategory = catName.includes("mainboard") || catName.includes("bo mạch");
     } else if (chosenCat === "ram") {
         matchCategory = catName.includes("ram") || catName.includes("bộ nhớ");
-    } else if (chosenCat === "hdd" || chosenCat === "ssd") {
-        matchCategory = catName.includes("ssd") || catName.includes("hdd") || catName.includes("ổ cứng");
+    } else if (chosenCat === "hdd") {
+        matchCategory = catName.includes("hdd") || catName.includes("ổ cứng");
+    } else if (chosenCat === "ssd") {
+        matchCategory = catName.includes("ssd") || catName.includes("ổ cứng");
     } else if (chosenCat === "vga") {
         matchCategory = catName.includes("vga") || catName.includes("card màn hình");
     } else if (chosenCat === "psu") {
@@ -101,9 +103,16 @@ const TrangSanPham = () => {
     } else if (chosenCat === "tản nhiệt") {
         matchCategory = catName.includes("tản");
     } else if (chosenCat === "màn hình") {
-        matchCategory = catName.includes("màn hình");
-    } else if (["bàn phím", "chuột", "tai nghe", "loa"].includes(chosenCat)) {
-        matchCategory = catName.includes("gear") || catName.includes(chosenCat);
+        matchCategory = (catName.includes("màn hình") || catName.includes("monitor"))
+                        && !catName.includes("vga") && !catName.includes("card");
+    } else if (chosenCat === "bàn phím") {
+        matchCategory = catName.includes("phím") || catName.includes("keyboard");
+    } else if (chosenCat === "chuột") {
+        matchCategory = catName.includes("chuột") || catName.includes("mouse");
+    } else if (chosenCat === "tai nghe") {
+        matchCategory = catName.includes("tai nghe") || catName.includes("headset") || catName.includes("headphone");
+    } else if (chosenCat === "loa") {
+        matchCategory = catName.includes("loa") || catName.includes("speaker");
     } else {
         matchCategory = catName.includes(chosenCat);
     }

@@ -156,10 +156,14 @@ const QuanLySanPham = () => {
     // hoặc bạn có thể append từng phần nếu cần. Ở đây tôi dùng JSON.stringify cho tiện.
     // Tuy nhiên, multer mặc định không parse JSON trong FormData, nên ta sẽ append list.
     formData.bienThe.forEach((bt, index) => {
-      data.append(`bienThe[${index}][ten]`, bt.ten);
-      data.append(`bienThe[${index}][gia]`, bt.gia);
-      data.append(`bienThe[${index}][soLuong]`, bt.soLuong || 0);
-      data.append(`bienThe[${index}][daBan]`, bt.daBan || 0);
+      data.append(`bienThe[${index}][ten]`, bt.ten || "");
+      // Đảm bảo gia luôn là số hợp lệ (không rỗng, không null)
+      const gia = (bt.gia !== undefined && bt.gia !== null && bt.gia !== "") ? String(bt.gia) : "0";
+      const soLuong = (bt.soLuong !== undefined && bt.soLuong !== null && bt.soLuong !== "") ? String(bt.soLuong) : "0";
+      const daBan = (bt.daBan !== undefined && bt.daBan !== null && bt.daBan !== "") ? String(bt.daBan) : "0";
+      data.append(`bienThe[${index}][gia]`, gia);
+      data.append(`bienThe[${index}][soLuong]`, soLuong);
+      data.append(`bienThe[${index}][daBan]`, daBan);
     });
 
     try {

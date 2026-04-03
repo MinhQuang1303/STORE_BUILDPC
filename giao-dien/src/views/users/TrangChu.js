@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PromoBanner from "../../components/PromoBanner";
@@ -77,6 +77,65 @@ const ProductCard = ({ item, navigate, handleAddToCart, isFavorite, toggleFavori
   );
 };
 
+// ─── Component Section có nút scroll ────────────────────────────────────────
+const ProductSection = ({ headerStyle, title, viewAllUrl, navigate, children }) => {
+  const scrollRef = useRef(null);
+
+  const scroll = (dir) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: dir * 280, behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div style={sectionStyles.tieredSection}>
+      <div style={headerStyle}>
+        <h2 style={sectionStyles.tieredTitle}>{title}</h2>
+        <span className="view-more-text" style={sectionStyles.viewMoreText}
+          onClick={() => navigate(viewAllUrl)}>Xem tất cả &gt;</span>
+      </div>
+      <div style={sectionStyles.scrollWrapper}>
+        <button className="scroll-btn scroll-btn-left" style={sectionStyles.scrollBtn}
+          onClick={() => scroll(-1)}>&#8249;</button>
+        <div ref={scrollRef} className="horizontal-scroll">
+          {children}
+        </div>
+        <button className="scroll-btn scroll-btn-right" style={sectionStyles.scrollBtn}
+          onClick={() => scroll(1)}>&#8250;</button>
+      </div>
+    </div>
+  );
+};
+
+const sectionStyles = {
+  tieredSection: { backgroundColor: "#fff", marginBottom: "30px", overflow: "hidden" },
+  tieredTitle: { color: "#fff", margin: 0, fontSize: "18px", fontWeight: "800", textTransform: "uppercase" },
+  viewMoreText: { color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600", padding: "4px 8px" },
+  scrollWrapper: { position: "relative", display: "flex", alignItems: "stretch" },
+  scrollBtn: {
+    position: "absolute",
+    top: "50%",
+    transform: "translateY(-50%)",
+    zIndex: 10,
+    width: "36px",
+    height: "36px",
+    borderRadius: "50%",
+    border: "none",
+    background: "rgba(255,255,255,0.95)",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+    cursor: "pointer",
+    fontSize: "22px",
+    fontWeight: "bold",
+    color: "#374151",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    lineHeight: 1,
+    padding: 0,
+  },
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const TrangChu = () => {
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext); 
@@ -122,9 +181,17 @@ const TrangChu = () => {
     localStorage.setItem('savedFavs', JSON.stringify(newFavs));
   };
 
-  const isGear = (p) => {
+  const isPhim = (p) => {
     const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
-    return (c.includes("màn hình") && !c.includes("vga") && !c.includes("card")) || c.includes("gear") || c.includes("phím") || c.includes("chuột") || c.includes("tai nghe") || c.includes("loa");
+    return c.includes("phím") || c.includes("keyboard");
+  };
+  const isChuot = (p) => {
+    const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
+    return c.includes("chuột") || c.includes("mouse");
+  };
+  const isTaiNghe = (p) => {
+    const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
+    return c.includes("tai nghe") || c.includes("headset") || c.includes("headphone");
   };
   const isCore = (p) => {
     const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
@@ -135,7 +202,13 @@ const TrangChu = () => {
     return c.includes("case") || c.includes("vỏ");
   };
 
-  const gearProducts = sanPhams.filter(isGear);
+  const phimProducts  = sanPhams.filter(isPhim);
+  const chuotProducts = sanPhams.filter(isChuot);
+  const taiNgheProducts = sanPhams.filter(isTaiNghe);
+  const monitorProducts = sanPhams.filter(p => {
+    const c = (p.idDanhMuc?.ten || p.loai || "").toLowerCase();
+    return (c.includes("màn hình") || c.includes("monitor")) && !c.includes("vga") && !c.includes("card");
+  });
   const coreProducts = sanPhams.filter(isCore);
   const buildProducts = sanPhams.filter(isCase);
 
@@ -180,10 +253,11 @@ const TrangChu = () => {
              display: flex;
              overflow-x: auto;
              scroll-snap-type: x mandatory;
-             padding: 15px 20px 25px 20px;
+             padding: 15px 46px 25px 46px;
              gap: 15px;
              scrollbar-width: none;
              -ms-overflow-style: none;
+             flex: 1;
           }
           .horizontal-scroll::-webkit-scrollbar {
              display: none;
@@ -206,6 +280,18 @@ const TrangChu = () => {
           }
           
           .view-more-text:hover { opacity: 0.8; text-decoration: underline; }
+
+          .scroll-btn {
+             transition: all 0.2s ease;
+          }
+          .scroll-btn:hover {
+             background: #2563eb !important;
+             color: #fff !important;
+             box-shadow: 0 4px 14px rgba(37,99,235,0.4) !important;
+             transform: translateY(-50%) scale(1.1) !important;
+          }
+          .scroll-btn-left  { left: 6px !important; }
+          .scroll-btn-right { right: 6px !important; }
         `}
       </style>
 
@@ -217,52 +303,70 @@ const TrangChu = () => {
           <div style={styles.loadingText}>Đang tải danh sách linh kiện...</div>
         ) : (
           <>
-            {gearProducts.length > 0 && (
-              <div style={styles.tieredSection}>
-                <div style={styles.headerGaming}>
-                  <h2 style={styles.tieredTitle}>GAMING GEAR & MÀN HÌNH</h2>
-                  <span className="view-more-text" style={styles.viewMoreText} onClick={() => navigate('/san-pham?cat=Gear')}>Xem tất cả &gt;</span>
-                </div>
-                <div className="horizontal-scroll">
-                  {gearProducts.map(item => (
-                     <div key={item._id} className="p-card-wrap">
-                        <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
-                     </div>
-                  ))}
-                </div>
-              </div>
+            {/* PHÍM CƠ GAMING */}
+            {phimProducts.length > 0 && (
+              <ProductSection headerStyle={styles.headerPhim} title="🎹 PHÍM CƠ GAMING" viewAllUrl="/san-pham?cat=Bàn phím" navigate={navigate}>
+                {phimProducts.map(item => (
+                  <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                  </div>
+                ))}
+              </ProductSection>
             )}
 
+            {/* CHUỘT GAMING */}
+            {chuotProducts.length > 0 && (
+              <ProductSection headerStyle={styles.headerChuot} title="🖱️ CHUỘT GAMING" viewAllUrl="/san-pham?cat=Chuột" navigate={navigate}>
+                {chuotProducts.map(item => (
+                  <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                  </div>
+                ))}
+              </ProductSection>
+            )}
+
+            {/* TAI NGHE GAMING */}
+            {taiNgheProducts.length > 0 && (
+              <ProductSection headerStyle={styles.headerTaiNghe} title="🎧 TAI NGHE GAMING" viewAllUrl="/san-pham?cat=Tai nghe" navigate={navigate}>
+                {taiNgheProducts.map(item => (
+                  <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                  </div>
+                ))}
+              </ProductSection>
+            )}
+
+            {/* MÀN HÌNH */}
+            {monitorProducts.length > 0 && (
+              <ProductSection headerStyle={styles.headerMonitor} title="🖥️ MÀN HÌNH MÁY TÍNH" viewAllUrl="/san-pham?cat=Màn hình" navigate={navigate}>
+                {monitorProducts.map(item => (
+                  <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                  </div>
+                ))}
+              </ProductSection>
+            )}
+
+            {/* LINH KIỆN */}
             {coreProducts.length > 0 && (
-              <div style={styles.tieredSection}>
-                <div style={styles.headerCore}>
-                  <h2 style={styles.tieredTitle}>LINH KIỆN MÁY TÍNH & NÂNG CẤP</h2>
-                  <span className="view-more-text" style={styles.viewMoreText} onClick={() => navigate('/san-pham')}>Xem tất cả &gt;</span>
-                </div>
-                <div className="horizontal-scroll">
-                  {coreProducts.map(item => (
-                     <div key={item._id} className="p-card-wrap">
-                        <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
-                     </div>
-                  ))}
-                </div>
-              </div>
+              <ProductSection headerStyle={styles.headerCore} title="LINH KIỆN MÁY TÍNH & NÂNG CẤP" viewAllUrl="/san-pham" navigate={navigate}>
+                {coreProducts.map(item => (
+                  <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                  </div>
+                ))}
+              </ProductSection>
             )}
 
+            {/* PC BUILD & VỎ THÙNG */}
             {buildProducts.length > 0 && (
-              <div style={styles.tieredSection}>
-                <div style={styles.headerBuild}>
-                  <h2 style={styles.tieredTitle}>PC BUILD SẴN & VỎ THÙNG MÁY</h2>
-                  <span className="view-more-text" style={styles.viewMoreText} onClick={() => navigate('/san-pham?cat=Case')}>Xem tất cả &gt;</span>
-                </div>
-                <div className="horizontal-scroll">
-                  {buildProducts.map(item => (
-                     <div key={item._id} className="p-card-wrap">
-                        <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
-                     </div>
-                  ))}
-                </div>
-              </div>
+              <ProductSection headerStyle={styles.headerBuild} title="PC BUILD SẴN & VỎ THÙNG MÁY" viewAllUrl="/san-pham?cat=Case" navigate={navigate}>
+                {buildProducts.map(item => (
+                  <div key={item._id || item.id} className="p-card-wrap">
+                    <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />
+                  </div>
+                ))}
+              </ProductSection>
             )}
           </>
         )}
@@ -303,17 +407,17 @@ const styles = {
   container: { maxWidth: "1280px", margin: "0 auto", padding: "0 10px" },
 
   // STYLE KHỐI PHÂN TẦNG ĐÚNG CHUẨN MẪU ẢNH
-  tieredSection: { backgroundColor: "#fff", marginBottom: "30px", overflow: "hidden" }, // Không viền, Flat Design
   tieredSectionBoxless: { backgroundColor: "transparent", marginBottom: "30px", marginTop: "40px" },
 
-  headerGaming: { backgroundColor: "#7dd3fc", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  headerCore: { backgroundColor: "#60a5fa", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  headerBuild: { backgroundColor: "#cbd5e1", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  headerViewed: { padding: "12px 0px", borderBottom: "2px solid #e5e7eb", marginBottom: "10px" },
+  headerPhim:    { backgroundColor: "#a855f7", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerChuot:   { backgroundColor: "#10b981", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerTaiNghe: { backgroundColor: "#f59e0b", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerMonitor: { backgroundColor: "#06b6d4", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerCore:    { backgroundColor: "#60a5fa", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerBuild:   { backgroundColor: "#cbd5e1", padding: "12px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  headerViewed:  { padding: "12px 0px", borderBottom: "2px solid #e5e7eb", marginBottom: "10px" },
 
-  tieredTitle: { color: "#fff", margin: 0, fontSize: "18px", fontWeight: "800", textTransform: "uppercase" },
   tieredTitleDark: { color: "#111827", margin: 0, fontSize: "20px", fontWeight: "700" },
-  viewMoreText: { color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600", padding: "4px 8px" },
 
   // PRODUCT CARD STYLES
   productCard: { display: "flex", flexDirection: "column" },

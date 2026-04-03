@@ -45,7 +45,14 @@ function isCategoryMatch(slotId, categoryName) {
   if (slot === "case") return catName.includes("case") || catName.includes("vỏ");
   if (slot === "tản nhiệt") return catName.includes("tản");
   if (slot === "màn hình") return catName.includes("màn hình");
-  if (["bàn phím", "chuột", "tai nghe", "loa"].includes(slot)) return catName.includes("gear") || catName.includes(slot);
+  // Bàn phím: DB dùng "Phím cơ Gaming" → không chứa "bàn phím", cần check "phím"
+  if (slot === "bàn phím") return catName.includes("phím") || catName.includes("keyboard") || catName.includes("gear");
+  // Chuột: DB dùng "Chuột Gaming" → chứa "chuột" ✓
+  if (slot === "chuột") return catName.includes("chuột") || catName.includes("mouse") || catName.includes("gear");
+  // Tai nghe: DB dùng "Tai nghe Gaming" → chứa "tai nghe" ✓
+  if (slot === "tai nghe") return catName.includes("tai nghe") || catName.includes("headphone") || catName.includes("headset") || catName.includes("gear");
+  // Loa: DB dùng "Loa" hoặc "Speaker"
+  if (slot === "loa") return catName.includes("loa") || catName.includes("speaker") || catName.includes("gear");
   
   return catName.includes(slot);
 }
