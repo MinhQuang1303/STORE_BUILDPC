@@ -99,7 +99,11 @@ const TrangChiTiet = () => {
     </div>
   );
 
-  const listSpecs = sp.thongSo ? sp.thongSo.split(",").map((s) => s.trim()) : [];
+  // Ưu tiên split theo xuống dòng (\n), nếu không có thì mới split theo dấu phẩy
+  const rawSpecs = sp.thongSo || "";
+  const listSpecs = rawSpecs.includes("\n")
+    ? rawSpecs.split("\n").map((s) => s.trim()).filter(Boolean)
+    : rawSpecs.split(",").map((s) => s.trim()).filter(Boolean);
   const giaHienThi = bienTheChon ? bienTheChon.gia : sp.gia;
   const soLuongCon = bienTheChon ? bienTheChon.soLuong : sp.soLuong;
 
@@ -284,12 +288,16 @@ const TrangChiTiet = () => {
                   <table style={styles.specsTable}>
                       <tbody>
                       {listSpecs.map((spec, index) => {
-                          const [label, ...valueParts] = spec.split(":");
-                          const value = valueParts.join(":");
+                          // Bỏ dấu "- " hoặc "– " ở đầu dòng nếu có
+                          const cleanSpec = spec.replace(/^[-–]\s*/, "").trim();
+                          const colonIdx = cleanSpec.indexOf(":");
+                          const hasColon = colonIdx !== -1;
+                          const label = hasColon ? cleanSpec.substring(0, colonIdx).trim() : cleanSpec;
+                          const value = hasColon ? cleanSpec.substring(colonIdx + 1).trim() : "";
                           return (
-                          <tr key={index} style={index % 2 === 0 ? {backgroundColor: "#f8fafc"} : {}}>
-                              <td style={styles.specLabel}>{label?.trim() || "Tính năng"}</td>
-                              <td style={styles.specValue}>{value?.trim() || spec}</td>
+                          <tr key={index} style={index % 2 === 0 ? {backgroundColor: "#f8fafc"} : {backgroundColor: "#fff"}}>
+                              <td style={styles.specLabel}>{label || "Tính năng"}</td>
+                              <td style={styles.specValue}>{value || "—"}</td>
                           </tr>
                           );
                       })}

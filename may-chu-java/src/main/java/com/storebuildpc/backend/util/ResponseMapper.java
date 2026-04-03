@@ -1,6 +1,7 @@
 package com.storebuildpc.backend.util;
 
 import com.storebuildpc.backend.model.BienThe;
+import com.storebuildpc.backend.model.CauHinhMau;
 import com.storebuildpc.backend.model.Order;
 import com.storebuildpc.backend.model.OrderItem;
 import com.storebuildpc.backend.model.SanPham;
@@ -78,5 +79,32 @@ public final class ResponseMapper {
         result.put("createdAt", order.getCreatedAt());
         result.put("updatedAt", order.getUpdatedAt());
         return result;
+    }
+
+    public static Map<String, Object> cauHinhMau(CauHinhMau ch) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", ch.getMongoId());
+        map.put("name", ch.getTen());
+        map.put("price", ch.getGia());
+        map.put("image", ch.getAnh());
+        if (ch.getHinhAnhKhac() != null && !ch.getHinhAnhKhac().isEmpty()) {
+            map.put("hinhAnhKhac", ch.getHinhAnhKhac().split(","));
+        } else {
+            map.put("hinhAnhKhac", new String[]{});
+        }
+        map.put("cpu", ch.getCpu());
+        map.put("vga", ch.getVga());
+        map.put("main", ch.getMainboard());
+        map.put("ram", ch.getRam());
+        map.put("ssd", ch.getSsd());
+        map.put("psu", ch.getPsu());
+        map.put("case", ch.getCasePc());
+        map.put("tanNhiet", ch.getTanNhiet());
+        if (ch.getTags() != null && !ch.getTags().trim().isEmpty()) {
+            map.put("tags", List.of(ch.getTags().split(",")));
+        } else {
+            map.put("tags", List.of());
+        }
+        return map;
     }
 }

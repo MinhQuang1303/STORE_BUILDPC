@@ -360,7 +360,7 @@ const TrangChu = () => {
 
             {/* PC BUILD & VỎ THÙNG */}
             {buildProducts.length > 0 && (
-              <ProductSection headerStyle={styles.headerBuild} title="PC BUILD SẴN & VỎ THÙNG MÁY" viewAllUrl="/san-pham?cat=Case" navigate={navigate}>
+              <ProductSection headerStyle={styles.headerBuild} title="VỎ THÙNG MÁY" viewAllUrl="/san-pham?cat=Case" navigate={navigate}>
                 {buildProducts.map(item => (
                   <div key={item._id || item.id} className="p-card-wrap">
                     <ProductCard item={item} navigate={navigate} handleAddToCart={handleAddToCart} isFavorite={favorites.includes(item._id || item.id)} toggleFavorite={toggleFavorite} />

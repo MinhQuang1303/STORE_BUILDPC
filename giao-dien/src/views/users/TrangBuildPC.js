@@ -62,7 +62,20 @@ const TrangBuildPC = () => {
   const { addToCart } = useContext(CartContext);
 
   const [sanPhams, setSanPhams] = useState([]);
-  const [selectedComponents, setSelectedComponents] = useState({});
+  const [selectedComponents, setSelectedComponents] = useState(() => {
+    try {
+      const saved = localStorage.getItem("build_pc_draft");
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  // Tự động lưu cấu hình bất cứ khi nào có thay đổi
+  useEffect(() => {
+    localStorage.setItem("build_pc_draft", JSON.stringify(selectedComponents));
+  }, [selectedComponents]);
+
   const [activeSlot, setActiveSlot] = useState(null); // Mở Modal cho slot nào
   const [searchTerm, setSearchTerm] = useState("");
   const [loiCauHinh, setLoiCauHinh] = useState([]);
@@ -71,13 +84,20 @@ const TrangBuildPC = () => {
   const [selectedVariants, setSelectedVariants] = useState({});
   const [expandedSpecs, setExpandedSpecs] = useState({});
 
+  const [presetPCs, setPresetPCs] = useState([]);
+  
   const userStorage = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/san-pham")
       .then((res) => setSanPhams(res.data))
-      .catch((err) => console.error("Lỗi API:", err));
+      .catch((err) => console.error("Lỗi API San pham:", err));
+
+    axios
+      .get("http://localhost:5000/api/cau-hinh-mau")
+      .then((res) => setPresetPCs(res.data))
+      .catch((err) => console.error("Lỗi API Cau Hinh Mau:", err));
   }, []);
 
   // Kiểm tra tương thích cơ bản
@@ -174,6 +194,37 @@ const TrangBuildPC = () => {
     const items = Object.values(selectedComponents);
     if (items.length === 0) return;
     navigate("/thanh-toan", { state: { buildPC: items, total: tongTien } });
+  };
+
+  const loadPresetConfig = (preset) => {
+    if (window.confirm(`Bạn có muốn tải cấu hình: ${preset.name}?\nLưu ý: cấu hình hiện tại của bạn sẽ bị thay thế.`)) {
+      const newConfig = {};
+      const slotsMapping = [
+        { key: "CPU", name: preset.cpu },
+        { key: "VGA", name: preset.vga },
+        { key: "Mainboard", name: preset.main },
+        { key: "RAM", name: preset.ram },
+        { key: "SSD", name: preset.ssd },
+        { key: "PSU", name: preset.psu },
+        { key: "Case", name: preset.case },
+        { key: "Tản nhiệt", name: preset.tanNhiet },
+      ];
+
+      slotsMapping.forEach((s) => {
+        if (s.name) {
+          const [productName, qtyRaw] = s.name.split(';;;');
+          const sl = parseInt(qtyRaw) || 1;
+          const found = sanPhams.find(
+            (p) => p.ten.toLowerCase().includes(productName.toLowerCase())
+          );
+          if (found) {
+            newConfig[s.key] = { ...found, soLuong: sl };
+          }
+        }
+      });
+      setSelectedComponents(newConfig);
+      window.scrollTo({ top: 300, behavior: "smooth" });
+    }
   };
 
   // --- RENDERING MODAL ---
@@ -296,6 +347,43 @@ const TrangBuildPC = () => {
       </div>
 
       <div style={styles.container}>
+
+        {/* --- SECTION PC BUILD SẴN ĐỀ XUẤT --- */}
+        <div style={styles.presetSection}>
+          <div style={styles.presetHeader}>
+            <h2 style={styles.presetTitle}>🔥 PC BUILD SẴN ĐỀ XUẤT</h2>
+            <p style={styles.presetSubtitle}>Cấu hình tối ưu được xây dựng bởi chuyên gia - Chỉ cần 1 Click để tải vào cấu hình của bạn!</p>
+          </div>
+          <div style={styles.presetGrid}>
+            {presetPCs.map((pc) => (
+              <div key={pc.id} style={styles.presetCard}>
+                <div style={styles.presetImgBox}>
+                  <img src={pc.image} alt={pc.name} style={styles.presetImg} />
+                  <div style={styles.presetTags}>
+                    {pc.tags && pc.tags.map((tag, i) => (
+                      <span key={i} style={styles.presetTag}>{tag}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={styles.presetInfo}>
+                  <h3 style={styles.presetName}>{pc.name}</h3>
+                  <div style={styles.presetPrice}>{pc.price.toLocaleString()} đ</div>
+                  <ul style={styles.presetSpecs}>
+                    <li><strong>CPU:</strong> {pc.cpu}</li>
+                    <li><strong>VGA:</strong> {pc.vga}</li>
+                    <li><strong>RAM:</strong> {pc.ram}</li>
+                    <li><strong>Lưu trữ:</strong> {pc.ssd}</li>
+                  </ul>
+                  <button style={styles.btnLoadPreset} onClick={() => loadPresetConfig(pc)}>
+                    ⚡ Nạp Cấu Hình Này
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* ---------------------------------- */}
+
         <div style={styles.layout}>
           {/* CỘT TRÁI: Slots Build */}
           <div style={styles.leftCol}>
@@ -826,6 +914,115 @@ const styles = {
   pSpecsText: {
     color: "#475569",
     lineHeight: "1.5",
+  },
+  // --- PRESET PCS STYLES ---
+  presetSection: {
+    marginBottom: "40px",
+    backgroundColor: "#fff",
+    borderRadius: "20px",
+    padding: "30px",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.05)",
+  },
+  presetHeader: {
+    marginBottom: "25px",
+    textAlign: "center",
+  },
+  presetTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "24px",
+    fontWeight: "900",
+    color: "#1e293b",
+    textTransform: "uppercase",
+  },
+  presetSubtitle: {
+    color: "#64748b",
+    margin: 0,
+    fontSize: "15px",
+  },
+  presetGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: "25px",
+  },
+  presetCard: {
+    border: "1px solid #e2e8f0",
+    borderRadius: "16px",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    transition: "transform 0.2s, box-shadow 0.2s",
+    background: "#fff",
+  },
+  presetImgBox: {
+    position: "relative",
+    height: "200px",
+    backgroundColor: "#f8fafc",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderBottom: "1px solid #e2e8f0",
+  },
+  presetImg: {
+    maxWidth: "100%",
+    maxHeight: "100%",
+    objectFit: "cover",
+  },
+  presetTags: {
+    position: "absolute",
+    bottom: "10px",
+    left: "10px",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "5px",
+  },
+  presetTag: {
+    backgroundColor: "rgba(15, 23, 42, 0.8)",
+    color: "#fff",
+    fontSize: "10px",
+    padding: "4px 8px",
+    borderRadius: "20px",
+    fontWeight: "bold",
+    backdropFilter: "blur(4px)",
+  },
+  presetInfo: {
+    padding: "20px",
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+  },
+  presetName: {
+    margin: "0 0 10px 0",
+    fontSize: "16px",
+    fontWeight: "800",
+    color: "#0f172a",
+    lineHeight: "1.4",
+  },
+  presetPrice: {
+    fontSize: "20px",
+    fontWeight: "900",
+    color: "#ef4444",
+    marginBottom: "15px",
+  },
+  presetSpecs: {
+    listStyleType: "none",
+    margin: "0 0 20px 0",
+    padding: 0,
+    fontSize: "13px",
+    color: "#475569",
+    lineHeight: "1.6",
+    flex: 1,
+  },
+  btnLoadPreset: {
+    width: "100%",
+    padding: "12px",
+    backgroundColor: "#2563eb",
+    color: "#fff",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "14px",
+    fontWeight: "800",
+    cursor: "pointer",
+    transition: "background 0.2s",
   },
 };
 

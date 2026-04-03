@@ -39,6 +39,13 @@ const AdminLayout = () => {
             <span className="font-medium">Quản lý linh kiện</span>
           </Link>
           <Link
+            to="/admin/pc-de-xuat"
+            className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2"
+          >
+            <span className="mr-3">🔥</span>
+            <span className="font-medium">PC Đề Xuất</span>
+          </Link>
+          <Link
             to="/admin/vouchers"
             className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2"
           >

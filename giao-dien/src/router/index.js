@@ -12,6 +12,7 @@ import QuanLySanPham from "../views/admin/QuanLySanPham";
 import QuanLyMaGiamGia from "../views/admin/QuanLyMaGiamGia";
 import QuanLyUser from "../views/admin/QuanLyUser";
 import QuanLyOrder from "../views/admin/QuanLyOrder";
+import QuanLyPCDeXuat from "../views/admin/QuanLyPCDeXuat";
 
 // User views
 import TrangChu from "../views/users/TrangChu";
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
           { path: "vouchers", element: <QuanLyMaGiamGia /> },
           { path: "users", element: <QuanLyUser /> },
           { path: "orders", element: <QuanLyOrder /> },
+          { path: "pc-de-xuat", element: <QuanLyPCDeXuat /> },
         ],
       }
     ],
