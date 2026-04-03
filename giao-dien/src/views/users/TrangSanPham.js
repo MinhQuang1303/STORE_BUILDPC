@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Search, Filter, ShoppingCart, LayoutGrid, List, ChevronRight } from "lucide-react";
 import { CartContext } from "../../context/CartContext";
 
 const TrangSanPham = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart } = useContext(CartContext);
   
   // Lấy các tham số từ URL (q cho tìm kiếm, cat cho danh mục)
@@ -21,6 +23,21 @@ const TrangSanPham = () => {
   const [danhMucChon, setDanhMucChon] = useState(queryCat || "Tất cả");
   const [sapXepGia, setSapXepGia] = useState("mac-dinh");
   const [searchQuery, setSearchQuery] = useState(querySearch);
+  const [khoangGiaChon, setKhoangGiaChon] = useState("tat-ca");
+  const [viewMode, setViewMode] = useState("grid");
+
+  const priceRanges = [
+      { id: "tat-ca", name: "Tất cả mức giá" },
+      { id: "duoi-5tr", name: "Dưới 5 triệu" },
+      { id: "5-10tr", name: "5 - 10 triệu" },
+      { id: "10-20tr", name: "10 - 20 triệu" },
+      { id: "tren-20tr", name: "Trên 20 triệu" },
+  ];
+
+  const handleViewDetail = (e, id) => {
+      e.stopPropagation();
+      navigate(`/san-pham/${id}`);
+  };
 
   // Cập nhật State khi URL thay đổi (VD: đang ở trang này mà gõ tiếp vào ô tìm kiếm ở Header)
   useEffect(() => {
