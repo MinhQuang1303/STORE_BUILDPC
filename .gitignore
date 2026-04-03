@@ -7,3 +7,6 @@ node_modules
 .vscode
 may-chu-java/uploads/
 .idea/
+
+clear_data.sql
+mock_data_test.sql
