@@ -6,6 +6,12 @@ const SanPhamSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    anh: {
+      type: String,
+    },
+    loai: {
+      type: String,
+    },
     idDanhMuc: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DanhMuc",
