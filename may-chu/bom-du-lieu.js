@@ -6,7 +6,8 @@ const User = require("./src/models/User");
 const Order = require("./src/models/Order");
 const OrderItem = require("./src/models/OrderItem");
 const SanPham = require("./src/models/SanPham");
-const DanhMuc = require("./src/models/DanhMuc");
+const DanhMuc = require("./src/models/DanhMuc"); 
+const BienThe = require("./src/models/BienThe");
 
 const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/pc-builder";
 
@@ -227,11 +228,38 @@ const seedData = async () => {
         // =======================
         const dataWithCategory = danhSachFlashSale.map(item => ({
             ...item,
-            idDanhMuc: categoryMap[item.loai]
+            idDanhMuc: categoryMap[item.loai] || categoryMap["CPU"], // Default to CPU if not found
+            soLuong: 50,
+            daBan: 0
         }));
 
         const insertedProducts = await SanPham.insertMany(dataWithCategory);
         console.log(`✅ Đã thêm ${insertedProducts.length} sản phẩm.`);
+
+        await BienThe.deleteMany({});
+        const variantsToInsert = [];
+        insertedProducts.forEach((product) => {
+            let catName = "";
+            for (const [key, value] of Object.entries(categoryMap)) {
+                if (String(value) === String(product.idDanhMuc)) {
+                    catName = key;
+                    break;
+                }
+            }
+
+            if (catName === "RAM") {
+                variantsToInsert.push({ ten: "8GB", gia: product.gia * 0.6, idSanPham: product._id, soLuong: 20, daBan: 0 });
+                variantsToInsert.push({ ten: "16GB", gia: product.gia, idSanPham: product._id, soLuong: 20, daBan: 0 });
+                variantsToInsert.push({ ten: "32GB", gia: product.gia * 1.8, idSanPham: product._id, soLuong: 10, daBan: 0 });
+            } else if (catName === "VGA" || catName === "GPU") {
+                variantsToInsert.push({ ten: "Bản Thường", gia: product.gia, idSanPham: product._id, soLuong: 10, daBan: 0 });
+                variantsToInsert.push({ ten: "Bản OC (Ép xung)", gia: product.gia + 1500000, idSanPham: product._id, soLuong: 5, daBan: 0 });
+            } else {
+                variantsToInsert.push({ ten: "Bản tiêu chuẩn", gia: product.gia, idSanPham: product._id, soLuong: product.soLuong || 50, daBan: product.daBan || 0 });
+            }
+        });
+        await BienThe.insertMany(variantsToInsert);
+        console.log(`✅ Đã thêm ${variantsToInsert.length} biến thể đa dạng.`);
 
         // =======================
         // 4. LẤY USER TỪ DATABASE ĐỂ TẠO ĐƠN HÀNG

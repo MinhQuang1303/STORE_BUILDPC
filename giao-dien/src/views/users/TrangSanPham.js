@@ -1,97 +1,90 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CartContext } from "../../context/CartContext";
-import { Search, Filter, ShoppingCart, LayoutGrid, List, ChevronRight } from "lucide-react";
 
 const TrangSanPham = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { addToCart } = useContext(CartContext);
+  
+  // Lấy các tham số từ URL (q cho tìm kiếm, cat cho danh mục)
+  const [searchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryCat = searchParams.get("cat") || "";
 
   const [sanPhams, setSanPhams] = useState([]);
+  const [danhMucs, setDanhMucs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Lấy Category từ query param nếu có (ví dụ: ?cat=vga)
-  const searchParams = new URLSearchParams(location.search);
-  const queryCat = searchParams.get("cat");
-  const querySearch = searchParams.get("q");
-
-  const [danhMucChon, setDanhMucChon] = useState("Tất cả");
-  const [khoangGiaChon, setKhoangGiaChon] = useState("Tất cả");
+  
+  // Khởi tạo state dựa trên URL
+  const [danhMucChon, setDanhMucChon] = useState(queryCat || "Tất cả");
   const [sapXepGia, setSapXepGia] = useState("mac-dinh");
-  const [searchQuery, setSearchQuery] = useState(querySearch || "");
-  const [viewMode, setViewMode] = useState("grid"); // grid | list
+  const [searchQuery, setSearchQuery] = useState(querySearch);
 
-  const categories = [
-    { id: "Tất cả", name: "Tất cả linh kiện" },
-    { id: "CPU", name: "Vi xử lý (CPU)" },
-    { id: "VGA", name: "Card màn hình (VGA)" },
-    { id: "Mainboard", name: "Bo mạch chủ (Main)" },
-    { id: "RAM", name: "Bộ nhớ trong (RAM)" },
-    { id: "Ổ Cứng", name: "Ổ cứng (SSD/HDD)" },
-    { id: "Nguồn", name: "Nguồn (PSU)" },
-    { id: "Case", name: "Vỏ Case" },
-    { id: "Tản Nhiệt", name: "Tản nhiệt CPU" },
-  ];
-
-  const priceRanges = [
-    { id: "Tất cả", name: "Tất cả mức giá" },
-    { id: "duoi-2", name: "Dưới 2 triệu", min: 0, max: 2000000 },
-    { id: "2-5", name: "Từ 2 - 5 triệu", min: 2000000, max: 5000000 },
-    { id: "5-10", name: "Từ 5 - 10 triệu", min: 5000000, max: 10000000 },
-    { id: "tren-10", name: "Trên 10 triệu", min: 10000000, max: 1000000000 },
-  ];
+  // Cập nhật State khi URL thay đổi (VD: đang ở trang này mà gõ tiếp vào ô tìm kiếm ở Header)
+  useEffect(() => {
+    setSearchQuery(querySearch);
+    if (queryCat) {
+        setDanhMucChon(queryCat);
+    } else if (querySearch) {
+        // Tự động nhảy vô Danh mục tương ứng nếu từ khoá có nhắc tới
+        const q = querySearch.toLowerCase();
+        const matchDm = danhMucs.find(dm => dm.ten.toLowerCase().includes(q) || q.includes(dm.ten.toLowerCase()));
+        if (matchDm) setDanhMucChon(matchDm.ten);
+        else setDanhMucChon("Tất cả");
+    } else {
+        setDanhMucChon("Tất cả");
+    }
+  }, [querySearch, queryCat, danhMucs]);
 
   useEffect(() => {
-    const fetchAllProducts = async () => {
-      setIsLoading(true);
+    const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/san-pham");
-        setSanPhams(res.data);
+        const [resSanPham, resDanhMuc] = await Promise.all([
+          axios.get("http://localhost:5000/api/san-pham"),
+          axios.get("http://localhost:5000/api/danh-muc"),
+        ]);
+        setSanPhams(resSanPham.data);
+        setDanhMucs(resDanhMuc.data);
         setIsLoading(false);
       } catch (err) {
-        setError("Không thể kết nối máy chủ. Vui lòng kiểm tra lại Backend.");
+        setError("Không thể tải danh sách sản phẩm.");
         setIsLoading(false);
       }
     };
-    fetchAllProducts();
+    fetchData();
   }, []);
 
-  // Xử lý query param ban đầu
-  useEffect(() => {
-    if (queryCat) {
-      const match = categories.find(c => c.id.toLowerCase() === queryCat.toLowerCase());
-      if (match) setDanhMucChon(match.id);
-    }
-    if (querySearch) {
-      setSearchQuery(querySearch);
-    }
-  }, [queryCat, querySearch]);
+  // TUYỆT ĐỐI KHÔNG ẨN CÁC SẢN PHẨM KHÁC, CHỈ SẮP XẾP ƯU TIÊN LÊN ĐẦU
+  let filteredProducts = [...sanPhams];
 
-  let filteredProducts = sanPhams.filter((sp) => {
-    const matchCategory = danhMucChon === "Tất cả" || sp.loai === danhMucChon;
-    const matchSearch = sp.ten.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    let matchPrice = true;
-    if (khoangGiaChon !== "Tất cả") {
-        const range = priceRanges.find(r => r.id === khoangGiaChon);
-        if (range) {
-            matchPrice = sp.gia >= range.min && sp.gia <= range.max;
-        }
-    }
+  const q = searchQuery.toLowerCase().trim();
+  
+  filteredProducts.sort((a, b) => {
+      const aCat = a.idDanhMuc?.ten || a.loai || "";
+      const bCat = b.idDanhMuc?.ten || b.loai || "";
+      
+      // 1. Kiểm tra xem có trùng Danh mục đang chọn ở Sidebar không
+      const aCatMatch = danhMucChon !== "Tất cả" && aCat === danhMucChon;
+      const bCatMatch = danhMucChon !== "Tất cả" && bCat === danhMucChon;
 
-    return matchCategory && matchSearch && matchPrice;
+      // 2. Kiểm tra xem có khớp từ khoá nhập ở ô search không
+      const aSearchMatch = q !== "" && (a.ten.toLowerCase().includes(q) || aCat.toLowerCase().includes(q));
+      const bSearchMatch = q !== "" && (b.ten.toLowerCase().includes(q) || bCat.toLowerCase().includes(q));
+      
+      // Nếu là Sản phẩm được ưu tiên (bởi Danh mục hiện tại HOẶC Từ khoá tìm kiếm)
+      const aTotalMatch = aCatMatch || aSearchMatch;
+      const bTotalMatch = bCatMatch || bSearchMatch;
+
+      if (aTotalMatch && !bTotalMatch) return -1; // Đẩy lên trên
+      if (!aTotalMatch && bTotalMatch) return 1;  // Đẩy xuống dưới
+      
+      // Mới khét giá tiền nếu đồ ngang nhau
+      if (sapXepGia === "tang-dan") return a.gia - b.gia;
+      if (sapXepGia === "giam-dan") return b.gia - a.gia;
+      return 0;
   });
-
-  if (sapXepGia === "tang-dan") {
-    filteredProducts.sort((a, b) => a.gia - b.gia);
-  } else if (sapXepGia === "giam-dan") {
-    filteredProducts.sort((a, b) => b.gia - a.gia);
-  } else if (sapXepGia === "a-z") {
-    filteredProducts.sort((a, b) => a.ten.localeCompare(b.ten));
-  }
 
   const handleQuickAdd = (e, item) => {
     e.stopPropagation();
@@ -99,190 +92,130 @@ const TrangSanPham = () => {
   };
 
   return (
-    <div className="bg-[#f8fafc] min-h-screen py-8 font-sans">
-      <div className="max-w-7xl mx-auto px-4">
-        
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-            <span className="hover:text-blue-600 cursor-pointer" onClick={() => navigate("/")}>Trang chủ</span>
-            <ChevronRight size={14}/>
-            <span className="font-bold text-slate-800">Linh Kiện PC</span>
+    <div style={styles.pageBackground}>
+      <style>{`
+        .product-card { transition: all 0.3s ease; border: 1px solid #e2e8f0; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); border-color: #3b82f6; }
+        .filter-item { transition: all 0.2s ease; padding: 12px 15px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; color: #334155; font-weight: 500; }
+        .filter-item:hover { background-color: #eff6ff; color: #2563eb; }
+        .active-filter { background-color: #2563eb !important; color: #ffffff !important; font-weight: 600; }
+        .btn-buy-now:hover { background-color: #1e40af !important; transform: scale(1.02); }
+        @media (max-width: 992px) { .product-layout { flex-direction: column; } .product-sidebar { flex: 1 1 100%; } }
+      `}</style>
+
+      <div style={styles.container} className="product-page">
+        <div style={styles.headerBox} className="product-header">
+          <div>
+            <h1 style={styles.mainTitle}>
+              {danhMucChon !== "Tất cả" ? `Linh kiện ${danhMucChon}` : "Tất Cả Linh Kiện"}
+            </h1>
+            <p style={styles.subTitle}>
+              {searchQuery ? `Kết quả tìm kiếm cho: "${searchQuery}"` : "Khám phá linh kiện PC chất lượng cao"}
+            </p>
+          </div>
+
+          <div style={styles.searchWrapper}>
+            <input
+              type="text"
+              placeholder="Tìm tên linh kiện..."
+              style={styles.searchInput}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 gap-4">
-            <div>
-                <h1 className="text-3xl font-black text-slate-800">
-                    <span className="text-blue-600">Tất cả</span> Linh Kiện
-                </h1>
-                <p className="text-slate-500 text-sm mt-1">Cập nhật linh kiện PC chính hãng, đa dạng mẫu mã</p>
+        <div style={styles.layout} className="product-layout">
+          <aside style={styles.sidebar} className="product-sidebar">
+            <div style={styles.card}>
+              <h3 style={styles.cardTitle}>Bộ lọc danh mục</h3>
+              <div style={styles.filterList}>
+                <div
+                  className={`filter-item ${danhMucChon === "Tất cả" ? "active-filter" : ""}`}
+                  onClick={() => {
+                     setDanhMucChon("Tất cả");
+                     setSearchQuery("");
+                     navigate('/san-pham');
+                  }}
+                >
+                  <span>📦</span> Tất cả
+                </div>
+                {danhMucs.map((dm) => (
+                  <div
+                    key={dm._id}
+                    className={`filter-item ${danhMucChon === dm.ten ? "active-filter" : ""}`}
+                    onClick={() => {
+                        setDanhMucChon(dm.ten);
+                        setSearchQuery("");
+                        navigate(`/san-pham?cat=${dm.ten}`);
+                    }}
+                  >
+                    <span>🔹</span> {dm.ten}
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            <div className="relative w-full md:w-96 group">
-                <input
-                    type="text"
-                    placeholder="Tìm theo tên linh kiện, mã sản phẩm..."
-                    className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-red-100 transition-all text-sm"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600" />
-            </div>
-        </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* SIDEBAR BỘ LỌC */}
-          <aside className="w-full lg:w-72 flex-shrink-0">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 sticky top-24">
-                <div className="flex items-center gap-2 font-bold text-lg mb-5 border-b border-slate-100 pb-4">
-                    <Filter size={20} className="text-blue-600"/> <span>Bộ lọc sản phẩm</span>
-                </div>
-
-                {/* Filter Danh mục */}
-                <div className="mb-8">
-                    <h3 className="font-bold text-[15px] mb-3 text-slate-800">Danh mục</h3>
-                    <div className="flex flex-col gap-2">
-                        {categories.map((cat) => (
-                        <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
-                            <input 
-                                type="radio" 
-                                name="category" 
-                                className="w-4 h-4 text-blue-600 focus:ring-blue-600 cursor-pointer"
-                                checked={danhMucChon === cat.id}
-                                onChange={() => setDanhMucChon(cat.id)}
-                            />
-                            <span className={`text-sm font-medium transition-colors ${danhMucChon === cat.id ? "text-blue-600" : "text-slate-600 group-hover:text-blue-600"}`}>
-                                {cat.name}
-                            </span>
-                        </label>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Filter Giá */}
-                <div className="mb-4">
-                    <h3 className="font-bold text-[15px] mb-3 text-slate-800">Khoảng giá</h3>
-                    <div className="flex flex-col gap-2">
-                        {priceRanges.map((range) => (
-                        <label key={range.id} className="flex items-center gap-3 cursor-pointer group">
-                            <input 
-                                type="radio" 
-                                name="price" 
-                                className="w-4 h-4 text-blue-600 focus:ring-blue-600 cursor-pointer"
-                                checked={khoangGiaChon === range.id}
-                                onChange={() => setKhoangGiaChon(range.id)}
-                            />
-                            <span className={`text-sm font-medium transition-colors ${khoangGiaChon === range.id ? "text-blue-600" : "text-slate-600 group-hover:text-blue-600"}`}>
-                                {range.name}
-                            </span>
-                        </label>
-                        ))}
-                    </div>
-                </div>
+            <div style={styles.sortCard}>
+              <h3 style={styles.cardTitle}>Sắp xếp giá</h3>
+              <select
+                style={styles.selectInput}
+                value={sapXepGia}
+                onChange={(e) => setSapXepGia(e.target.value)}
+              >
+                <option value="mac-dinh">Mới nhất</option>
+                <option value="tang-dan">Giá thấp đến cao</option>
+                <option value="giam-dan">Giá cao đến thấp</option>
+              </select>
             </div>
           </aside>
 
-          {/* MAIN LIST */}
-          <main className="flex-1">
-            {/* Toolbar */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center mb-6 gap-4">
-                <span className="text-sm font-medium text-slate-600">
-                    Tìm thấy <b className="text-blue-600 text-lg">{filteredProducts.length}</b> sản phẩm
-                </span>
-
-                <div className="flex items-center gap-4">
-                    {/* View mode toggle */}
-                    <div className="hidden sm:flex items-center bg-slate-100 p-1 rounded-lg">
-                        <button 
-                            className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-slate-400 hover:text-slate-700'}`}
-                            onClick={() => setViewMode('grid')}
-                        ><LayoutGrid size={18}/></button>
-                        <button 
-                            className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow text-blue-600' : 'text-slate-400 hover:text-slate-700'}`}
-                            onClick={() => setViewMode('list')}
-                        ><List size={18}/></button>
-                    </div>
-
-                    {/* Sắp xếp */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-500 hidden sm:inline">Sắp xếp:</span>
-                        <select
-                            className="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-blue-600 font-medium"
-                            value={sapXepGia}
-                            onChange={(e) => setSapXepGia(e.target.value)}
-                        >
-                            <option value="mac-dinh">Mới cập nhật</option>
-                            <option value="tang-dan">Giá: Thấp đến Cao</option>
-                            <option value="giam-dan">Giá: Cao đến Thấp</option>
-                            <option value="a-z">Tên: A-Z</option>
-                        </select>
-                    </div>
-                </div>
+          <main style={styles.mainContent}>
+            <div style={styles.toolbar}>
+              <span>
+                Tìm thấy <b>{filteredProducts.length}</b> sản phẩm
+              </span>
             </div>
 
-            {/* ERROR / LOADING */}
-            {error && (
-                <div className="bg-slate-50 text-red-600 p-4 rounded-xl border border-red-200 text-center font-bold">{error}</div>
-            )}
-            
+            {error && <div style={styles.error}>{error}</div>}
+
             {isLoading ? (
-              <div className="py-20 text-center text-slate-500">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                Đang tải dữ liệu...
-              </div>
-            ) : filteredProducts.length === 0 ? (
-                <div className="bg-white py-20 px-4 text-center rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
-                    <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" alt="Empty" className="w-48 opacity-50 mb-4" />
-                    <h3 className="text-lg font-bold text-slate-700 mb-2">Không tìm thấy linh kiện!</h3>
-                    <p className="text-slate-500 text-sm">Vui lòng thử bỏ bớt bộ lọc hoặc tìm kiếm bằng từ khoá khác.</p>
-                </div>
+              <div style={styles.loading}>Đang lấy dữ liệu hàng hóa...</div>
             ) : (
-              <div className={`grid gap-5 ${viewMode === 'list' ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3 xl:grid-cols-4'}`}>
+              <div style={styles.productGrid}>
                 {filteredProducts.map((sp) => (
                   <div
                     key={sp._id}
-                    className={`bg-white rounded-2xl border border-slate-200 hover:border-blue-600 shadow-sm hover:shadow-xl transition-all cursor-pointer group flex relative ${viewMode === 'list' ? 'flex-row p-4 items-center gap-6' : 'flex-col p-4'}`}
+                    className="product-card"
+                    style={styles.productCard}
                     onClick={() => navigate(`/san-pham/${sp._id}`)}
                   >
-                    {/* Badge */}
-                    <div className="absolute top-3 left-3 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm z-10 uppercase">
-                        {sp.loai}
+                    <div style={styles.imageBox}>
+                      <img src={sp.anh} alt={sp.ten} style={styles.img} />
+                      <div style={styles.typeTag}>{sp.idDanhMuc?.ten || sp.loai}</div>
                     </div>
 
-                    <div className={`${viewMode === 'list' ? 'w-40 h-40 flex-shrink-0' : 'h-48 w-full mb-4'} flex justify-center items-center`}>
-                      <img 
-                        src={sp.anh} 
-                        alt={sp.ten} 
-                        className={`max-w-full max-h-full object-contain group-hover:-translate-y-2 transition-transform duration-300`} 
-                        onError={(e) => { e.target.src = 'https://via.placeholder.com/200' }}
-                      />
-                    </div>
-
-                    <div className="flex flex-col flex-1 h-full">
-                      <h4 className={`font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors leading-tight ${viewMode === 'list' ? 'text-lg' : 'text-[14px] h-[40px] line-clamp-2'}`}>
-                        {sp.ten}
-                      </h4>
-
-                      {/* Thông số kỹ thuật rút gọn */}
-                      <div className={`text-[11px] text-slate-500 bg-slate-50 rounded border border-slate-100 p-2 ${viewMode === 'list' ? 'mb-4 text-xs' : 'mb-4 flex-1 line-clamp-3'}`}>
-                        {sp.thongSo || "Đang cập nhật chi tiết."}
+                    <div style={styles.info}>
+                      <h4 style={styles.productName}>{sp.ten}</h4>
+                      <div style={styles.priceRow}>
+                        <div style={styles.price}>{sp.gia?.toLocaleString()} đ</div>
+                        <div style={styles.status}>● Còn hàng</div>
                       </div>
-
-                      <div className={`flex mt-auto ${viewMode === 'list' ? 'flex-row items-center justify-between' : 'flex-col'}`}>
-                        <div>
-                            <div className="text-slate-400 text-xs line-through mb-0.5">{(sp.gia * 1.05).toLocaleString()} đ</div>
-                            <div className={`font-black text-blue-600 ${viewMode === 'list' ? 'text-2xl' : 'text-xl mb-3'}`}>
-                                {sp.gia?.toLocaleString()} ₫
-                            </div>
-                        </div>
-
+                      <div style={styles.buttonGroup}>
                         <button
                           type="button"
-                          className={`${viewMode === 'list' ? 'px-6 h-12' : 'w-full h-10'} flex items-center justify-center gap-2 bg-slate-50 text-blue-600 font-bold rounded-xl hover:bg-slate-900 hover:text-white transition-all border border-slate-200 hover:shadow-lg shadow-blue-500/30 group-hover:scale-[1.02]`}
+                          style={styles.btnDetail}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/san-pham/${sp._id}`); }}
+                        >
+                          Chi tiết
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-buy-now"
+                          style={styles.btnCart}
                           onClick={(e) => handleQuickAdd(e, sp)}
                         >
-                          <ShoppingCart size={18}/> {viewMode === 'list' ? 'Thêm vào giỏ' : 'Mua ngay'}
+                          🛒 Mua
                         </button>
                       </div>
                     </div>
@@ -290,11 +223,52 @@ const TrangSanPham = () => {
                 ))}
               </div>
             )}
+
+            {filteredProducts.length === 0 && !isLoading && (
+              <div style={styles.empty}>
+                Không tìm thấy sản phẩm nào khớp với lựa chọn.
+              </div>
+            )}
           </main>
         </div>
       </div>
     </div>
   );
+};
+
+const styles = {
+  pageBackground: { backgroundColor: "#f1f5f9", minHeight: "100vh", padding: "40px 0" },
+  container: { maxWidth: "1350px", margin: "0 auto", padding: "0 20px" },
+  headerBox: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", flexWrap: "wrap", gap: "20px" },
+  mainTitle: { fontSize: "32px", fontWeight: "900", color: "#0f172a", margin: 0 },
+  subTitle: { color: "#64748b", margin: "5px 0 0 0" },
+  searchWrapper: { position: "relative", width: "100%", maxWidth: "400px" },
+  searchInput: { width: "100%", padding: "12px 20px", borderRadius: "12px", border: "1px solid #cbd5e1", outline: "none", fontSize: "15px" },
+  layout: { display: "flex", gap: "25px" },
+  sidebar: { flex: "0 0 280px" },
+  card: { backgroundColor: "#fff", borderRadius: "16px", padding: "15px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" },
+  sortCard: { marginTop: "20px", padding: "20px", backgroundColor: "#fff", borderRadius: "15px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" },
+  cardTitle: { fontSize: "16px", fontWeight: "800", marginBottom: "15px", paddingLeft: "10px", borderLeft: "4px solid #2563eb" },
+  filterList: { display: "flex", flexDirection: "column" },
+  selectInput: { width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #e2e8f0" },
+  mainContent: { flex: 1 },
+  toolbar: { marginBottom: "20px", color: "#475569", fontSize: "15px" },
+  productGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "20px" },
+  productCard: { backgroundColor: "#fff", borderRadius: "20px", overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" },
+  imageBox: { height: "200px", position: "relative", backgroundColor: "#fff", display: "flex", justifyContent: "center", alignItems: "center", padding: "20px" },
+  img: { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" },
+  typeTag: { position: "absolute", top: "10px", left: "10px", backgroundColor: "#f1f5f9", color: "#2563eb", padding: "4px 10px", borderRadius: "6px", fontSize: "11px", fontWeight: "800" },
+  info: { padding: "20px", flex: 1, display: "flex", flexDirection: "column" },
+  productName: { fontSize: "15px", fontWeight: "700", color: "#1e293b", margin: "0 0 15px 0", minHeight: "42px", overflow: "hidden" },
+  priceRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", gap: "10px" },
+  price: { fontSize: "18px", fontWeight: "800", color: "#ef4444" },
+  status: { fontSize: "12px", color: "#22c55e", fontWeight: "600" },
+  buttonGroup: { display: "flex", gap: "10px", marginTop: "auto" },
+  btnDetail: { flex: 1, padding: "10px", borderRadius: "10px", border: "1px solid #e2e8f0", background: "#fff", fontWeight: "600", cursor: "pointer" },
+  btnCart: { flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "#2563eb", color: "#fff", fontWeight: "700", cursor: "pointer" },
+  loading: { textAlign: "center", padding: "100px", fontSize: "18px", color: "#64748b" },
+  error: { textAlign: "center", padding: "20px", marginBottom: "20px", backgroundColor: "#fee2e2", borderRadius: "14px", color: "#b91c1c", fontWeight: "600" },
+  empty: { textAlign: "center", padding: "100px", backgroundColor: "#fff", borderRadius: "20px", color: "#64748b" },
 };
 
 export default TrangSanPham;
