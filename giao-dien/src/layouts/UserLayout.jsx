@@ -253,47 +253,6 @@ const UserLayout = () => {
                         )}
                     </div>
                 </div>
-
-                {/* --- MEGA MENU BOTTOM BAR --- */}
-                <div className="bg-white text-slate-800 border-b border-slate-200 hidden md:block shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 flex relative">
-                        {/* Danh mục Main */}
-                        <div 
-                            className="relative flex items-center gap-2 bg-[#f8fafc] px-6 py-3 font-bold text-sm cursor-pointer border-x border-slate-200 group w-64"
-                            onMouseEnter={() => setIsCategoryOpen(true)}
-                            onMouseLeave={() => setIsCategoryOpen(false)}
-                        >
-                            <LayoutGrid size={18} className="text-blue-600"/> 
-                            DANH MỤC LINH KIỆN
-                            <ChevronDown size={14} className="ml-auto text-slate-400 group-hover:rotate-180 transition-transform"/>
-
-                            {/* DROPDOWN MENU */}
-                            {isCategoryOpen && (
-                                <div className="absolute top-full left-0 w-full bg-white shadow-xl border border-t-0 border-slate-100 rounded-b-lg z-50 overflow-hidden">
-                                    {categories.map((cat, idx) => (
-                                        <Link 
-                                            key={idx} 
-                                            to={cat.path}
-                                            className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 hover:text-blue-600 border-b border-slate-50 transition-colors group/item"
-                                        >
-                                            <span className="text-slate-400 group-hover/item:text-blue-600 transition-colors">{cat.icon}</span>
-                                            <span className="font-semibold text-[14px]">{cat.name}</span>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Quick links */}
-                        <div className="flex items-center">
-                            <Link to="/san-pham?cat=cpu" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><Cpu size={16}/> CPU</Link>
-                            <Link to="/san-pham?cat=vga" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><Monitor size={16}/> VGA</Link>
-                            <Link to="/san-pham?cat=main" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><LayoutGrid size={16}/> Mainboard</Link>
-                            <Link to="/san-pham?cat=ram" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><MemoryStick size={16}/> RAM</Link>
-                            <Link to="/san-pham" className="px-5 py-3 text-[14px] font-bold text-blue-600 hover:underline ml-4 flex items-center gap-2"><Zap size={16} fill="#2563eb"/> Khuyến mãi cực HOT - Giảm đến 50%!</Link>
-                        </div>
-                    </div>
-                </div>
             </nav>
 
             <ThanhThongBaoKhuyenMai />
