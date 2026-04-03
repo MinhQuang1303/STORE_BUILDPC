@@ -145,8 +145,23 @@ const TrangDonHangCuaToi = () => {
                 <div className="text-gray-600">
                   <span className="font-semibold">Địa chỉ:</span> {order.diaChi}
                 </div>
-                <div className="font-black text-blue-700 text-base">
-                  Tổng tiền: {order.tongTien?.toLocaleString("vi-VN")}đ
+                <div className="flex flex-col items-end gap-1">
+                  {order.soTienGiam > 0 && (
+                    <div className="text-sm text-gray-500">
+                      Tạm tính:{" "}
+                      <span className="line-through">
+                        {(order.tongTien + order.soTienGiam).toLocaleString("vi-VN")}đ
+                      </span>
+                    </div>
+                  )}
+                  {order.soTienGiam > 0 && (
+                    <div className="text-sm text-green-600 font-semibold">
+                      🎟️ Giảm ({order.maVoucher}): -{order.soTienGiam?.toLocaleString("vi-VN")}đ
+                    </div>
+                  )}
+                  <div className="font-black text-blue-700 text-base">
+                    Tổng tiền: {order.tongTien?.toLocaleString("vi-VN")}đ
+                  </div>
                 </div>
               </div>
             </div>

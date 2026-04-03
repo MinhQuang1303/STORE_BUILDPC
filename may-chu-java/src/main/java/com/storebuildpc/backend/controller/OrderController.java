@@ -19,13 +19,15 @@ public class OrderController {
     private final UserRepository userRepository;
     private final SanPhamRepository sanPhamRepository;
     private final BienTheRepository bienTheRepository;
+    private final MaGiamGiaRepository maGiamGiaRepository;
 
-    public OrderController(OrderRepository orderRepository, OrderItemRepository orderItemRepository, UserRepository userRepository, SanPhamRepository sanPhamRepository, BienTheRepository bienTheRepository) {
+    public OrderController(OrderRepository orderRepository, OrderItemRepository orderItemRepository, UserRepository userRepository, SanPhamRepository sanPhamRepository, BienTheRepository bienTheRepository, MaGiamGiaRepository maGiamGiaRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.userRepository = userRepository;
         this.sanPhamRepository = sanPhamRepository;
         this.bienTheRepository = bienTheRepository;
+        this.maGiamGiaRepository = maGiamGiaRepository;
     }
 
     @PostMapping("/thanh-toan")
@@ -87,9 +89,32 @@ public class OrderController {
             oi.setGia(gia);
             stagedItems.add(oi);
         }
+        // Lấy tổng tiền từ Frontend (đã trừ voucher/giảm giá)
+        // Nếu không có thì fallback tính lại từ giá gốc
+        double tongTienFront = 0;
+        try {
+            Object tongTienRaw = body.get("tongTien");
+            if (tongTienRaw != null) {
+                tongTienFront = Double.parseDouble(String.valueOf(tongTienRaw));
+            }
+        } catch (Exception ignored) {}
+
+        // Lấy số tiền giảm và mã voucher từ frontend (nếu có)
+        double soTienGiam = 0;
+        try {
+            Object soTienGiamRaw = body.get("soTienGiam");
+            if (soTienGiamRaw != null) {
+                soTienGiam = Double.parseDouble(String.valueOf(soTienGiamRaw));
+            }
+        } catch (Exception ignored) {}
+        String maVoucher = body.get("maVoucher") instanceof String s ? s : null;
+
         Order order = new Order();
         order.setIdUser(user);
-        order.setTongTien(tongTien);
+        // Dùng giá Frontend nếu > 0 (có voucher), ngược lại dùng giá tính lại
+        order.setTongTien(tongTienFront > 0 ? tongTienFront : tongTien);
+        order.setSoTienGiam(soTienGiam);
+        order.setMaVoucher(maVoucher);
         order.setDiaChi(diaChi);
         order.setSoDienThoai(soDienThoai);
         order.setGhiChu((String) body.get("ghiChu"));
@@ -100,6 +125,15 @@ public class OrderController {
             oi.setIdOrder(order);
             orderItemRepository.save(oi);
         }
+
+        // Tăng số lượt đã dùng của voucher (nếu có)
+        if (maVoucher != null && !maVoucher.isBlank()) {
+            maGiamGiaRepository.findByMa(maVoucher.toUpperCase()).ifPresent(mg -> {
+                mg.setDaSuDung(mg.getDaSuDung() + 1);
+                maGiamGiaRepository.save(mg);
+            });
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseMapper.order(order, orderItemRepository.findByIdOrder(order)));
     }
 

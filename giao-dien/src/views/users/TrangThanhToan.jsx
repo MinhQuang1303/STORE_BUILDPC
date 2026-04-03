@@ -10,7 +10,7 @@ const TrangThanhToan = () => {
     const navigate = useNavigate();
     const { removeSelectedFromCart, showToast } = useCart();
     
-    const { items, selectedItemIds, tongCuoi, discount, phiVanChuyen, quà } = location.state || {};
+    const { items, selectedItemIds, tongCuoi, discount, phiVanChuyen, quà, maVoucher } = location.state || {};
 
     const [form, setForm] = useState({ ten: "", sdt: "", diaChi: "", ghiChu: "" });
     const [phuongThucThanhToan, setPhuongThucThanhToan] = useState("COD");
@@ -65,7 +65,9 @@ const TrangThanhToan = () => {
                         idBienThe: item.idBienThe || null,
                         soLuong: item.qty,
                     })),
-                    tongTien: tongCuoi
+                    tongTien: tongCuoi,
+                    soTienGiam: discount || 0,
+                    maVoucher: maVoucher || null,
                 },
                 {
                     headers: { Authorization: `Bearer ${authToken}` },

@@ -56,6 +56,8 @@ public final class ResponseMapper {
         result.put("_id", order.getMongoId());
         result.put("idUser", userBasic(order.getIdUser()));
         result.put("tongTien", order.getTongTien());
+        result.put("soTienGiam", order.getSoTienGiam());
+        result.put("maVoucher", order.getMaVoucher());
         result.put("trangThai", order.getTrangThai());
         result.put("diaChi", order.getDiaChi());
         result.put("soDienThoai", order.getSoDienThoai());

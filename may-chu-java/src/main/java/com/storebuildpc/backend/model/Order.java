@@ -18,6 +18,8 @@ public class Order extends BaseEntity {
     private User idUser;
 
     private Double tongTien = 0d;
+    private Double soTienGiam = 0d;    // Số tiền đã giảm (từ voucher)
+    private String maVoucher;          // Mã voucher đã dùng
     private String trangThai = "Pending";
     private String diaChi;
     private String soDienThoai;

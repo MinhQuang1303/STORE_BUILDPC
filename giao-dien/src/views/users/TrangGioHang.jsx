@@ -102,7 +102,8 @@ const TrangGioHang = () => {
                 tongCuoi: thanhTienCuoiCung, 
                 discount, 
                 phiVanChuyen, 
-                quà: quaTang 
+                quà: quaTang,
+                maVoucher: couponCode || null   // Truyền mã voucher sang trang thanh toán
             } 
         });
     };
