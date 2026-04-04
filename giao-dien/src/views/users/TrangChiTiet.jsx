@@ -9,6 +9,29 @@ const formatImageUrl = (url) => {
   return url;
 };
 
+// Hàm hỗ trợ tìm Slot tương ứng cho Build PC
+const getSlotFromCategory = (categoryName) => {
+  if (!categoryName) return null;
+  const catName = categoryName.toLowerCase().trim();
+  
+  if (catName.includes("cpu") || catName.includes("vi xử lý")) return "CPU";
+  if (catName.includes("mainboard") || catName.includes("bo mạch")) return "Mainboard";
+  if (catName.includes("ram") || catName.includes("bộ nhớ")) return "RAM";
+  if (catName.includes("ssd") || catName.includes("hdd") || catName.includes("ổ cứng")) return "SSD";
+  if (catName.includes("vga") || catName.includes("card màn hình")) return "VGA";
+  if (catName.includes("psu") || catName.includes("nguồn")) return "PSU";
+  if (catName.includes("case") || catName.includes("vỏ")) return "Case";
+  if (catName.includes("tản")) return "Tản nhiệt";
+  if (catName.includes("màn hình")) return "Màn hình";
+  if (catName.includes("phím") || catName.includes("keyboard")) return "Bàn phím";
+  if (catName.includes("chuột") || catName.includes("mouse")) return "Chuột";
+  if (catName.includes("tai nghe") || catName.includes("headphone") || catName.includes("headset")) return "Tai nghe";
+  if (catName.includes("loa") || catName.includes("speaker")) return "Loa";
+  if (catName.includes("gear")) return "Bàn phím"; // Mặc định nếu chỉ ghi gear
+  
+  return null;
+};
+
 const TrangChiTiet = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -118,6 +141,39 @@ const TrangChiTiet = () => {
       idSanPhamGoc: sp._id,
     };
     addToCart(productToAdd, soLuong);
+  };
+
+  const handleAddToBuildPC = () => {
+    const categoryName = sp.idDanhMuc?.ten || sp.loai;
+    const slotId = getSlotFromCategory(categoryName);
+    
+    if (!slotId) {
+      alert("Sản phẩm này không thuộc danh mục linh kiện Build PC hợp lệ!");
+      return;
+    }
+
+    const productToAdd = {
+      ...sp,
+      gia: giaHienThi,
+      idBienThe: bienTheChon ? (bienTheChon._id || bienTheChon.mongoId) : null,
+      tenBienThe: bienTheChon ? bienTheChon.ten : null,
+      soLuong: 1, // Mặc định thêm 1 vào cấu hình
+    };
+    
+    // Nếu có biến thể thì nối tên
+    if (bienTheChon) {
+      productToAdd.ten = `${sp.ten} - ${bienTheChon.ten}`;
+    }
+
+    try {
+      const saved = localStorage.getItem("build_pc_draft");
+      const currentDraft = saved ? JSON.parse(saved) : {};
+      currentDraft[slotId] = productToAdd;
+      localStorage.setItem("build_pc_draft", JSON.stringify(currentDraft));
+      navigate("/build");
+    } catch (e) {
+      console.error("Lỗi khi thêm vào Build PC", e);
+    }
   };
 
   return (
@@ -241,7 +297,7 @@ const TrangChiTiet = () => {
                 <button 
                   className="btn-buy"
                   style={styles.btnBuild} 
-                  onClick={() => navigate("/build")}
+                  onClick={handleAddToBuildPC}
                 >
                   🛠️ THÊM VÀO CẤU HÌNH PC
                 </button>
