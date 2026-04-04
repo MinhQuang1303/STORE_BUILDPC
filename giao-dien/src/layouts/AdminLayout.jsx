@@ -1,11 +1,15 @@
-import React from "react";
-import { Outlet, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, Link, useNavigate } from "react-router-dom";
+import AdminNotificationBell from "../components/AdminNotificationBell";
 
+// Admin layout with sidebar and headers
 const AdminLayout = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="flex h-screen bg-gray-100 font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 shadow-xl text-white flex-shrink-0 transition-all duration-300">
+      <aside className="w-64 bg-slate-900 shadow-xl text-white flex-shrink-0 transition-all duration-300 flex flex-col">
         <div className="p-6">
           <Link to="/">
             <h2 className="text-2xl font-bold tracking-wider text-blue-400">
@@ -59,7 +63,28 @@ const AdminLayout = () => {
             <span className="mr-3">👥</span>
             <span className="font-medium">Quản lý người dùng</span>
           </Link>
+          <Link
+            to="/admin/chat"
+            className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2 justify-between"
+          >
+            <div className="flex items-center">
+                <span className="mr-3">💬</span>
+                <span className="font-medium">Quản lý Chat</span>
+            </div>
+          </Link>
         </nav>
+
+        <div className="mt-auto p-4 border-t border-slate-800">
+            <button 
+                onClick={() => {
+                    localStorage.clear();
+                    navigate("/dang-nhap");
+                }}
+                className="w-full flex items-center justify-center p-3 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors group"
+            >
+                <span className="font-medium">Thoát tài khoản</span>
+            </button>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -86,7 +111,8 @@ const AdminLayout = () => {
               Quản trị hệ thống
             </h1>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6 relative">
+            <AdminNotificationBell />
             <div className="relative">
               <button className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 focus:outline-none">
                 <img

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PhanTrang from "../../components/PhanTrang";
+import { io } from 'socket.io-client';
 
 const QuanLyOrder = () => {
   const [orders, setOrders] = useState([]);
@@ -26,6 +27,14 @@ const QuanLyOrder = () => {
 
   useEffect(() => {
     fetchOrders();
+    const socket = io("http://localhost:5000");
+    socket.on("connect", () => {
+        socket.emit("admin_join");
+    });
+    socket.on("SOCKET_EVENT_ORDER", () => {
+        fetchOrders();
+    });
+    return () => socket.disconnect();
   }, [selectedUserId]);
 
   const fetchOrders = async () => {
