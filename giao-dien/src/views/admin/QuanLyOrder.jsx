@@ -8,6 +8,7 @@ const QuanLyOrder = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
+  const [searchName, setSearchName] = useState("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,7 +27,23 @@ const QuanLyOrder = () => {
 
   useEffect(() => {
     fetchOrders();
+
+    // Lắng nghe sự kiện báo đơn hàng mới từ AdminNotification (WebSocket)
+    const handleNewOrder = () => {
+      fetchOrders();
+    };
+    
+    window.addEventListener('backend_new_order', handleNewOrder);
+    
+    // Cleanup listener
+    return () => {
+      window.removeEventListener('backend_new_order', handleNewOrder);
+    };
   }, [selectedUserId]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchName, selectedUserId]);
 
   const fetchOrders = async () => {
     try {
@@ -82,10 +99,16 @@ const QuanLyOrder = () => {
     return `px-3 py-1 rounded-full text-xs font-bold border ${styles[status] || styles["Pending"]}`;
   };
 
-  // Logic phân trang
+  // Logic phân trang và lọc
+  const filteredOrders = orders.filter(order => {
+    if (!searchName.trim()) return true;
+    const name = order.idUser?.username || "Khách vãng lai";
+    return name.toLowerCase().includes(searchName.toLowerCase());
+  });
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = orders.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
   const danhSachNguoiDung = orders.reduce((acc, order) => {
     if (order.idUser?._id && !acc.some((u) => u._id === order.idUser._id)) {
       acc.push(order.idUser);
@@ -105,6 +128,13 @@ const QuanLyOrder = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Tìm tên khách hàng..."
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            className="bg-white border border-gray-200 text-sm text-gray-700 px-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 min-w-[200px]"
+          />
           <select
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
@@ -182,13 +212,13 @@ const QuanLyOrder = () => {
                     </td>
                   </tr>
                 ))}
-                {orders.length === 0 && (
+                {filteredOrders.length === 0 && (
                   <tr>
                     <td
                       colSpan="6"
                       className="px-6 py-10 text-center text-gray-400"
                     >
-                      Chưa có đơn hàng nào.
+                      Chưa có đơn hàng nào khớp với tìm kiếm.
                     </td>
                   </tr>
                 )}
@@ -198,7 +228,7 @@ const QuanLyOrder = () => {
 
           <PhanTrang
             itemsPerPage={itemsPerPage}
-            totalItems={orders.length}
+            totalItems={filteredOrders.length}
             paginate={setCurrentPage}
             currentPage={currentPage}
           />

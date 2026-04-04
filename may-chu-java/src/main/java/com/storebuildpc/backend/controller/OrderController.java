@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,14 +21,16 @@ public class OrderController {
     private final SanPhamRepository sanPhamRepository;
     private final BienTheRepository bienTheRepository;
     private final MaGiamGiaRepository maGiamGiaRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public OrderController(OrderRepository orderRepository, OrderItemRepository orderItemRepository, UserRepository userRepository, SanPhamRepository sanPhamRepository, BienTheRepository bienTheRepository, MaGiamGiaRepository maGiamGiaRepository) {
+    public OrderController(OrderRepository orderRepository, OrderItemRepository orderItemRepository, UserRepository userRepository, SanPhamRepository sanPhamRepository, BienTheRepository bienTheRepository, MaGiamGiaRepository maGiamGiaRepository, SimpMessagingTemplate messagingTemplate) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.userRepository = userRepository;
         this.sanPhamRepository = sanPhamRepository;
         this.bienTheRepository = bienTheRepository;
         this.maGiamGiaRepository = maGiamGiaRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/thanh-toan")
@@ -132,6 +135,12 @@ public class OrderController {
                 mg.setDaSuDung(mg.getDaSuDung() + 1);
                 maGiamGiaRepository.save(mg);
             });
+        }
+
+        try {
+            messagingTemplate.convertAndSend("/topic/orders", Map.of("message", "Có đơn hàng mới"));
+        } catch (Exception e) {
+            System.err.println("Error sending websocket message: " + e.getMessage());
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseMapper.order(order, orderItemRepository.findByIdOrder(order)));

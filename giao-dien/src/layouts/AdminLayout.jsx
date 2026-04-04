@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet, Link } from "react-router-dom";
+import AdminNotification from "../components/AdminNotification";
 
 const AdminLayout = () => {
   return (
@@ -114,6 +115,9 @@ const AdminLayout = () => {
           </div>
         </main>
       </div>
+      
+      {/* Real-time Notifications */}
+      <AdminNotification />
     </div>
   );
 };
