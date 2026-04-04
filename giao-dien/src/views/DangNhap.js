@@ -11,7 +11,7 @@ const DangNhap = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/auth/dang-nhap", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/dang-nhap`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -43,14 +43,14 @@ const DangNhap = () => {
 
   // 2. Hàm xử lý Google
   const handleGoogleLogin = () => {
-    window.open("http://localhost:5000/api/auth/google", "_self");
+    window.open(`${process.env.REACT_APP_API_URL}/auth/google`, "_self");
   };
 
   // 3. Hàm xử lý Quên mật khẩu
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/auth/forgot-password", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }) 

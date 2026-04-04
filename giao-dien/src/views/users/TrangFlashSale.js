@@ -17,7 +17,7 @@ const TrangFlashSale = () => {
         setSalePercent(calculatedPercent);
 
         // 2. Lấy sản phẩm ngẫu nhiên để làm Flash Sale
-        axios.get("http://localhost:5000/api/san-pham")
+        axios.get(`${process.env.REACT_APP_API_URL}/san-pham`)
             .then(res => {
                 const allData = Array.isArray(res.data) ? res.data : (res.data.products || []);
                 const shuffled = [...allData].sort(() => 0.5 - Math.random());

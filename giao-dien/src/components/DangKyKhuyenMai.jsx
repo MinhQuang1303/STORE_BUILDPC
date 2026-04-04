@@ -20,7 +20,7 @@ const DangKyKhuyenMai = () => {
         <p className="mt-4 text-lg leading-6 text-gray-300">
           Nhận ngay voucher giảm 50K cho đơn hàng Build PC đầu tiên khi đăng ký bản tin của chúng tôi.
         </p>
-        
+
         {subscribed ? (
           <p className="mt-6 text-xl text-green-400 font-semibold">
             Cảm ơn bạn! Bạn đã đăng ký nhận khuyến mãi thành công. 🎉

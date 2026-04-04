@@ -48,7 +48,7 @@ const TrangSanPham = () => {
     const fetchAllProducts = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get("http://localhost:5000/api/san-pham");
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/san-pham`);
         setSanPhams(res.data);
         setIsLoading(false);
       } catch (err) {

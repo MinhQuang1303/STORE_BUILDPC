@@ -12,7 +12,7 @@ const TrangChiTiet = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/san-pham/${id}`)
+      .get(`${process.env.REACT_APP_API_URL}/san-pham/${id}`)
       .then((res) => setSp(res.data))
       .catch((err) => console.error("Lỗi lấy chi tiết:", err));
   }, [id]);

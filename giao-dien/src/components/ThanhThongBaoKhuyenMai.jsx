@@ -11,7 +11,7 @@ const ThanhThongBaoKhuyenMai = () => {
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
-        const res = await axios.get(`${apiBase}/ma-giam-gia`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/ma-giam-gia`);
         const now = new Date();
         const validPromotions = (res.data || []).filter((item) => {
           const batDau = item.ngayBatDau ? new Date(item.ngayBatDau) : null;

@@ -9,7 +9,7 @@ const FlashSale = () => {
   useEffect(() => {
     // 1. Lấy dữ liệu trực tiếp từ Backend để có ID (_id) chuẩn của MongoDB
     axios
-      .get("http://localhost:5000/api/san-pham")
+      .get(`${process.env.REACT_APP_API_URL}/san-pham`)
       .then((res) => {
         const tatCaSP = res.data;
         if (tatCaSP && tatCaSP.length > 0) {
