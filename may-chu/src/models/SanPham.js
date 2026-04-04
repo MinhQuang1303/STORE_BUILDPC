@@ -21,10 +21,6 @@ const SanPhamSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    anh: {
-      type: String,
-      trim: true,
-    },
     thongSo: {
       type: String,
     },
