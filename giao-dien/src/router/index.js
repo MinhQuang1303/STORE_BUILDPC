@@ -22,6 +22,8 @@ import DangNhap from "../views/DangNhap";
 import DangKy from "../views/DangKy";
 import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
 import TrangThanhToan from "../views/users/TrangThanhToan";
+import TrangChinhSach from "../views/users/TrangChinhSach";
+import TrangFlashSale from "../views/users/TrangFlashSale";
 
 // Component tạm thời để tránh lỗi "AuthSuccess is not defined"
 const AuthSuccess = () => <div>Đăng nhập thành công! Đang chuyển hướng...</div>;
@@ -42,6 +44,19 @@ const router = createBrowserRouter([
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },
       { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },
+      
+      { path: "flash-sale", element: <TrangFlashSale /> },
+      
+      // CÁC TRANG CHÍNH SÁCH & THÔNG TIN
+      { path: "gioi-thieu", element: <TrangChinhSach /> },
+      { path: "showroom", element: <TrangChinhSach /> },
+      { path: "tuyen-dung", element: <TrangChinhSach /> },
+      { path: "bao-mat", element: <TrangChinhSach /> },
+      { path: "huong-dan-mua-hang", element: <TrangChinhSach /> },
+      { path: "tra-gop", element: <TrangChinhSach /> },
+      { path: "van-chuyen", element: <TrangChinhSach /> },
+      { path: "bao-hanh", element: <TrangChinhSach /> },
+      { path: "ho-tro", element: <TrangChinhSach /> },
       
       // THÊM DÒNG NÀY ĐỂ HẾT LỖI TRẮNG TRANG
       { path: "auth-success", element: <AuthSuccess /> }, 

@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const path = require("path");
 const session = require('express-session'); // 1. Import session
 const passport = require('passport');       // 2. Import passport
 const User = require("./src/models/User");
@@ -13,10 +12,6 @@ const app = express();
 // --- MIDDLEWARES HỆ THỐNG (PHẢI ĐẶT ĐẦU TIÊN) ---
 app.use(cors()); 
 app.use(express.json()); 
-app.use(
-  "/images",
-  express.static(path.join(__dirname, "..", "giao-dien", "src", "assets", "images")),
-);
 
 // --- CẤU HÌNH PASSPORT & SESSION (PHẢI TRƯỚC ROUTES) ---
 app.use(session({ 
