@@ -1,4 +1,4 @@
-﻿const maGiamGiaService = require("../services/maGiamGiaService");
+const maGiamGiaService = require("../services/maGiamGiaService");
 
 // Lấy tất cả mã giảm giá
 exports.layTatCa = async (req, res) => {

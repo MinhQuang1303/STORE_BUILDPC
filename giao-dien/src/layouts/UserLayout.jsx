@@ -3,8 +3,11 @@ import { Outlet, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
+import CustomerChatWidget from "../components/CustomerChatWidget";
+import AdminNotificationBell from "../components/AdminNotificationBell";
+import CustomerNotificationBell from "../components/CustomerNotificationBell";
 import { 
-    Search, ShoppingCart, User, LogOut, 
+    Search, ShoppingCart, User, LogOut, Bell,
     ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive 
 } from 'lucide-react'; // Cài đặt: npm install lucide-react
 
@@ -13,6 +16,7 @@ const UserLayout = () => {
     const { cartItems } = useContext(CartContext);
     const [user, setUser] = useState(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     // Live Search States
     const [searchTerm, setSearchTerm] = useState("");
@@ -194,6 +198,15 @@ const UserLayout = () => {
                             </span>
                         </div>
 
+                        {/* CHUÔNG THÔNG BÁO CHAT */}
+                        {user && (
+                            user.role === "admin" ? (
+                                <div className="mt-1"><AdminNotificationBell iconClassName="text-white" /></div>
+                            ) : (
+                                <CustomerNotificationBell user={user} unreadChatCount={unreadChatCount} />
+                            )
+                        )}
+
                         {/* AUTH SECTION */}
                         <div className="h-8 w-[1px] bg-slate-700 mx-2 hidden sm:block"></div>
                         
@@ -269,6 +282,14 @@ const UserLayout = () => {
                     </div>
                 </div>
             </footer>
+            {/* Thêm Chat Widget cho Khách Hàng */}
+            {user && user.role !== "admin" && (
+                <CustomerChatWidget 
+                    user={user} 
+                    unreadCount={unreadChatCount} 
+                    setUnreadCount={setUnreadChatCount} 
+                />
+            )}
         </div>
     );
 };

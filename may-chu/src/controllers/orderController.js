@@ -1,4 +1,5 @@
 const orderService = require("../services/orderService");
+const Notification = require("../models/Notification");
 
 // User tạo đơn thanh toán
 exports.taoDonThanhToan = async (req, res) => {
@@ -8,6 +9,43 @@ exports.taoDonThanhToan = async (req, res) => {
       ...req.body,
       idUser,
     });
+
+    // 1. Tạo thông báo cho Admin
+    const notifAdmin = await Notification.create({
+      type: 'order',
+      title: `Khách ${data.idUser?.username || "mới"} chốt đơn!`,
+      content: `Đơn hàng mới trị giá ${data.tongTien?.toLocaleString('vi-VN')} đ`,
+      linkData: data._id,
+      isAdminAuth: true
+    });
+
+    // 2. Tạo thông báo cho chính Khách hàng (Lưu vào chuông)
+    const notifCustomer = await Notification.create({
+      type: 'system',
+      title: 'Đặt hàng thành công!',
+      content: `Bạn đã đặt một đơn hàng mới trị giá ${data.tongTien?.toLocaleString('vi-VN')} đ`,
+      linkData: data._id,
+      userId: idUser,
+      isAdminAuth: false
+    });
+
+    const io = req.app.get("io");
+    if (io) {
+      // Gửi cho Admin
+      console.log("--> EMITTING ORDER EVENT TO ADMIN");
+      io.to("admin_room").emit("SOCKET_EVENT_ORDER", {
+        message: "Đơn hàng mới nổ!",
+        order: data,
+        notification: notifAdmin
+      });
+      // Gửi cho Khách hàng
+      io.to(idUser.toString()).emit("order_status_update", {
+        message: "Bạn đã đặt hàng thành công!",
+        order: data,
+        notification: notifCustomer
+      });
+    }
+
     res.status(201).json(data);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -59,6 +97,33 @@ exports.capNhatTrangThai = async (req, res) => {
 
     if (!orderCapNhat) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    }
+
+    // Tạo thông báo cho Khách hàng khi trạng thái đổi
+    const statusMap = {
+      Pending: "Đang chờ xử lý",
+      Confirmed: "Đã xác nhận",
+      Shipping: "Đang giao hàng",
+      Delivered: "Đã giao hàng thành công",
+      Cancelled: "Đã hủy đơn"
+    };
+
+    const notifUser = await Notification.create({
+      type: 'system',
+      title: 'Cập nhật trạng thái đơn hàng!',
+      content: `Đơn hàng #${id.substring(id.length - 8).toUpperCase()} đã chuyển sang trạng thái: ${statusMap[trangThai] || trangThai}`,
+      linkData: id,
+      userId: orderCapNhat.idUser?._id || orderCapNhat.idUser,
+      isAdminAuth: false
+    });
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(orderCapNhat.idUser?._id.toString()).emit("order_status_update", {
+        message: `Đơn hàng của bạn đã chuyển sang trạng thái: ${statusMap[trangThai] || trangThai}`,
+        order: orderCapNhat,
+        notification: notifUser
+      });
     }
 
     res.json(orderCapNhat);
