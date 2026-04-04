@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
@@ -13,6 +13,7 @@ const UserLayout = () => {
     const { cartItems } = useContext(CartContext);
     const [user, setUser] = useState(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const categoryRef = useRef(null);
 
     // Danh sách danh mục mẫu
     const categories = [
@@ -54,6 +55,17 @@ const UserLayout = () => {
         loadUserFromStorage();
         window.addEventListener('storage', loadUserFromStorage);
         return () => window.removeEventListener('storage', loadUserFromStorage);
+    }, []);
+
+    // Đóng dropdown khi click bên ngoài
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (categoryRef.current && !categoryRef.current.contains(e.target)) {
+                setIsCategoryOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleDangXuat = () => {
@@ -100,7 +112,7 @@ const UserLayout = () => {
                     {/* ACTIONS */}
                     <div className="flex items-center gap-6">
                         {/* DANH MỤC DROPDOWN */}
-                        <div className="relative group">
+                        <div className="relative group" ref={categoryRef}>
                             <button 
                                 onClick={() => setIsCategoryOpen(!isCategoryOpen)}
                                 className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider hover:text-blue-400 transition-colors"
