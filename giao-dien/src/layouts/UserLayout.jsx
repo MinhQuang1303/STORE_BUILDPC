@@ -57,12 +57,12 @@ const UserLayout = () => {
             <div className="bg-slate-900 text-slate-300 text-xs py-2 hidden md:block">
                 <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
                     <div className="flex gap-6">
-                        <span className="flex items-center gap-2 hover:text-white cursor-pointer"><Phone size={14}/> Hotline: 1900 1234</span>
-                        <span className="flex items-center gap-2 hover:text-white cursor-pointer"><MapPin size={14}/> Hệ thống Showroom</span>
+                        <Link to="/ho-tro" className="flex items-center gap-2 hover:text-white cursor-pointer"><Phone size={14}/> Hotline: 1900 1234</Link>
+                        <Link to="/showroom" className="flex items-center gap-2 hover:text-white cursor-pointer"><MapPin size={14}/> Hệ thống Showroom</Link>
                     </div>
                     <div className="flex gap-6">
-                        <span className="flex items-center gap-2 hover:text-white cursor-pointer"><ShieldCheck size={14}/> Chính sách bảo hành</span>
-                        <span className="flex items-center gap-2 hover:text-white cursor-pointer"><Truck size={14}/> Tra cứu đơn hàng</span>
+                        <Link to="/bao-hanh" className="flex items-center gap-2 hover:text-white cursor-pointer"><ShieldCheck size={14}/> Chính sách bảo hành</Link>
+                        <Link to="/don-hang-cua-toi" className="flex items-center gap-2 hover:text-white cursor-pointer"><Truck size={14}/> Tra cứu đơn hàng</Link>
                     </div>
                 </div>
             </div>
@@ -185,12 +185,11 @@ const UserLayout = () => {
                         </div>
 
                         {/* Quick links */}
-                        <div className="flex items-center">
-                            <Link to="/san-pham?cat=cpu" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><Cpu size={16}/> CPU</Link>
-                            <Link to="/san-pham?cat=vga" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><Monitor size={16}/> VGA</Link>
-                            <Link to="/san-pham?cat=main" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><LayoutGrid size={16}/> Mainboard</Link>
-                            <Link to="/san-pham?cat=ram" className="px-5 py-3 text-[14px] font-bold hover:text-blue-600 flex items-center gap-2 transition-colors"><MemoryStick size={16}/> RAM</Link>
-                            <Link to="/san-pham" className="px-5 py-3 text-[14px] font-bold text-blue-600 hover:underline ml-4 flex items-center gap-2"><Zap size={16} fill="#2563eb"/> Khuyến mãi cực HOT - Giảm đến 50%!</Link>
+                        <div className="flex items-center flex-1">
+                            {/* Nút Flash Sale tự động hóa kịch bản */}
+                            <Link to="/flash-sale" className="px-5 py-3 text-[14px] font-bold text-red-600 hover:scale-105 active:scale-95 ml-4 flex items-center gap-2 bg-red-50 rounded-full px-6 py-1.5 transition-all animate-pulse shadow-sm border border-red-100">
+                                <Zap size={16} fill="#dc2626"/> SIÊU ƯU ĐÃI THÁNG 4 - GIẢM ĐẾN 50%!
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -225,10 +224,10 @@ const UserLayout = () => {
                     <div>
                         <h4 className="font-bold mb-5 text-slate-800 uppercase text-[15px] border-b-2 border-blue-600 pb-2 inline-block">Về chúng tôi</h4>
                         <ul className="space-y-3 text-slate-600 text-[14px] font-medium">
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Giới thiệu hệ thống</li>
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Hệ thống showroom</li>
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Tuyển dụng</li>
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Chính sách bảo mật</li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/gioi-thieu" className="flex items-center gap-2 underline-offset-4 hover:underline">Giới thiệu hệ thống</Link></li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/showroom" className="flex items-center gap-2 underline-offset-4 hover:underline">Hệ thống showroom</Link></li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/tuyen-dung" className="flex items-center gap-2 underline-offset-4 hover:underline">Tuyển dụng</Link></li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/bao-mat" className="flex items-center gap-2 underline-offset-4 hover:underline">Chính sách bảo mật</Link></li>
                         </ul>
                     </div>
 
@@ -236,10 +235,10 @@ const UserLayout = () => {
                     <div>
                         <h4 className="font-bold mb-5 text-slate-800 uppercase text-[15px] border-b-2 border-blue-600 pb-2 inline-block">Hỗ trợ khách hàng</h4>
                         <ul className="space-y-3 text-slate-600 text-[14px] font-medium">
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Hướng dẫn mua hàng online</li>
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Hướng dẫn mua trả góp</li>
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Chính sách vận chuyển</li>
-                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><ChevronDown size={14} className="-rotate-90"/> Chính sách bảo hành & đổi trả</li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/huong-dan-mua-hang" className="flex items-center gap-2 underline-offset-4 hover:underline">Hướng dẫn mua hàng online</Link></li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/tra-gop" className="flex items-center gap-2 underline-offset-4 hover:underline">Hướng dẫn mua trả góp</Link></li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/van-chuyen" className="flex items-center gap-2 underline-offset-4 hover:underline">Chính sách vận chuyển</Link></li>
+                            <li className="hover:text-blue-600 cursor-pointer transition-colors flex items-center gap-2"><Link to="/bao-hanh" className="flex items-center gap-2 underline-offset-4 hover:underline">Chính sách bảo hành & đổi trả</Link></li>
                         </ul>
                     </div>
 
