@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { User, Shield, Calendar, MapPin, Phone, Lock, CheckCircle, Save, Camera, AlertCircle, Package, Heart, Bell, Settings } from "lucide-react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import UserSidebar from "../../components/UserSidebar";
 
 const TrangHoSo = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -42,6 +45,19 @@ const TrangHoSo = () => {
           dob: userData.dob || "",
           gender: userData.gender || "Khác"
         });
+        // Load saved addresses
+        if (userData._id) {
+          fetch(`http://localhost:5000/api/user-addresses/user/${userData._id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && data.data.length > 0) {
+                setSavedAddresses(data.data);
+                const def = data.data.find(a => a.isDefault) || data.data[0];
+                if (def) setSelectedAddressId(def._id);
+              }
+            })
+            .catch(() => {});
+        }
       } catch (err) { }
     }
   };
@@ -205,10 +221,65 @@ const TrangHoSo = () => {
                 </div>
               </div>
 
-              {/* Address (Full width) */}
+              {/* Address (Full width) - lấy từ Sổ Địa Chỉ */}
               <div className="pt-2">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Địa chỉ giao hàng</label>
-                <input type="text" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all hover:border-blue-400" placeholder="Số nhà, Đường, Phường, Quận, Tỉnh/TP" />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-bold text-slate-700">Địa chỉ giao hàng</label>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/so-dia-chi')}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <MapPin size={12} /> Quản lý Sổ Địa Chỉ →
+                  </button>
+                </div>
+
+                {savedAddresses.length > 0 ? (
+                  <div className="space-y-2">
+                    {savedAddresses.map(addr => (
+                      <label
+                        key={addr._id}
+                        className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all ${
+                          selectedAddressId === addr._id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-slate-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="profileAddress"
+                          value={addr._id}
+                          checked={selectedAddressId === addr._id}
+                          onChange={() => {
+                            setSelectedAddressId(addr._id);
+                            setFormData(prev => ({ ...prev, address: addr.address }));
+                          }}
+                          className="mt-1 w-4 h-4 accent-blue-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-800 text-sm">{addr.fullName}</span>
+                            <span className="text-slate-500 text-sm">· {addr.phone}</span>
+                            {addr.isDefault && (
+                              <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">Mặc định</span>
+                            )}
+                          </div>
+                          <p className="text-slate-500 text-sm mt-0.5">{addr.address}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <MapPin size={18} className="text-amber-500 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-amber-800">Bạn chưa có địa chỉ nào.</p>
+                      <button type="button" onClick={() => navigate('/so-dia-chi')} className="text-xs text-blue-600 font-semibold hover:underline mt-0.5">
+                        + Thêm địa chỉ trong Sổ Địa Chỉ
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-6">
