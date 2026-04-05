@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
+import UserNotificationBell from "../components/UserNotificationBell";
 import { 
     Search, ShoppingCart, User, LogOut, 
     ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive,
@@ -155,6 +156,9 @@ const UserLayout = () => {
                                 {cartItems?.length || 0}
                             </span>
                         </div>
+
+                        {/* 🔔 CHUÔNG THÔNG BÁO ĐƠN HÀNG (chỉ khi đã đăng nhập) */}
+                        {user && <UserNotificationBell user={user} />}
 
                         {/* AUTH SECTION */}
                         <div className="h-8 w-[1px] bg-slate-700 mx-2 hidden sm:block"></div>

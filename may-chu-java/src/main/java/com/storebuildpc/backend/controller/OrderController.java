@@ -208,6 +208,33 @@ public class OrderController {
             }
             order.setTrangThai(trangThai);
             orderRepository.save(order);
+
+            // Gửi thông báo WebSocket tới user về việc cập nhật trạng thái đơn hàng
+            try {
+                String userMongoId = order.getIdUser().getMongoId();
+                String trangThaiLabel = switch (trangThai) {
+                    case "Confirmed" -> "Đã xác nhận";
+                    case "Shipping" -> "Đang giao hàng";
+                    case "Delivered" -> "Đã giao hàng";
+                    case "Cancelled" -> "Đã hủy";
+                    default -> trangThai;
+                };
+                String topic = "/topic/order-status/" + userMongoId;
+                System.out.println("[OrderController] Gửi WebSocket tới topic: " + topic);
+                messagingTemplate.convertAndSend(
+                    topic,
+                    Map.of(
+                        "orderId", order.getMongoId(),
+                        "trangThai", trangThai,
+                        "trangThaiLabel", trangThaiLabel,
+                        "message", "Đơn hàng #" + order.getMongoId().toUpperCase() + " đã được cập nhật: " + trangThaiLabel
+                    )
+                );
+                System.out.println("[OrderController] Đã gửi WebSocket thành công!");
+            } catch (Exception e) {
+                System.err.println("Error sending order-status websocket: " + e.getMessage());
+            }
+
             return ResponseEntity.ok(ResponseMapper.order(order, items));
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Không tìm thấy đơn hàng")));
     }

@@ -94,16 +94,17 @@ const AdminLayout = () => {
               Quản trị hệ thống
             </h1>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <button className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 focus:outline-none">
-                <img
-                  className="h-9 w-9 rounded-full border-2 border-blue-500 p-0.5"
-                  src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
-                  alt="User avatar"
-                />
-                <span className="ml-2 hidden md:block">Quản trị viên</span>
-              </button>
+          <div className="flex items-center space-x-3">
+            {/* 🔔 Chuông thông báo đơn hàng mới */}
+            <AdminNotification />
+            <div className="w-px h-6 bg-gray-200"></div>
+            <div className="flex items-center gap-2">
+              <img
+                className="h-9 w-9 rounded-full border-2 border-blue-500 p-0.5"
+                src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
+                alt="User avatar"
+              />
+              <span className="hidden md:block text-sm font-medium text-gray-700">Quản trị viên</span>
             </div>
           </div>
         </header>
@@ -115,9 +116,6 @@ const AdminLayout = () => {
           </div>
         </main>
       </div>
-      
-      {/* Real-time Notifications */}
-      <AdminNotification />
     </div>
   );
 };
