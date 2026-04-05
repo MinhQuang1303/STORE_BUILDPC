@@ -1,160 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import UserSidebar from "../../components/UserSidebar";
+import LeafletMapPicker from "../../components/LeafletMapPicker";
 
-// Sử dụng Leaflet thuần qua CDN (không dùng react-leaflet để tránh xung đột)
-const loadLeaflet = () => {
-  return new Promise((resolve) => {
-    if (window.L) { resolve(window.L); return; }
 
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    document.head.appendChild(link);
-
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.onload = () => resolve(window.L);
-    document.head.appendChild(script);
-  });
-};
-
-// Component bản đồ thuần Leaflet
-const LeafletMap = ({ onLocationSelect }) => {
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markerRef = useRef(null);
-  const [selectedAddress, setSelectedAddress] = useState("");
-  const [reverseLoading, setReverseLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [searchLoading, setSearchLoading] = useState(false);
-  const searchDebounceRef = useRef(null);
-
-  useEffect(() => {
-    loadLeaflet().then((L) => {
-      if (mapInstanceRef.current || !mapRef.current) return;
-
-      const map = L.map(mapRef.current, { zoomControl: true }).setView([10.8231, 106.6297], 13);
-      mapInstanceRef.current = map;
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(map);
-
-      // Fix tile rendering: call invalidateSize multiple times to ensure tiles load
-      [100, 300, 600, 1000].forEach(ms => setTimeout(() => { map.invalidateSize(); }, ms));
-
-      map.on("click", async (e) => {
-        const { lat, lng } = e.latlng;
-        if (markerRef.current) {
-          markerRef.current.setLatLng(e.latlng);
-        } else {
-          markerRef.current = L.marker(e.latlng).addTo(map);
-        }
-        setReverseLoading(true);
-        setSelectedAddress("Đang tìm địa chỉ...");
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { "Accept-Language": "vi" } }
-          );
-          const data = await res.json();
-          const result = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          setSelectedAddress(result);
-          onLocationSelect(result);
-        } catch {
-          const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          setSelectedAddress(fallback);
-          onLocationSelect(fallback);
-        } finally {
-          setReverseLoading(false);
-        }
-      });
-    });
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        markerRef.current = null;
-      }
-    };
-  }, []);
-
-  // Search address → pan map
-  const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setSearchText(val);
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    if (!val.trim() || val.trim().length < 4) return;
-
-    searchDebounceRef.current = setTimeout(async () => {
-      if (!mapInstanceRef.current) return;
-      setSearchLoading(true);
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1&countrycodes=vn`,
-          { headers: { "Accept-Language": "vi" } }
-        );
-        const data = await res.json();
-        if (data && data.length > 0) {
-          const { lat, lon } = data[0];
-          const L = window.L;
-          const latlng = [parseFloat(lat), parseFloat(lon)];
-          mapInstanceRef.current.flyTo(latlng, 16, { animate: true, duration: 1 });
-
-          // Place marker
-          if (markerRef.current) {
-            markerRef.current.setLatLng(latlng);
-          } else {
-            markerRef.current = L.marker(latlng).addTo(mapInstanceRef.current);
-          }
-          const foundAddr = data[0].display_name || val;
-          setSelectedAddress(foundAddr);
-          onLocationSelect(foundAddr);
-        }
-      } catch (err) {
-        console.error("Search error:", err);
-      } finally {
-        setSearchLoading(false);
-      }
-    }, 700);
-  };
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Search box */}
-      <div className="px-4 py-2.5 border-b border-slate-200 bg-white flex-shrink-0">
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
-          <input
-            type="text"
-            value={searchText}
-            onChange={handleSearchChange}
-            placeholder="Nhập địa chỉ để tìm trên bản đồ..."
-            className="w-full pl-9 pr-10 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none bg-slate-50"
-          />
-          {searchLoading && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-xs animate-pulse">⏳</span>
-          )}
-        </div>
-      </div>
-
-      {/* Map - fixed height to avoid tile rendering bug */}
-      <div ref={mapRef} style={{ height: "330px", width: "100%" }} />
-
-      {/* Selected address */}
-      <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Địa chỉ đã chọn</p>
-        <p className={`text-sm leading-snug min-h-[18px] ${reverseLoading ? "text-blue-500 animate-pulse" : selectedAddress ? "text-slate-800 font-medium" : "text-slate-400 italic"}`}>
-          {selectedAddress || "Click vào bất kỳ điểm nào trên bản đồ..."}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-// ==================== MAIN COMPONENT ====================
 const TrangSoDiaChi = () => {
   const [user, setUser] = useState(null);
   const [addresses, setAddresses] = useState([]);
@@ -357,8 +205,8 @@ const TrangSoDiaChi = () => {
               <button onClick={() => setIsMapOpen(false)} className="text-slate-400 hover:text-slate-700 text-2xl leading-none transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">×</button>
             </div>
 
-            {/* Map component */}
-            <LeafletMap onLocationSelect={setPendingMapAddress} />
+            {/* Map component - dùng chung LeafletMapPicker có tính năng gợi ý địa chỉ */}
+            <LeafletMapPicker onLocationSelect={setPendingMapAddress} />
 
             {/* Footer buttons */}
             <div className="px-6 py-3 border-t border-slate-100 bg-white flex justify-end gap-3">
