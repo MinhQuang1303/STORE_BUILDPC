@@ -1,27 +1,15 @@
 const SanPham = require("../models/SanPham");
 const BienThe = require("../models/BienThe");
 
-const API_BASE = process.env.API_BASE_URL || "http://localhost:5000";
-
-const withFullImageUrl = (sanPham) => {
-  if (!sanPham) return sanPham;
-  const raw = sanPham.toObject ? sanPham.toObject() : sanPham;
-  if (raw.anh && raw.anh.startsWith("/images/")) {
-    return { ...raw, anh: `${API_BASE}${raw.anh}` };
-  }
-  return raw;
-};
-
 const layDanhSachSanPham = async (filter) => {
-  const list = await SanPham.find(filter).populate("idDanhMuc").populate("bienThe");
-  return list.map(withFullImageUrl);
+  return await SanPham.find(filter).populate("idDanhMuc").populate("bienThe");
 };
 
 const layChiTietSanPham = async (id) => {
   const sanPham = await SanPham.findById(id)
     .populate("idDanhMuc")
     .populate("bienThe");
-  return withFullImageUrl(sanPham);
+  return sanPham;
 };
 
 const taoMoiSanPham = async (duLieuSanPham, duLieuBienThe) => {
@@ -56,10 +44,9 @@ const taoMoiSanPham = async (duLieuSanPham, duLieuBienThe) => {
   }));
   await BienThe.insertMany(bienThes);
 
-  const created = await SanPham.findById(sanPhamMoi._id)
+  return await SanPham.findById(sanPhamMoi._id)
     .populate("idDanhMuc")
     .populate("bienThe");
-  return withFullImageUrl(created);
 };
 
 const capNhatSanPham = async (id, duLieuCapNhat, duLieuBienThe) => {
@@ -103,10 +90,7 @@ const capNhatSanPham = async (id, duLieuCapNhat, duLieuBienThe) => {
     await BienThe.insertMany(bienThes);
   }
 
-  const updated = await SanPham.findById(id)
-    .populate("idDanhMuc")
-    .populate("bienThe");
-  return withFullImageUrl(updated);
+  return await SanPham.findById(id).populate("idDanhMuc").populate("bienThe");
 };
 
 const xoaSanPham = async (id) => {

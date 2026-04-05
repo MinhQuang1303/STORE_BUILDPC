@@ -6,6 +6,12 @@ const SanPhamSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    anh: {
+      type: String,
+    },
+    loai: {
+      type: String,
+    },
     idDanhMuc: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "DanhMuc",
@@ -14,10 +20,6 @@ const SanPhamSchema = new mongoose.Schema(
     gia: {
       type: Number,
       required: true,
-    },
-    anh: {
-      type: String,
-      trim: true,
     },
     thongSo: {
       type: String,
