@@ -236,8 +236,27 @@ const TrangThanhToan = () => {
 
             {/* CỘT PHẢI */}
             <div style={{ flex: 1, background: '#1a1a1a', color: 'white', padding: '25px', borderRadius: '15px' }}>
-                <h3>📋 CHI TIẾT ĐƠN HÀNG</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 'bold', color: '#e74c3c', marginTop: '15px' }}>
+                <h3 style={{ marginTop: 0, marginBottom: '16px' }}>📋 CHI TIẾT ĐƠN HÀNG</h3>
+
+                {/* Danh sách sản phẩm */}
+                {items && items.length > 0 && (
+                    <div style={{ maxHeight: '250px', overflowY: 'auto', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {items.map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+                                <img src={item.anh?.startsWith('/uploads') ? `${(process.env.REACT_APP_API_URL || '').replace('/api', '')}${item.anh}` : (item.anh || 'https://via.placeholder.com/40')} alt="" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '6px', background: 'white', flexShrink: 0 }} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: '12px', color: '#e2e8f0', fontWeight: '600', lineHeight: '1.3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.ten}</div>
+                                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                                        x{item.qty} • {(item.gia * item.qty).toLocaleString()}đ
+                                        {item.fromBuildPC && <span style={{ marginLeft: '6px', background: '#1d4ed8', color: '#bfdbfe', fontSize: '9px', padding: '1px 5px', borderRadius: '4px', fontWeight: '700' }}>BUILD PC</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 'bold', color: '#e74c3c', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '14px' }}>
                     <span>TỔNG:</span><span>{tongCuoi?.toLocaleString()}đ</span>
                 </div>
                 <button onClick={handleOrder} style={styles.btnOrder} disabled={dangThanhToan}>

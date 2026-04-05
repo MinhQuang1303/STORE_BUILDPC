@@ -181,8 +181,15 @@ const TrangBuildPC = () => {
     const items = Object.values(selectedComponents);
     if (items.length === 0) return;
 
-    items.forEach((item) => {
-      addToCart(item, item.soLuong);
+    // Normalize soLuong → qty + đánh dấu fromBuildPC
+    const cartItems = items.map(item => ({
+      ...item,
+      qty: item.soLuong || 1,
+      fromBuildPC: true,
+    }));
+
+    cartItems.forEach((item) => {
+      addToCart(item, item.qty);
     });
   };
 
@@ -191,9 +198,30 @@ const TrangBuildPC = () => {
       navigate("/dang-nhap");
       return;
     }
-    const items = Object.values(selectedComponents);
-    if (items.length === 0) return;
-    navigate("/thanh-toan", { state: { buildPC: items, total: tongTien } });
+    const components = Object.values(selectedComponents);
+    if (components.length === 0) return;
+
+    // Normalize soLuong → qty để khớp với format TrangThanhToan
+    const items = components.map(item => ({
+      ...item,
+      qty: item.soLuong || 1,
+      idSanPhamGoc: item._id,
+      idBienThe: item.variantId || null,
+      fromBuildPC: true,
+    }));
+
+    navigate("/thanh-toan", {
+      state: {
+        items,
+        selectedItemIds: [], // không cần xóa khỏi giỏ hàng
+        tongCuoi: tongTien,
+        discount: 0,
+        phiVanChuyen: 0,
+        quà: null,
+        maVoucher: null,
+        fromBuildPC: true,
+      }
+    });
   };
 
   const loadPresetConfig = (preset) => {

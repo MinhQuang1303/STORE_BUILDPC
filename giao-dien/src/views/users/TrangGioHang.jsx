@@ -122,7 +122,23 @@ const TrangGioHang = () => {
                 {/* BÊN TRÁI: GIỎ HÀNG & MUA SAU */}
                 <div style={{ flex: 2, minWidth: '350px' }}>
                     <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-                        <h2 style={{ marginBottom: '20px' }}>🛒 GIỎ HÀNG</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                            <h2 style={{ margin: 0 }}>🛝 GIỏ HÀNG</h2>
+                            {cartItems.length > 0 && (
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#555', fontWeight: '600' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={cartItems.length > 0 && selectedItems.length === cartItems.length}
+                                        onChange={(e) => {
+                                            if (e.target.checked) setSelectedItems(cartItems.map(i => i._id));
+                                            else setSelectedItems([]);
+                                        }}
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3498db' }}
+                                    />
+                                    Chọn tất cả ({cartItems.length})
+                                </label>
+                            )}
+                        </div>
                         {cartItems.length === 0 ? (
                             <div style={{textAlign: 'center', padding: '40px'}}>
                                 <p style={{fontSize: '50px'}}>🧸</p>
@@ -133,7 +149,12 @@ const TrangGioHang = () => {
                                 <input type="checkbox" checked={selectedItems.includes(item._id)} onChange={() => setSelectedItems(prev => prev.includes(item._id) ? prev.filter(i => i !== item._id) : [...prev, item._id])} style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
                                 <img src={formatImageUrl(item.anh)} alt="" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
                                 <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: 0, fontSize: '15px' }}>{item.ten}</h4>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                        <h4 style={{ margin: 0, fontSize: '15px' }}>{item.ten}</h4>
+                                        {item.fromBuildPC && (
+                                            <span style={{ fontSize: '10px', fontWeight: '800', background: '#dbeafe', color: '#1e40af', padding: '2px 7px', borderRadius: '20px', border: '1px solid #bfdbfe', letterSpacing: '0.5px' }}>BUILD PC</span>
+                                        )}
+                                    </div>
                                     {item.tenBienThe && <div style={{ fontSize: '13px', color: '#7f8c8d' }}>Phiên bản: {item.tenBienThe}</div>}
                                     <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: '5px 0' }}>{item.gia?.toLocaleString()}đ</p>
                                     <button onClick={() => luuMuaSau(item._id)} style={{ color: '#3498db', background: 'none', border: 'none', fontSize: '12px', cursor: 'pointer', padding: 0 }}>❤️ Lưu mua sau</button>
