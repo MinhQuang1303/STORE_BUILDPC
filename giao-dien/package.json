@@ -17,7 +17,8 @@
     "swiper": "^12.1.2"
   },
   "scripts": {
-    "start": "react-scripts start"
+    "start": "react-scripts start",
+    "dev": "react-scripts start"
   },
   "browserslist": {
     "production": [
