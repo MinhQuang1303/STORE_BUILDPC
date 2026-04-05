@@ -2,12 +2,24 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
+const http = require("http");
+const socketIo = require("socket.io");
+const Message = require("./src/models/Message");
 const session = require('express-session'); // 1. Import session
 const passport = require('passport');       // 2. Import passport
 const User = require("./src/models/User");
 require('./src/config/passport');           // 3. Import cấu hình passport
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT"]
+  }
+});
+app.set("io", io);
 
 // --- MIDDLEWARES HỆ THỐNG (PHẢI ĐẶT ĐẦU TIÊN) ---
 app.use(cors()); 
@@ -54,6 +66,8 @@ const userRoute = require("./src/routes/userRoute");
 const bienTheRoute = require("./src/routes/bienTheRoute");
 const orderRoute = require("./src/routes/orderRoute");
 const thongKeRoute = require("./src/routes/thongKeRoute");
+const chatRoute = require("./src/routes/chatRoute");
+const notificationRoute = require("./src/routes/notificationRoute");
 
 app.use("/api/auth", authRoute);
 app.use("/api/danh-muc", danhMucRoute);
@@ -63,13 +77,54 @@ app.use("/api/users", userRoute);
 app.use("/api/bien-the", bienTheRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/thong-ke", thongKeRoute);
+app.use("/api/chat", chatRoute);
+app.use("/api/notifications", notificationRoute);
 
 app.get("/", (req, res) => {
   res.send("🚀 Máy chủ STORE_BUILDPC đang hoạt động!");
 });
 
+// --- SOCKET.IO ---
+io.on("connection", (socket) => {
+  console.log("🟢 Client connected:", socket.id);
+
+  socket.on("join_room", (sessionId) => {
+    socket.join(sessionId);
+    console.log(`🔌 Socket ${socket.id} joined room: ${sessionId}`);
+  });
+
+  socket.on("admin_join", () => {
+    socket.join("admin_room");
+    console.log(`👨‍💼 Admin joined admin_room`);
+  });
+
+  socket.on("send_message", async (data) => {
+    try {
+      const { sessionId, sender, content, userId, username } = data;
+      const newMessage = new Message({
+        sessionId,
+        userId: userId || null,
+        username: username || "Khách",
+        sender,
+        content
+      });
+      await newMessage.save();
+
+      io.to(sessionId).emit("receive_message", newMessage);
+      console.log("--> EMITTING CHAT EVENT TO ADMIN");
+      io.to("admin_room").emit("SOCKET_EVENT_CHAT", newMessage);
+    } catch (error) {
+      console.error("Lỗi socket send_message:", error);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Client disconnected:", socket.id);
+  });
+});
+
 // --- KHỞI CHẠY (LUÔN Ở CUỐI CÙNG) ---
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Backend nổ máy tại: http://localhost:${PORT}`);
 });

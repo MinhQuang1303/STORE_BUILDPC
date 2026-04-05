@@ -59,10 +59,14 @@ const TrangThanhToan = () => {
                     soDienThoai: form.sdt,
                     ghiChu: form.ghiChu,
                     phuongThucThanhToan,
-                    items: (items || []).map((item) => ({
-                        idSanPham: item._id,
-                        soLuong: item.qty,
-                    })),
+                    items: (items || []).map((item) => {
+                        const parts = String(item._id).split('-');
+                        return {
+                            idSanPham: parts[0],
+                            idBienThe: parts[1] || null,
+                            soLuong: item.qty,
+                        };
+                    }),
                     tongTien: tongCuoi
                 },
                 {

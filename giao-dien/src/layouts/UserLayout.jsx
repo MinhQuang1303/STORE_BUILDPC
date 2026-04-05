@@ -2,8 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
+import CustomerChatWidget from "../components/CustomerChatWidget";
+import AdminNotificationBell from "../components/AdminNotificationBell";
+import CustomerNotificationBell from "../components/CustomerNotificationBell";
 import { 
-    Search, ShoppingCart, User, LogOut, 
+    Search, ShoppingCart, User, LogOut, Bell,
     ChevronDown, LayoutGrid, Cpu, Monitor, HardDrive, Zap, Box, Wind, MemoryStick,
     Phone, MapPin, ShieldCheck, Truck
 } from 'lucide-react';
@@ -13,6 +16,7 @@ const UserLayout = () => {
     const { cartItems } = useContext(CartContext);
     const [user, setUser] = useState(null);
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const [unreadChatCount, setUnreadChatCount] = useState(0);
 
     // Danh sách danh mục mẫu
     const categories = [
@@ -113,6 +117,15 @@ const UserLayout = () => {
                                 {cartItems?.length || 0}
                             </span>
                         </div>
+
+                        {/* CHUÔNG THÔNG BÁO CHAT */}
+                        {user && (
+                            user.role === "admin" ? (
+                                <div className="mt-1"><AdminNotificationBell iconClassName="text-white" /></div>
+                            ) : (
+                                <CustomerNotificationBell user={user} unreadChatCount={unreadChatCount} />
+                            )
+                        )}
 
                         {/* AUTH SECTION */}
                         {user ? (
@@ -269,6 +282,14 @@ const UserLayout = () => {
                     </div>
                 </div>
             </footer>
+            {/* Thêm Chat Widget cho Khách Hàng */}
+            {user && user.role !== "admin" && (
+                <CustomerChatWidget 
+                    user={user} 
+                    unreadCount={unreadChatCount} 
+                    setUnreadCount={setUnreadChatCount} 
+                />
+            )}
         </div>
     );
 };
