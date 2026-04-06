@@ -55,9 +55,12 @@ exports.taoDonThanhToan = async (req, res) => {
 // Lấy danh sách tất cả đơn hàng
 exports.layDanhSachOrder = async (req, res) => {
   try {
+    console.log("👨‍💼 [ADMIN] Yêu cầu lấy danh sách tất cả đơn hàng");
     const danhSach = await orderService.layDanhSachOrder();
+    console.log("✅ Tìm thấy", danhSach.length, "đơn hàng");
     res.json(danhSach);
   } catch (error) {
+    console.error("❌ Lỗi lấy danh sách order:", error.message);
     res.status(500).json({ message: error.message });
   }
 };

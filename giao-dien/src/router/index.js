@@ -11,6 +11,7 @@ import QuanLyMaGiamGia from "../views/admin/QuanLyMaGiamGia";
 import QuanLyUser from "../views/admin/QuanLyUser";
 import QuanLyOrder from "../views/admin/QuanLyOrder";
 import QuanLyChat from "../views/admin/QuanLyChat";
+import QuanLyTradeIn from "../views/admin/QuanLyTradeIn";
 
 // User views
 import TrangChu from "../views/users/TrangChu";
@@ -19,6 +20,7 @@ import TrangChiTiet from "../views/users/TrangChiTiet";
 import TrangGioHang from "../views/users/TrangGioHang";
 import TrangSanPham from "../views/users/TrangSanPham";
 import TrangDonHangCuaToi from "../views/users/TrangDonHangCuaToi";
+import TrangTaiKhoanCuaToi from "../views/users/TrangTaiKhoanCuaToi";
 import DangNhap from "../views/DangNhap";
 import DangKy from "../views/DangKy";
 import DatLaiMatKhau from "../views/DatLaiMatKhau"; 
@@ -42,6 +44,7 @@ const router = createBrowserRouter([
       { path: "gio-hang", element: <TrangGioHang /> },
       { path: "thanh-toan", element: <TrangThanhToan /> },
       { path: "don-hang-cua-toi", element: <TrangDonHangCuaToi /> },
+      { path: "tai-khoan", element: <TrangTaiKhoanCuaToi /> },
       { path: "dang-nhap", element: <DangNhap /> },
       { path: "dang-ky", element: <DangKy /> },
       { path: "dat-lai-mat-khau/:token", element: <DatLaiMatKhau /> },
@@ -78,6 +81,7 @@ const router = createBrowserRouter([
       { path: "users", element: <QuanLyUser /> },
       { path: "orders", element: <QuanLyOrder /> },
       { path: "chat", element: <QuanLyChat /> },
+      { path: "trade-in", element: <QuanLyTradeIn /> },
     ],
   },
   {

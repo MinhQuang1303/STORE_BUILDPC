@@ -72,6 +72,13 @@ const AdminLayout = () => {
                 <span className="font-medium">Quản lý Chat</span>
             </div>
           </Link>
+          <Link
+            to="/admin/trade-in"
+            className="flex items-center p-3 text-gray-300 hover:bg-blue-600 hover:text-white rounded-lg transition-colors group mb-2"
+          >
+            <span className="mr-3">💰</span>
+            <span className="font-medium">Quản lý Trade-in</span>
+          </Link>
         </nav>
 
         <div className="mt-auto p-4 border-t border-slate-800">

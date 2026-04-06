@@ -77,10 +77,18 @@ const TrangChu = () => {
                     <div 
                         key={cat.id} 
                         onClick={() => navigate(`/san-pham?cat=${cat.id.toLowerCase()}`)}
-                        className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 hover:shadow-xl hover:border-blue-600 transition-all"
+                        className="group relative cursor-pointer overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-slate-50 shadow-sm border border-slate-200 hover:shadow-xl hover:border-blue-600 transition-all"
                     >
-                        <div className="h-32 flex items-center justify-center p-4">
-                            <img src={cat.img} alt={cat.name} className="h-full object-contain group-hover:scale-110 transition-transform duration-300" onError={(e) => { e.target.src = 'https://via.placeholder.com/150' }}/>
+                        <div className="h-32 flex items-center justify-center p-4 bg-white group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-slate-100 transition-all relative">
+                            <img 
+                                src={cat.img} 
+                                alt={cat.name} 
+                                className="h-full object-contain group-hover:scale-110 transition-transform duration-300" 
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                            <div className="absolute text-blue-600 group-hover:text-blue-700 transition-colors" style={{fontSize: '32px'}}>
+                                {cat.icon}
+                            </div>
                         </div>
                         <div className="bg-slate-50 border-t border-slate-100 p-3 text-center transition-colors group-hover:bg-slate-900">
                             <h3 className="font-bold text-[15px] text-slate-800 group-hover:text-white transition-colors">{cat.name}</h3>

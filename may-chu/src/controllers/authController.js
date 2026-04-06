@@ -47,10 +47,14 @@ exports.dangKy = async (req, res) => {
 exports.dangNhap = async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log("🔍 Đăng nhập - Email:", email);
+        
         const user = await User.findOne({ email });
+        console.log("👤 User tìm thấy:", user ? "Có" : "Không");
 
         // So sánh mật khẩu (Hàm comparePassword định nghĩa trong Model User)
         if (!user || !(await user.comparePassword(password))) {
+            console.log("❌ Email hoặc mật khẩu không chính xác");
             return res.status(400).json({ message: "Email hoặc mật khẩu không chính xác!" });
         }
 
@@ -61,6 +65,7 @@ exports.dangNhap = async (req, res) => {
             { expiresIn: "1d" },
         );
 
+        console.log("✅ Đăng nhập thành công:", user.email);
         res.status(200).json({
             message: "Đăng nhập thành công!",
             token: token,
@@ -72,6 +77,7 @@ exports.dangNhap = async (req, res) => {
             },
         });
     } catch (error) {
+        console.error("⚠️ Lỗi đăng nhập:", error.message);
         res.status(500).json({ message: "Lỗi server khi đăng nhập", error: error.message });
     }
 };

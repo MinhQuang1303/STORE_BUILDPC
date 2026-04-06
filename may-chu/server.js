@@ -68,6 +68,8 @@ const orderRoute = require("./src/routes/orderRoute");
 const thongKeRoute = require("./src/routes/thongKeRoute");
 const chatRoute = require("./src/routes/chatRoute");
 const notificationRoute = require("./src/routes/notificationRoute");
+const benchmarkRoute = require("./src/routes/benchmarkRoute");
+const tradeInRoute = require("./src/routes/tradeInRoute");
 
 app.use("/api/auth", authRoute);
 app.use("/api/danh-muc", danhMucRoute);
@@ -79,6 +81,8 @@ app.use("/api/orders", orderRoute);
 app.use("/api/thong-ke", thongKeRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/notifications", notificationRoute);
+app.use("/api/benchmarks", benchmarkRoute);
+app.use("/api/trade-in", tradeInRoute);
 
 app.get("/", (req, res) => {
   res.send("🚀 Máy chủ STORE_BUILDPC đang hoạt động!");

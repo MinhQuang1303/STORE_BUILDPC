@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CartContext } from "../../context/CartContext";
+import BenchmarkDisplay from "../../components/BenchmarkDisplay";
+import TradeInForm from "../../components/TradeInForm";
 
 const TrangChiTiet = () => {
   const { id } = useParams();
@@ -166,6 +168,16 @@ const TrangChiTiet = () => {
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        {/* BENCHMARK SECTION */}
+        <div style={{marginTop: "40px"}}>
+          <BenchmarkDisplay idSanPham={sp._id} loaiSanPham={sp.loai} />
+        </div>
+
+        {/* TRADE-IN SECTION */}
+        <div style={{marginTop: "40px"}}>
+          <TradeInForm idOrder={null} />
         </div>
       </div>
     </div>
