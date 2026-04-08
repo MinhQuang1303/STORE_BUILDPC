@@ -48,6 +48,11 @@ const QuanLyOrder = () => {
       setLoading(false);
     } catch (err) {
       console.error("Lỗi lấy danh sách đơn hàng:", err);
+      // Hiển thị dạng popup để User biết
+      const msg = err.response?.data?.message || err.message;
+      if (err.response?.status === 401 || err.response?.status === 403) {
+         alert("Lỗi bảo mật: Token Admin của bạn đã hết hạn hoặc không hợp lệ. Vui lòng ĐĂNG XUẤT và ĐĂNG NHẬP LẠI.");
+      }
       setLoading(false);
     }
   };

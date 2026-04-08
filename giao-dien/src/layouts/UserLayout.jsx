@@ -140,7 +140,7 @@ const UserLayout = () => {
                                     </div>
                                 </div>
                                 {/* DROPDOWN */}
-                                <div className="absolute top-full right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                                <div className="absolute top-full right-0 mt-2 w-56 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                                     <div className="p-2 space-y-1">
                                         <Link to="/tai-khoan" className="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg text-sm font-semibold transition-colors">
                                             <User size={18} className="text-blue-600"/> Tài khoản của tôi

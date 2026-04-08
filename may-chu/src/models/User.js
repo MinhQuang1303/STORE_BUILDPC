@@ -35,6 +35,28 @@ const UserSchema = new mongoose.Schema(
       sparse: true, // Cho phép null nhưng nếu có giá trị thì phải duy nhất
     },
     avatar: String,
+    
+    // --- THÊM TRƯỜNG THÔNG TIN CÁ NHÂN ---
+    hoTen: {
+      type: String,
+      trim: true,
+    },
+    gioiTinh: {
+      type: String,
+      enum: ["Nam", "Nữ", ""],
+      default: "",
+    },
+    soDienThoai: {
+      type: String,
+      trim: true,
+    },
+    ngaySinh: {
+      type: Date,
+    },
+    diaChi: {
+      type: String,
+      trim: true,
+    },
 
     // --- THÊM TRƯỜNG CHO QUÊN MẬT KHẨU (ĐÃ FIX VỊ TRÍ) ---
     resetPasswordToken: String,
