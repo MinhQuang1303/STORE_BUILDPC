@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 // Import Models
-const User = require("./src/models/User");
+const NguoiDung = require("./src/models/NguoiDung");
 const Order = require("./src/models/Order");
 const OrderItem = require("./src/models/OrderItem");
 const SanPham = require("./src/models/SanPham");
 const DanhMuc = require("./src/models/DanhMuc");
+const MaGiamGia = require("./src/models/MaGiamGia");
 
 const MONGO_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/pc-builder";
 
@@ -236,13 +237,64 @@ const seedData = async () => {
         // =======================
         // 4. LẤY USER TỪ DATABASE ĐỂ TẠO ĐƠN HÀNG
         // =======================
-        // Lấy danh sách các tài khoản khách hàng bạn đã tự tạo trước đó
-        const normalUsers = await User.find({ role: "user" });
+        // 0. Xóa Mã Giảm Giá cũ
+        await MaGiamGia.deleteMany({});
+        console.log("🗑️ Đã xóa mã giảm giá cũ");
 
+        // 0.1 Tạo Mã Giảm Giá mẫu
+        const vouchers = [
+            {
+                ma: "SUMMER2024",
+                moTa: "Giảm giá mùa hè rực rỡ",
+                loaiGiamGia: "phanTram",
+                giaTri: 10,
+                giaTriDonHangToiThieu: 5000000,
+                giaTriGiamToiDa: 1000000,
+                ngayBatDau: new Date(),
+                ngayHetHan: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+                soLuong: 100,
+                trangThai: true
+            },
+            {
+                ma: "BUILDPCNEW",
+                moTa: "Ưu đãi cho dàn máy mới",
+                loaiGiamGia: "giaTriCoDinh",
+                giaTri: 500000,
+                giaTriDonHangToiThieu: 20000000,
+                ngayBatDau: new Date(),
+                ngayHetHan: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+                soLuong: 50,
+                trangThai: true
+            }
+        ];
+        await MaGiamGia.insertMany(vouchers);
+        console.log("✅ Đã tạo mã giảm giá mẫu!");
+
+        // Lấy danh sách các tài khoản khách hàng bạn đã tự tạo trước đó
+        let normalUsers = await NguoiDung.find({ role: "user" });
+
+        // NẾU CHƯA CÓ USER, TẠO MỚI 2 USER MẪU ĐỂ CÓ CÁI MÀ TẠO ĐƠN
         if (normalUsers.length === 0) {
-            console.log("⚠️ KHÔNG TÌM THẤY USER NÀO TRONG DATABASE!");
-            console.log("⏭ Bỏ qua bước tạo Đơn Hàng. Bạn có thể vào Web tự tạo User để test nhé.");
-        } else {
+            console.log("⚠️ Không tìm thấy User nào. Đang tạo 2 User mẫu...");
+            const bcrypt = require("bcryptjs");
+            const hashPassword = await bcrypt.hash("123456", 10);
+            const user1 = await NguoiDung.create({
+                username: "khachhang01",
+                email: "khachhang01@gmail.com",
+                password: hashPassword,
+                role: "user",
+                hoTen: "Nguyễn Văn Khách 01"
+            });
+            const user2 = await NguoiDung.create({
+                username: "khachhang02",
+                email: "khachhang02@gmail.com",
+                password: hashPassword,
+                role: "user",
+                hoTen: "Trần Thị Khách 02"
+            });
+            normalUsers = [user1, user2];
+            console.log("✅ Đã tạo 2 User mẫu!");
+        }
             console.log(`📦 Đã tìm thấy ${normalUsers.length} Khách hàng. Đang tạo đơn hàng giả lập cho 12 tháng...`);
 
             const trangThais = ["Pending", "Confirmed", "Shipping", "Delivered", "Cancelled"];
@@ -293,7 +345,6 @@ const seedData = async () => {
                 }
             }
             console.log("✅ Đã tạo xong đơn hàng mẫu!");
-        }
 
         console.log("🎉 Hoàn tất quá trình nạp dữ liệu! Bật server lên và xem thành quả nào.");
         process.exit(0);

@@ -4,7 +4,7 @@ const TradeInSchema = new mongoose.Schema(
   {
     idUser: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "NguoiDung",
       required: true,
     },
     idOrder: {
@@ -45,7 +45,7 @@ const TradeInSchema = new mongoose.Schema(
     ngayDuyet: Date,
     idAdminDuyet: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "NguoiDung",
     },
   },
   {

@@ -15,7 +15,8 @@ const DatLaiMatKhau = () => {
 
     try {
       // PATCH lên backend để đổi pass với token từ URL
-      const res = await axios.patch(`http://localhost:5000/api/auth/reset-password/${token}`, { password });
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const res = await axios.patch(`${apiUrl}/auth/reset-password/${token}`, { password });
       alert("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
       navigate('/dang-nhap');
     } catch (err) {

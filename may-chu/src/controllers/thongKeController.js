@@ -1,6 +1,6 @@
-﻿const Order = require("../models/Order");
+const Order = require("../models/Order");
 const SanPham = require("../models/SanPham");
-const User = require("../models/User");
+const NguoiDung = require("../models/NguoiDung");
 
 // @desc    Lấy số liệu thống kê tổng quan (Doanh thu, Đơn hàng, Sản phẩm, Khách hàng)
 // @route   GET /api/thong-ke/overview
@@ -8,7 +8,7 @@ exports.getOverview = async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments();
     const totalProducts = await SanPham.countDocuments();
-    const totalUsers = await User.countDocuments({ role: "user" });
+    const totalUsers = await NguoiDung.countDocuments({ role: "user" });
 
     // Tính tổng doanh thu từ các đơn hàng đã giao thành công (Delivered)
     const orders = await Order.find({ trangThai: "Delivered" });

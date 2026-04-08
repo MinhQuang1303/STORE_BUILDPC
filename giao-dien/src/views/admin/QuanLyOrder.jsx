@@ -27,7 +27,8 @@ const QuanLyOrder = () => {
 
   useEffect(() => {
     fetchOrders();
-    const socket = io("http://localhost:5000");
+    const socketBase = rawApiUrl.replace("/api", "");
+    const socket = io(socketBase);
     socket.on("connect", () => {
         socket.emit("admin_join");
     });
@@ -44,7 +45,9 @@ const QuanLyOrder = () => {
         ? `${API_ORDERS}/nguoi-dung/${selectedUserId}`
         : API_ORDERS;
       const res = await axios.get(url, getAuthConfig());
-      setOrders(res.data);
+      // Xử lý linh hoạt nếu dữ liệu trả về bị bọc trong { success, data }
+      const finalData = res.data.success ? res.data.data : res.data;
+      setOrders(Array.isArray(finalData) ? finalData : []);
       setLoading(false);
     } catch (err) {
       console.error("Lỗi lấy danh sách đơn hàng:", err);

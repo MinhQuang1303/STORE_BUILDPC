@@ -5,7 +5,8 @@ import { Send, User, MessageSquare } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const SOCKET_URL = "http://localhost:5000";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const SOCKET_URL = API_URL.replace("/api", "");
 
 const QuanLyChat = () => {
     const [sessions, setSessions] = useState([]);
@@ -25,7 +26,7 @@ const QuanLyChat = () => {
 
     // Lấy danh sách session
     const fetchSessions = () => {
-        axios.get("http://localhost:5000/api/chat/sessions")
+        axios.get(`${API_URL}/chat/sessions`)
             .then(res => {
                 if (res.data.success) {
                     setSessions(res.data.sessions);
@@ -71,12 +72,12 @@ const QuanLyChat = () => {
         window.currentChatSession = activeSession;
         
         if (activeSession) {
-            axios.get(`http://localhost:5000/api/chat/${activeSession}`)
+            axios.get(`${API_URL}/chat/${activeSession}`)
                 .then(res => {
                     if (res.data.success) {
                         setMessages(res.data.messages);
                         // Đánh dấu đã đọc
-                        axios.put(`http://localhost:5000/api/chat/read/admin/${activeSession}`).then(() => {
+                        axios.put(`${API_URL}/chat/read/admin/${activeSession}`).then(() => {
                             fetchSessions(); // Cập nhật lại unreadCount
                         });
                     }

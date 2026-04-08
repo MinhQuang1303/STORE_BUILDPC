@@ -36,7 +36,8 @@ router.get('/google/callback',
     });
 
     // Redirect về trang trung gian ở Frontend
-    res.redirect(`http://localhost:3000/auth-success?token=${token}&user=${encodeURIComponent(userString)}`);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendUrl}/auth-success?token=${token}&user=${encodeURIComponent(userString)}`);
   }
 );
 

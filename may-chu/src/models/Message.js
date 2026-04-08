@@ -8,7 +8,7 @@ const messageSchema = new mongoose.Schema({
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'NguoiDung',
     default: null // null nghĩa là khách không đăng nhập
   },
   username: {

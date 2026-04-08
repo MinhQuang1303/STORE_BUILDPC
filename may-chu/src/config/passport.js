@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
+const NguoiDung = require('../models/NguoiDung');
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -10,11 +10,11 @@ passport.use(new GoogleStrategy({
   async (accessToken, refreshToken, profile, done) => {
     try {
       // Kiểm tra user đã tồn tại chưa
-      let user = await User.findOne({ googleId: profile.id });
+      let user = await NguoiDung.findOne({ googleId: profile.id });
       
       if (!user) {
         // Nếu chưa có thì tạo mới
-        user = await User.create({
+        user = await NguoiDung.create({
           googleId: profile.id,
           username: profile.displayName,
           email: profile.emails[0].value,
@@ -31,5 +31,5 @@ passport.use(new GoogleStrategy({
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser((id, done) => {
-  User.findById(id).then(user => done(null, user));
+  NguoiDung.findById(id).then(user => done(null, user));
 });

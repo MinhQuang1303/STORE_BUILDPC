@@ -11,7 +11,8 @@ const CustomerNotificationBell = ({ user, unreadChatCount }) => {
     const fetchNotifications = () => {
         const uId = user?._id || user?.id;
         if (!uId) return;
-        axios.get(`http://localhost:5000/api/notifications/customer/${uId}`)
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        axios.get(`${apiUrl}/notifications/customer/${uId}`)
             .then(res => {
                 if (res.data.success) {
                     setSysNotifs(res.data.notifications);
@@ -23,7 +24,8 @@ const CustomerNotificationBell = ({ user, unreadChatCount }) => {
     useEffect(() => {
         fetchNotifications();
         
-        const socket = io("http://localhost:5000");
+        const socketBase = (process.env.REACT_APP_API_URL || "http://localhost:5000/api").replace("/api", "");
+        const socket = io(socketBase);
         const uId = user?._id || user?.id;
         
         if (uId) {
@@ -60,7 +62,8 @@ const CustomerNotificationBell = ({ user, unreadChatCount }) => {
     const markAsRead = async (id, isAlreadyRead) => {
         if (!isAlreadyRead) {
             try {
-                await axios.put(`http://localhost:5000/api/notifications/${id}/read`);
+                const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+                await axios.put(`${apiUrl}/notifications/${id}/read`);
                 fetchNotifications();
             } catch (error) {
                 console.error("Lỗi đánh dấu đã đọc:", error);

@@ -6,7 +6,7 @@ const notificationSchema = new mongoose.Schema({
     content: { type: String, required: true },
     linkData: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
     isAdminAuth: { type: Boolean, default: false },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung' },
     isRead: { type: Boolean, default: false },
 }, { timestamps: true });
 
