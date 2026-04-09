@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import { CartContext } from "../context/CartContext";
 import ThanhThongBaoKhuyenMai from "../components/ThanhThongBaoKhuyenMai";
 import CustomerChatWidget from "../components/CustomerChatWidget";
@@ -18,7 +19,28 @@ const UserLayout = () => {
     const [isCategoryOpen, setIsCategoryOpen] = useState(false);
     const [unreadChatCount, setUnreadChatCount] = useState(0);
 
-    // Danh sách danh mục mẫu
+    // Live Search States
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [allProducts, setAllProducts] = useState([]);
+
+    useEffect(() => {
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+        axios.get(`${apiUrl}/san-pham`)
+            .then(res => setAllProducts(Array.isArray(res.data) ? res.data : (res.data.products || [])))
+            .catch(err => console.log(err));
+    }, []);
+
+    // Logic lọc sản phẩm theo từ khoá
+    const unaccent = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+    const suggestedProducts = searchTerm.trim() === "" ? [] : allProducts.filter((p) => {
+        const q = unaccent(searchTerm);
+        const nameMatch = unaccent(p.ten).includes(q);
+        const catMatch = p.loai && unaccent(p.loai).includes(q);
+        const catObjMatch = p.idDanhMuc?.ten && unaccent(p.idDanhMuc.ten).includes(q);
+        return nameMatch || catMatch || catObjMatch;
+    }).slice(0, 5); // Lấy tối đa 5 gợi ý
+
     const categories = [
         { name: "CPU - Bộ vi xử lý", icon: <Cpu size={18}/>, path: "/san-pham?cat=cpu" },
         { name: "VGA - Card màn hình", icon: <Monitor size={18}/>, path: "/san-pham?cat=vga" },
@@ -27,7 +49,7 @@ const UserLayout = () => {
         { name: "Mainboard - Bo mạch chủ", icon: <LayoutGrid size={18}/>, path: "/san-pham?cat=main" },
         { name: "PSU - Nguồn", icon: <Zap size={18}/>, path: "/san-pham?cat=psu" },
         { name: "Case - Vỏ máy tính", icon: <Box size={18}/>, path: "/san-pham?cat=case" },
-        { name: "Tản nhiệt CPU", icon: <Wind size={18}/>, path: "/san-pham?cat=cooler" },
+        { name: "Tản nhiệt CPU", icon: <Wind size={18}/>, path: "/san-pham?cat=tản nhiệt" },
     ];
 
     useEffect(() => {
@@ -71,7 +93,7 @@ const UserLayout = () => {
                 </div>
             </div>
 
-            {/* --- MAIN HEADER (Red E-commerce Style) --- */}
+            {/* --- MAIN HEADER --- */}
             <nav className="bg-slate-900 text-white shadow-md sticky top-0 z-[1000]">
                 <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-6">
                     {/* LOGO */}
@@ -84,22 +106,50 @@ const UserLayout = () => {
                         <span className="bg-white text-blue-600 px-2 py-0.5 rounded-lg text-xl self-center ml-1 shadow-inner">PC</span>
                     </div>
 
-                    {/* SEARCH BAR (Big & Prominent) */}
+                    {/* SEARCH BAR */}
                     <div className="flex-1 max-w-3xl relative hidden md:block group">
                         <input
                             type="text"
                             placeholder="Nhập tên linh kiện, mã sản phẩm bạn cần tìm..."
                             className="w-full pl-4 pr-12 py-3 bg-white text-slate-800 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all font-medium border-0"
-                            onKeyDown={(e) => e.key === "Enter" && navigate(`/san-pham?q=${e.target.value}`)}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                            onKeyDown={(e) => e.key === "Enter" && navigate(`/san-pham?q=${searchTerm}`)}
                         />
                         <button className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-slate-900 p-1.5 rounded-md text-white hover:bg-slate-800 transition">
                             <Search size={22} />
                         </button>
+
+                        {/* Search Suggestions */}
+                        {isSearchFocused && suggestedProducts.length > 0 && (
+                            <div className="absolute top-full left-0 w-full bg-white mt-1 rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-[1100]">
+                                {suggestedProducts.map((p) => (
+                                    <div 
+                                        key={p._id}
+                                        className="flex items-center gap-4 p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0"
+                                        onClick={() => {
+                                            navigate(`/san-pham/${p._id}`);
+                                            setSearchTerm("");
+                                        }}
+                                    >
+                                        <div className="w-12 h-12 flex-shrink-0 bg-white p-1 rounded-lg border border-slate-100">
+                                            <img src={p.anh} alt={p.ten} className="w-full h-full object-contain" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-bold text-slate-800 text-sm truncate">{p.ten}</div>
+                                            <div className="text-blue-600 font-black text-sm">{p.gia?.toLocaleString()}đ</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* ACTIONS */}
                     <div className="flex items-center gap-4 shrink-0">
-                        <Link to="/build" className="flex items-center gap-2 font-bold text-sm bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-yellow-300 transition-colors shadow-sm">
+                        <Link to="/build" className="flex items-center gap-2 font-bold text-sm bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                             <Monitor size={18}/> Build PC
                         </Link>
 
@@ -202,7 +252,6 @@ const UserLayout = () => {
 
                         {/* Quick links */}
                         <div className="flex items-center flex-1">
-                            {/* Nút Flash Sale tự động hóa kịch bản */}
                             <Link to="/flash-sale" className="px-5 py-3 text-[14px] font-bold text-red-600 hover:scale-105 active:scale-95 ml-4 flex items-center gap-2 bg-red-50 rounded-full px-6 py-1.5 transition-all animate-pulse shadow-sm border border-red-100">
                                 <Zap size={16} fill="#dc2626"/> SIÊU ƯU ĐÃI THÁNG 4 - GIẢM ĐẾN 50%!
                             </Link>

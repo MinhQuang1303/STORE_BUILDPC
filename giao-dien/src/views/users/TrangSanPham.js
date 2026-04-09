@@ -13,7 +13,6 @@ const TrangSanPham = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Lấy Category từ query param nếu có (ví dụ: ?cat=vga)
   const searchParams = new URLSearchParams(location.search);
   const queryCat = searchParams.get("cat");
   const querySearch = searchParams.get("q");
@@ -22,7 +21,7 @@ const TrangSanPham = () => {
   const [khoangGiaChon, setKhoangGiaChon] = useState("Tất cả");
   const [sapXepGia, setSapXepGia] = useState("mac-dinh");
   const [searchQuery, setSearchQuery] = useState(querySearch || "");
-  const [viewMode, setViewMode] = useState("grid"); // grid | list
+  const [viewMode, setViewMode] = useState("grid");
 
   const categories = [
     { id: "Tất cả", name: "Tất cả linh kiện" },
@@ -48,7 +47,8 @@ const TrangSanPham = () => {
     const fetchAllProducts = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/san-pham`);
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+        const res = await axios.get(`${apiUrl}/san-pham`);
         setSanPhams(res.data);
         setIsLoading(false);
       } catch (err) {
@@ -59,7 +59,6 @@ const TrangSanPham = () => {
     fetchAllProducts();
   }, []);
 
-  // Xử lý query param ban đầu
   useEffect(() => {
     if (queryCat) {
       const match = categories.find(c => c.id.toLowerCase() === queryCat.toLowerCase());
