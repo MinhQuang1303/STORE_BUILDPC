@@ -5,7 +5,7 @@ const cauHinhSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "NguoiDung",
       required: true,
     },
     tenCauHinh: { type: String, default: "Bộ máy của tôi" },

@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
 const {
   layTatCa,
@@ -8,6 +8,7 @@ const {
   xoa,
   kiemTraMa,
 } = require("../controllers/maGiamGiaController");
+const { xacThucNguoiDung, kiemTraAdmin } = require("../middlewares/authMiddleware");
 
 // GET /api/ma-giam-gia
 router.get("/", layTatCa);
@@ -19,12 +20,12 @@ router.get("/:id", layChiTiet);
 router.get("/kiem-tra/:ma", kiemTraMa);
 
 // POST /api/ma-giam-gia
-router.post("/", taoMoi);
+router.post("/", xacThucNguoiDung, kiemTraAdmin, taoMoi);
 
 // PUT /api/ma-giam-gia/:id
-router.put("/:id", capNhat);
+router.put("/:id", xacThucNguoiDung, kiemTraAdmin, capNhat);
 
 // DELETE /api/ma-giam-gia/:id
-router.delete("/:id", xoa);
+router.delete("/:id", xacThucNguoiDung, kiemTraAdmin, xoa);
 
 module.exports = router;

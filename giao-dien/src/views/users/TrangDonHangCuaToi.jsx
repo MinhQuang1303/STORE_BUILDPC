@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const TrangDonHangCuaToi = () => {
+const TrangDonHangCuaToi = ({ isEmbed }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -62,11 +62,13 @@ const TrangDonHangCuaToi = () => {
   }, [API_ORDERS, navigate]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-slate-800 uppercase">Đơn hàng của tôi</h1>
-        <p className="text-sm text-gray-500">Theo dõi trạng thái xử lí các đơn bạn đã đặt</p>
-      </div>
+    <div className={isEmbed ? "py-2" : "max-w-6xl mx-auto px-4 py-8"}>
+      {!isEmbed && (
+        <div className="mb-6">
+          <h1 className="text-2xl font-black text-slate-800 uppercase">Đơn hàng của tôi</h1>
+          <p className="text-sm text-gray-500">Theo dõi trạng thái xử lí các đơn bạn đã đặt</p>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-16">

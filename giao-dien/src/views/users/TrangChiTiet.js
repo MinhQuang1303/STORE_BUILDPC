@@ -15,7 +15,26 @@ const TrangChiTiet = () => {
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_URL}/san-pham/${id}`)
-      .then((res) => setSp(res.data))
+      .then((res) => {
+        setSp(res.data);
+        
+        // --- LƯU SẢN PHẨM ĐÃ XEM VÀO LOCAL STORAGE ---
+        try {
+          let viewed = JSON.parse(localStorage.getItem('viewed_products') || '[]');
+          viewed = viewed.filter(p => p._id !== res.data._id);
+          viewed.unshift({
+            _id: res.data._id,
+            ten: res.data.ten,
+            anh: res.data.anh,
+            gia: res.data.gia,
+            loai: res.data.loai
+          });
+          if (viewed.length > 10) viewed.pop();
+          localStorage.setItem('viewed_products', JSON.stringify(viewed));
+        } catch (e) {
+          console.error("Lỗi khi lưu viewed_products", e);
+        }
+      })
       .catch((err) => console.error("Lỗi lấy chi tiết:", err));
   }, [id]);
 

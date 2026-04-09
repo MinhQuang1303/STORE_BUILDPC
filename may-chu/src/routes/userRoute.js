@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 
@@ -7,5 +7,8 @@ router.post("/dang-ky", userController.dangKy);
 
 // Route lấy danh sách tất cả người dùng
 router.get("/", userController.layTatCa);
+
+// Route cập nhật thông tin người dùng
+router.put("/:id", userController.capNhatThongTin);
 
 module.exports = router;

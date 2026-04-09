@@ -32,7 +32,6 @@ exports.taoDonThanhToan = async (req, res) => {
     const io = req.app.get("io");
     if (io) {
       // Gửi cho Admin
-      console.log("--> EMITTING ORDER EVENT TO ADMIN");
       io.to("admin_room").emit("SOCKET_EVENT_ORDER", {
         message: "Đơn hàng mới nổ!",
         order: data,
@@ -55,12 +54,9 @@ exports.taoDonThanhToan = async (req, res) => {
 // Lấy danh sách tất cả đơn hàng
 exports.layDanhSachOrder = async (req, res) => {
   try {
-    console.log("👨‍💼 [ADMIN] Yêu cầu lấy danh sách tất cả đơn hàng");
     const danhSach = await orderService.layDanhSachOrder();
-    console.log("✅ Tìm thấy", danhSach.length, "đơn hàng");
-    res.json(danhSach);
+    res.status(200).json(danhSach);
   } catch (error) {
-    console.error("❌ Lỗi lấy danh sách order:", error.message);
     res.status(500).json({ message: error.message });
   }
 };

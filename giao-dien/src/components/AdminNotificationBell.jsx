@@ -13,7 +13,8 @@ const AdminNotificationBell = ({ iconClassName = "text-slate-600" }) => {
 
     const fetchAllData = () => {
         // Fetch Chat
-        axios.get("http://localhost:5000/api/chat/sessions")
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+        axios.get(`${apiUrl}/chat/sessions`)
             .then(res => {
                 if (res.data.success) {
                     setUnreadSessions(res.data.sessions); // Remove filter to keep read chats
@@ -22,7 +23,7 @@ const AdminNotificationBell = ({ iconClassName = "text-slate-600" }) => {
             .catch(err => console.log(err));
 
         // Fetch Notifications
-        axios.get("http://localhost:5000/api/notifications/admin")
+        axios.get(`${apiUrl}/notifications/admin`)
             .then(res => {
                 if (res.data.success) {
                     // Lưu toàn bộ, không filter loại đã xem
@@ -34,7 +35,9 @@ const AdminNotificationBell = ({ iconClassName = "text-slate-600" }) => {
 
     useEffect(() => {
         fetchAllData();
-        const socket = io("http://localhost:5000");
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+        const socketBase = apiUrl.replace("/api", "");
+        const socket = io(socketBase);
 
         socket.on("connect", () => {
             socket.emit("admin_join");
@@ -89,7 +92,8 @@ const AdminNotificationBell = ({ iconClassName = "text-slate-600" }) => {
     const markAsRead = async (notifId, isAlreadyRead, linkData) => {
         try {
             if (!isAlreadyRead) {
-                await axios.put(`http://localhost:5000/api/notifications/${notifId}/read`);
+                const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+                await axios.put(`${apiUrl}/notifications/${notifId}/read`);
                 fetchAllData(); // Refresh list
             }
             setIsNotificationOpen(false);

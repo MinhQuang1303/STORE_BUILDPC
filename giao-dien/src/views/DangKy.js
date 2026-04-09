@@ -26,8 +26,8 @@ const DangKy = () => {
     }
 
     try {
-      // 2. Gửi dữ liệu lên API Backend
-      const response = await axios.post("http://localhost:5000/api/auth/dang-ky", {
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+      const response = await axios.post(`${apiUrl}/auth/dang-ky`, {
         username: formData.username,
         email: formData.email,
         password: formData.password

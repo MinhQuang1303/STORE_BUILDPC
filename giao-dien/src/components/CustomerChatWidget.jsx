@@ -4,7 +4,7 @@ import { MessageCircle, X, Send } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const SOCKET_URL = "http://localhost:5000";
+const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:5000";
 
 const CustomerChatWidget = ({ user, unreadCount, setUnreadCount }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +18,7 @@ const CustomerChatWidget = ({ user, unreadCount, setUnreadCount }) => {
 
     useEffect(() => {
         // Tải lịch sử chat
-        axios.get(`http://localhost:5000/api/chat/${sessionId}`)
+        axios.get(`${process.env.REACT_APP_API_URL}/chat/${sessionId}`)
             .then(res => {
                 if (res.data.success) {
                     setMessages(res.data.messages);
@@ -27,7 +27,7 @@ const CustomerChatWidget = ({ user, unreadCount, setUnreadCount }) => {
             .catch(err => console.log(err));
 
         // Tải số lượng tin chưa đọc
-        axios.get(`http://localhost:5000/api/chat/unread/customer/${sessionId}`)
+        axios.get(`${process.env.REACT_APP_API_URL}/chat/unread/customer/${sessionId}`)
             .then(res => {
                 if (res.data.success) {
                     setUnreadCount(res.data.unreadCount);
@@ -52,7 +52,7 @@ const CustomerChatWidget = ({ user, unreadCount, setUnreadCount }) => {
             if (message.sender === "admin") {
                 if (isOpen) {
                     // Nếu đang mở khung chat thì đánh dấu đã đọc luôn
-                    axios.put(`http://localhost:5000/api/chat/read/customer/${sessionId}`).catch(e => {});
+                    axios.put(`${process.env.REACT_APP_API_URL}/chat/read/customer/${sessionId}`).catch(e => {});
                 } else {
                     // Bật Toast nhắc nhở và tăng số
                     toast("Admin vừa nhắn tin cho bạn!", {
@@ -79,7 +79,7 @@ const CustomerChatWidget = ({ user, unreadCount, setUnreadCount }) => {
         // Khi mở popup lên thì clear badge và gọi API read
         if (isOpen && unreadCount > 0) {
             setUnreadCount(0);
-            axios.put(`http://localhost:5000/api/chat/read/customer/${sessionId}`).catch(e => {});
+            axios.put(`${process.env.REACT_APP_API_URL}/chat/read/customer/${sessionId}`).catch(e => {});
         }
     }, [messages, isOpen]);
 

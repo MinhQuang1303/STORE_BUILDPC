@@ -8,7 +8,7 @@ const socketIo = require("socket.io");
 const Message = require("./src/models/Message");
 const session = require('express-session'); // 1. Import session
 const passport = require('passport');       // 2. Import passport
-const User = require("./src/models/User");
+const NguoiDung = require("./src/models/NguoiDung");
 require('./src/config/passport');           // 3. Import cấu hình passport
 
 const app = express();
@@ -40,9 +40,9 @@ mongoose
   .then(async () => {
     console.log("✅ Đã kết nối Database: pc-builder");
     try {
-      const adminExist = await User.findOne({ role: "admin" });
+      const adminExist = await NguoiDung.findOne({ role: "admin" });
       if (!adminExist) {
-        const admin = new User({
+        const admin = new NguoiDung({
           username: "admin",
           email: "admin@gmail.com",
           password: "admin123",
@@ -123,7 +123,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("🔴 Client disconnected:", socket.id);
+    // Client disconnected
   });
 });
 

@@ -1,32 +1,66 @@
-const User = require("../models/User");
+const NguoiDung = require("../models/NguoiDung");
 
-const dangKyUser = async (userData) => {
+const dangKyNguoiDung = async (userData) => {
   const { username, email, password, role } = userData;
 
-  const userTonTai = await User.findOne({
+  const nguoiDungTonTai = await NguoiDung.findOne({
     $or: [{ username }, { email }],
   });
 
-  if (userTonTai) {
-    throw new Error("Username hoặc Email đã được sử dụng");
+  if (nguoiDungTonTai) {
+    throw new Error("Tên đăng nhập hoặc Email đã được sử dụng");
   }
 
-  const userMoi = new User({
+  const nguoiDungMoi = new NguoiDung({
     username,
     email,
     password,
     role: role || "user",
   });
 
-  await userMoi.save();
-  return userMoi;
+  await nguoiDungMoi.save();
+  return nguoiDungMoi;
 };
 
-const layTatCaUser = async () => {
-  return await User.find().select("-password");
+const layTatCaNguoiDung = async () => {
+  return await NguoiDung.find().select("-password");
+};
+
+const capNhatThongTinNguoiDung = async (idNguoiDung, data) => {
+  const { hoTen, gioiTinh, soDienThoai, email, ngaySinh, diaChi } = data;
+  
+  // Kiểm tra email nếu đổi sang email khác đã tồn tại
+  if (email) {
+    const emailDaTonTai = await NguoiDung.findOne({ email, _id: { $ne: idNguoiDung } });
+    if (emailDaTonTai) {
+      throw new Error("Email đã được sử dụng bởi tài khoản khác!");
+    }
+  }
+
+  const nguoiDungCapNhat = await NguoiDung.findByIdAndUpdate(
+    idNguoiDung,
+    {
+      $set: {
+        ...(hoTen && { hoTen }),
+        ...(gioiTinh !== undefined && { gioiTinh }),
+        ...(soDienThoai !== undefined && { soDienThoai }),
+        ...(email && { email }),
+        ...(ngaySinh && { ngaySinh }),
+        ...(diaChi !== undefined && { diaChi })
+      }
+    },
+    { new: true, runValidators: true }
+  ).select("-password -resetPasswordToken -resetPasswordExpires");
+
+  if (!nguoiDungCapNhat) {
+    throw new Error("Không tìm thấy người dùng");
+  }
+
+  return nguoiDungCapNhat;
 };
 
 module.exports = {
-  dangKyUser,
-  layTatCaUser,
+  dangKyNguoiDung,
+  layTatCaNguoiDung,
+  capNhatThongTinNguoiDung,
 };

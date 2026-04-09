@@ -27,7 +27,9 @@ const QuanLyTradeIn = () => {
       });
       setTradeIns(res.data.data || []);
     } catch (error) {
-      toast.error('Lỗi tải danh sách trade-in');
+      console.error(error);
+      const msg = error.response?.data?.message || error.message;
+      toast.error('Lỗi tải danh sách: ' + msg);
     } finally {
       setLoading(false);
     }
